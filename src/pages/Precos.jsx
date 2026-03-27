@@ -47,7 +47,7 @@ function Card({ children, title, style = {} }) {
 const DarkTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background: '#1e1e2e', border: `1px solid ${C.border}`, borderRadius: 8, padding: '10px 14px', fontSize: 11, boxShadow: SHADOW.md }}>
+    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: '10px 14px', fontSize: 11, boxShadow: SHADOW.md }}>
       <p style={{ fontWeight: 700, color: C.t1, marginBottom: 4 }}>{label}</p>
       {payload.filter(p => p.value != null).map((p, i) => (
         <p key={i} style={{ color: p.stroke || p.fill || C.t2, margin: '2px 0' }}>
@@ -174,7 +174,7 @@ export default function Precos() {
                 if (!active || !payload?.length) return null;
                 const d = payload[0]?.payload;
                 return (
-                  <div style={{ background: '#1e1e2e', border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', fontSize: 11 }}>
+                  <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', fontSize: 11 }}>
                     <p style={{ fontWeight: 700, color: C.t1 }}>{d.time}</p>
                     <p style={{ color: C.t2 }}>Público: <b style={{ color: C.t1 }}>{d.utilizados?.toLocaleString('pt-BR')}</b></p>
                     <p style={{ color: C.accent }}>TM: R$ {d.ticketMedio?.toFixed(2)}</p>

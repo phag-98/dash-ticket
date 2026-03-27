@@ -46,7 +46,7 @@ const ScatterTooltip = ({ active, payload }) => {
   const d = payload[0]?.payload;
   if (!d) return null;
   return (
-    <div style={{ background: '#1e1e2e', border: `1px solid ${C.border}`, borderRadius: 8, padding: '10px 14px', fontSize: 11, boxShadow: SHADOW.md }}>
+    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: '10px 14px', fontSize: 11, boxShadow: SHADOW.md }}>
       <p style={{ fontWeight: 700, color: C.t1, marginBottom: 4 }}>{d.time}</p>
       <p style={{ color: C.t2 }}>Data: <b style={{ color: C.t1 }}>{d.data}</b></p>
       <p style={{ color: C.t2 }}>Público: <b style={{ color: C.t1 }}>{d.publico?.toLocaleString('pt-BR')}</b></p>

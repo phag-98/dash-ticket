@@ -56,7 +56,7 @@ function Card({ children, title, style = {} }) {
 const DarkTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background: '#1e1e2e', border: `1px solid ${C.border}`, borderRadius: 8, padding: '10px 14px', fontSize: 11, boxShadow: SHADOW.md }}>
+    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: '10px 14px', fontSize: 11, boxShadow: SHADOW.md }}>
       <p style={{ fontWeight: 700, color: C.t1, marginBottom: 4 }}>{label}</p>
       {payload.filter(p => p.value != null).map((p, i) => (
         <p key={i} style={{ color: p.stroke || C.t2, margin: '2px 0' }}>
@@ -210,7 +210,7 @@ export default function Setores() {
                   if (!active || !payload?.length) return null;
                   const d = payload[0]?.payload;
                   return (
-                    <div style={{ background: '#1e1e2e', border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', fontSize: 11 }}>
+                    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', fontSize: 11 }}>
                       <p style={{ fontWeight: 700, color: C.t1 }}>{d.name}</p>
                       <p style={{ color: C.accent }}>{fmtM(d.value)}</p>
                     </div>

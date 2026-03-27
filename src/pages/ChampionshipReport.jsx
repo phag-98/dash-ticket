@@ -82,7 +82,7 @@ function KPI({ label, value, icon, accent = false }) {
 const DarkTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background: '#1e1e2e', border: `1px solid ${C.border}`, borderRadius: 8, padding: '10px 14px', fontSize: 11, boxShadow: SHADOW.md }}>
+    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: '10px 14px', fontSize: 11, boxShadow: SHADOW.md }}>
       <p style={{ fontWeight: 700, color: C.t1, marginBottom: 6, fontSize: 12 }}>{label}</p>
       {payload.map((p, i) => (
         <p key={i} style={{ color: p.color || p.fill || C.t2, margin: '2px 0' }}>
