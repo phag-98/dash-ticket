@@ -57,6 +57,28 @@ const TEAM_COLORS = {
   'Junior de Barranquilla': '#cc0000', 'Aurora': '#006400',
 };
 
+function CustomXTick({ x, y, payload }) {
+  const parts = payload.value.split(' ');
+  const rodada = parts[parts.length - 1];
+  const timeName = parts.slice(0, -1).join(' ');
+  const logoFile = LOGO_MAP[timeName];
+  const initials = timeName.split(' ').filter(w => w.length > 2).slice(0, 2).map(w => w[0]).join('').toUpperCase() || timeName.slice(0,2).toUpperCase();
+  const bg = TEAM_COLORS[timeName] || '#888';
+
+  return (
+    <g transform={`translate(${x},${y})`}>
+      {logoFile ? (
+        <image href={`/logos/${logoFile}`} x={-10} y={4} width={20} height={20} style={{objectFit:'contain'}} />
+      ) : (
+        <foreignObject x={-10} y={4} width={20} height={20}>
+          <div style={{width:20,height:20,borderRadius:'50%',background:bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:7,fontWeight:800,color:'#fff'}}>{initials}</div>
+        </foreignObject>
+      )}
+      <text x={0} y={30} textAnchor="middle" fill="#999" fontSize={7}>{rodada}</text>
+    </g>
+  );
+}
+
 function TeamBadge({ name, size = 22 }) {
   const logo = LOGO_MAP[name];
   const initials = name.split(' ').filter(w => w.length > 2).slice(0, 2).map(w => w[0].toUpperCase()).join('') || name.slice(0, 2).toUpperCase();
@@ -300,34 +322,28 @@ export default function ChampionshipReport() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       {/* ── Row 1: Filtros + 4 KPIs em linha ── */}
-      <div style={{ display: 'flex', gap: 12, alignItems: 'stretch', flexWrap: 'nowrap' }}>
+      <div style={{ display: 'flex', gap: 12, alignItems: 'stretch', flexWrap: 'wrap' }}>
 
         {/* Filtros */}
         <div style={{
           background: C.card, border: `1px solid ${C.border}`,
-          borderRadius: 10, padding: '12px 16px',
-          display: 'flex', flexDirection: 'column', gap: 8,
+          borderRadius: 10, padding: '10px 14px',
+          display: 'flex', flexDirection: 'column', gap: 6,
           boxShadow: SHADOW.card, flexShrink: 0,
         }}>
           <div style={sectionTitle}>Filtros</div>
-          <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-            <div>
-              <div style={{ fontSize: 9, color: C.t3, marginBottom: 5, letterSpacing: '0.8px', textTransform: 'uppercase' }}>Campeonato</div>
-              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                <FilterBtn label="Todos" active={campeonato === 'Todos'} onClick={() => setCampeonato('Todos')} />
-                {CAMP_NAMES.map(c => (
-                  <FilterBtn key={c} label={c} active={campeonato === c} onClick={() => setCampeonato(c)} color={CAMP_COLORS[c]} />
-                ))}
-              </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+              <FilterBtn label="Todos" active={campeonato === 'Todos'} onClick={() => setCampeonato('Todos')} />
+              {CAMP_NAMES.map(c => (
+                <FilterBtn key={c} label={c} active={campeonato === c} onClick={() => setCampeonato(c)} color={CAMP_COLORS[c]} />
+              ))}
             </div>
-            <div style={{ width: 1, background: C.border, alignSelf: 'stretch' }} />
-            <div>
-              <div style={{ fontSize: 9, color: C.t3, marginBottom: 5, letterSpacing: '0.8px', textTransform: 'uppercase' }}>Ano</div>
-              <div style={{ display: 'flex', gap: 4 }}>
-                {['Todos', '2024', '2025'].map(a => (
-                  <FilterBtn key={a} label={a} active={ano === a} onClick={() => setAno(a)} />
-                ))}
-              </div>
+            <div style={{ width: 1, height: 18, background: C.border, flexShrink: 0 }} />
+            <div style={{ display: 'flex', gap: 4 }}>
+              {['Todos', '2024', '2025'].map(a => (
+                <FilterBtn key={a} label={a} active={ano === a} onClick={() => setAno(a)} />
+              ))}
             </div>
           </div>
         </div>
@@ -442,7 +458,7 @@ export default function ChampionshipReport() {
             <ResponsiveContainer width="100%" height={260}>
               <ComposedChart data={comboData} margin={{ top: 8, right: 60, bottom: 60, left: 10 }}>
                 <CartesianGrid stroke={C.border} strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" tick={{ fill: C.t3, fontSize: 7 }} axisLine={false} tickLine={false} angle={-45} textAnchor="end" height={70} interval={0} />
+                <XAxis dataKey="label" tick={<CustomXTick />} axisLine={false} tickLine={false} height={50} interval={0} />
                 <YAxis yAxisId="pub" orientation="left" tick={{ fill: C.t3, fontSize: 9 }} axisLine={false} tickLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
                 <YAxis yAxisId="tkt" orientation="right" tick={{ fill: C.t3, fontSize: 9 }} axisLine={false} tickLine={false} />
                 <RTooltip content={<DarkTooltip />} />
