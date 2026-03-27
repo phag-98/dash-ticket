@@ -66,9 +66,7 @@ const TEAM_COLORS = {
 };
 
 function CustomXTick({ x, y, payload }) {
-  const parts = payload.value.split(' ');
-  const rodada = parts[parts.length - 1];
-  const timeName = parts.slice(0, -1).join(' ');
+  const [timeName, rodada] = payload.value.split('|');
   const logoFile = LOGO_MAP[timeName];
   const initials = timeName.split(' ').filter(w => w.length > 2).slice(0, 2).map(w => w[0]).join('').toUpperCase() || timeName.slice(0,2).toUpperCase();
   const bg = TEAM_COLORS[timeName] || '#888';
@@ -225,7 +223,7 @@ const DarkTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
   return (
     <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: '10px 14px', fontSize: 11, boxShadow: SHADOW.md }}>
-      <p style={{ fontWeight: 700, color: C.t1, marginBottom: 6, fontSize: 12 }}>{label}</p>
+      <p style={{ fontWeight: 700, color: C.t1, marginBottom: 6, fontSize: 12 }}>{label?.replace('|', ' · ')}</p>
       {payload.map((p, i) => (
         <p key={i} style={{ color: p.color || p.fill || C.t2, margin: '2px 0' }}>
           <span style={{ color: C.t3 }}>{p.name}: </span>
@@ -266,7 +264,7 @@ export default function ChampionshipReport() {
         const db = b.data.split('/').reverse().join('-');
         return da.localeCompare(db);
       })
-      .map(p => ({ ...p, label: `${p.time} ${p.rodada}` }));
+      .map(p => ({ ...p, label: `${p.time}|${p.rodada}` }));
   }, [campeonato, ano, selectedPartida]);
 
   const setorKeys = useMemo(() => {
