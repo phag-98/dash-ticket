@@ -9,7 +9,41 @@ import {
   partidas, faturamentoPorCampeonatoAno, ingressos, torcedores,
 } from '../data/data';
 
-// ── Cores dos times para badge de iniciais
+// ── Mapeamento time → arquivo de logo
+const LOGO_MAP = {
+  'Flamengo':              'Flamengo.png',
+  'Fluminense':            'Fluminense.png',
+  'Vasco da Gama':         'Vasco.png',
+  'Palmeiras':             'Palmeiras.png',
+  'São Paulo':             'Sao Paulo.png',
+  'Corinthians':           'Corinthians.png',
+  'Red Bull Bragantino':   'RedBullBragantino.png',
+  'Internacional':         'Internacional.png',
+  'Athlético':             'Athletico.png',
+  'Atlético-MG':           'Atletico mineiro.png',
+  'Cruzeiro':              'Cruzeiro.png',
+  'Atlético-GO':           'Atlético Goianiense.png',
+  'Bahia':                 'Bahia.png',
+  'Fortaleza':             'Fortaleza.png',
+  'Vitória':               'Vitória.png',
+  'Ceará':                 'Ceará.png',
+  'Cuiabá':                'Cuiabá.png',
+  'Criciúma':              'Criciúma.png',
+  'Mirassol':              'Mirassol.png',
+  'Juventude':             'Juventude.png',
+  'Grêmio':                'Gremio.png',
+  'Volta Redonda':         'Volta Redonda.png',
+  'Bangu':                 'Bangu.png',
+  'Maricá':                'Maricá.png',
+  'Madureira':             'Madureira.png',
+  'LDU Quito':             'LDU Quito.png',
+  'Universitario':         'Universitario.png',
+  'Peñarol':               'Peñarol.png',
+  'Aurora':                'Aurora.png',
+  'Junior de Barranquilla':'Junior Barranquilla.png',
+};
+
+// ── Cores dos times para badge fallback
 const TEAM_COLORS = {
   'Flamengo': '#cc0000', 'Fluminense': '#6b0f1a', 'Vasco da Gama': '#000000',
   'Palmeiras': '#006400', 'São Paulo': '#cc0000', 'Corinthians': '#000000',
@@ -20,19 +54,33 @@ const TEAM_COLORS = {
   'Mirassol': '#cc8800', 'Juventude': '#006400', 'Grêmio': '#003087',
   'Peñarol': '#cc8800', 'Racing': '#003087', 'LDU Quito': '#cc8800',
   'Universitario': '#cc0000', 'Estudiantes': '#000000', 'Universidad de Chile': '#003087',
-  'Junior de Barranquilla': '#cc0000', 'Aurora': '#006400', 'Racing': '#003087',
-  'Carabobo': '#006400', 'Capital': '#003087', 'Juventude': '#006400',
+  'Junior de Barranquilla': '#cc0000', 'Aurora': '#006400',
 };
 
 function TeamBadge({ name, size = 22 }) {
+  const logo = LOGO_MAP[name];
   const initials = name.split(' ').filter(w => w.length > 2).slice(0, 2).map(w => w[0].toUpperCase()).join('') || name.slice(0, 2).toUpperCase();
   const bg = TEAM_COLORS[name] || '#555';
+
+  if (logo) {
+    return (
+      <img
+        src={`/logos/${logo}`}
+        alt={name}
+        style={{ width: size, height: size, objectFit: 'contain', flexShrink: 0 }}
+        onError={e => {
+          e.target.style.display = 'none';
+          e.target.nextSibling && (e.target.nextSibling.style.display = 'flex');
+        }}
+      />
+    );
+  }
   return (
     <div style={{
       width: size, height: size, borderRadius: '50%', background: bg,
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontSize: size * 0.38, fontWeight: 800, color: '#fff',
-      flexShrink: 0, letterSpacing: '-0.5px', fontFamily: 'inherit',
+      flexShrink: 0, letterSpacing: '-0.5px',
     }}>
       {initials}
     </div>
