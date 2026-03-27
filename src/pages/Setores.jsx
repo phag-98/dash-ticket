@@ -3,7 +3,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip as RTooltip, ResponsiveContainer, Treemap,
 } from 'recharts';
-import { C, FONT, SHADOW } from '../tokens';
+import { C, FONT, SHADOW, CAMP_COLORS as TOKEN_CAMP_COLORS } from '../tokens';
 import {
   faturamentoPorSetor, faturamentoPorMes, unitarioPorTimeESetor,
   faturamentoPorAdversario, partidas,
@@ -19,16 +19,40 @@ const fmtM = v => {
 // Unique campeonato names
 const CAMP_NAMES = [...new Set(partidas.map(p => p.campeonato).filter(Boolean))].sort();
 
+// Camp colors — use design tokens
 const CAMP_COLORS = {
-  'Brasileirão':    '#4ade80',
-  'Carioca':        '#f87171',
-  'Copa do Brasil': '#60a5fa',
-  'Libertadores':   '#a78bfa',
-  'Recopa':         '#fb923c',
-  'Sulamericana':   '#fbbf24',
-  'Supermundial':   '#34d399',
-  'Mundial':        '#e879f9',
-  'Supercopa':      '#64748b',
+  ...TOKEN_CAMP_COLORS,
+  'Sulamericana':   C.amber,
+  'Supermundial':   C.green,
+  'Mundial':        C.lib,
+  'Supercopa':      C.t3,
+};
+
+// ── Consistent filter button
+function FilterBtn({ label, active, onClick, color }) {
+  const bg     = active ? (color || C.accent) : C.card;
+  const col    = active ? '#000' : C.t2;
+  const border = active ? (color || C.accent) : C.border;
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        padding: '4px 14px', borderRadius: 20, border: `1px solid ${border}`,
+        background: bg, color: col,
+        fontSize: 10, fontWeight: active ? 700 : 500, cursor: 'pointer',
+        letterSpacing: '0.5px', whiteSpace: 'nowrap', transition: 'all 0.12s ease',
+        fontFamily: 'inherit',
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
+// ── Section title style
+const sectionTitle = {
+  fontSize: 10, fontWeight: 700, color: C.t2,
+  textTransform: 'uppercase', letterSpacing: '1.5px',
 };
 
 // All unique setor names from faturamentoPorSetor
@@ -47,7 +71,7 @@ const getSetorColor = (nome) => {
 function Card({ children, title, style = {} }) {
   return (
     <div style={{ background: C.card, borderRadius: 10, border: `1px solid ${C.border}`, boxShadow: SHADOW.card, ...style }}>
-      {title && <div style={{ padding: '12px 16px 0', fontSize: 11, fontWeight: 700, color: C.t1 }}>{title}</div>}
+      {title && <div style={{ padding: '12px 16px 0', ...sectionTitle, marginBottom: 4 }}>{title}</div>}
       {children}
     </div>
   );
@@ -119,22 +143,26 @@ export default function Setores() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       {/* Filters */}
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+      <div style={{
+        background: C.card, border: `1px solid ${C.border}`,
+        borderRadius: 10, padding: '10px 16px', boxShadow: SHADOW.card,
+        display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
+      }}>
+        <span style={sectionTitle}>Ano</span>
         {['Todos', '2024', '2025'].map(y => (
-          <button key={y} onClick={() => setAno(y)} style={{
-            padding: '5px 14px', borderRadius: 6, border: `1px solid ${C.border}`,
-            background: ano === y ? C.accent : C.card, color: ano === y ? '#000' : C.t2,
-            fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: FONT,
-          }}>{y}</button>
+          <FilterBtn key={y} label={y} active={ano === y} onClick={() => setAno(y)} />
         ))}
-        <div style={{ width: 1, height: 24, background: C.border }} />
-        {['Todos', ...CAMP_NAMES].map(c => (
-          <button key={c} onClick={() => setCamp(c)} style={{
-            padding: '5px 12px', borderRadius: 6, border: `1px solid ${C.border}`,
-            background: campeonato === c ? (CAMP_COLORS[c] || C.accent) : C.card,
-            color: campeonato === c ? '#000' : C.t2,
-            fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: FONT,
-          }}>{c}</button>
+        <div style={{ width: 1, height: 18, background: C.border, margin: '0 4px' }} />
+        <span style={sectionTitle}>Campeonato</span>
+        <FilterBtn label="Todos" active={campeonato === 'Todos'} onClick={() => setCamp('Todos')} />
+        {CAMP_NAMES.map(c => (
+          <FilterBtn
+            key={c}
+            label={c}
+            active={campeonato === c}
+            onClick={() => setCamp(c)}
+            color={CAMP_COLORS[c]}
+          />
         ))}
       </div>
 

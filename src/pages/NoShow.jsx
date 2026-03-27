@@ -4,7 +4,7 @@ import {
   Tooltip as RTooltip, ResponsiveContainer, ReferenceLine,
   BarChart, Bar, Cell,
 } from 'recharts';
-import { C, FONT, SHADOW } from '../tokens';
+import { C, FONT, SHADOW, CAMP_COLORS as TOKEN_CAMP_COLORS } from '../tokens';
 import { noShowAnalysis, noShowPorTorcedor, partidas } from '../data/data';
 
 const fmtM = v => {
@@ -15,16 +15,41 @@ const fmtM = v => {
 };
 const fmtK = v => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`;
 
+// Camp colors — use design tokens
 const CAMP_COLORS = {
-  'Brasileirão':    '#4ade80',
-  'Carioca':        '#f87171',
-  'Copa do Brasil': '#60a5fa',
-  'Libertadores':   '#a78bfa',
-  'Recopa':         '#fb923c',
-  'Sulamericana':   '#fbbf24',
-  'Supermundial':   '#34d399',
-  'Mundial':        '#e879f9',
-  'Supercopa':      '#64748b',
+  ...TOKEN_CAMP_COLORS,
+  'Sulamericana':   C.amber,
+  'Supermundial':   C.green,
+  'Mundial':        C.lib,
+  'Supercopa':      C.t3,
+};
+
+// ── Consistent filter button
+function FilterBtn({ label, active, onClick, color }) {
+  const bg     = active ? (color || C.accent) : C.bgAlt;
+  const col    = active ? '#000' : C.t2;
+  const border = active ? (color || C.accent) : C.border;
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        padding: '4px 10px', borderRadius: 20, border: `1px solid ${border}`,
+        background: bg, color: col,
+        fontSize: 10, fontWeight: active ? 700 : 500, cursor: 'pointer',
+        letterSpacing: '0.5px', whiteSpace: 'nowrap', transition: 'all 0.12s ease',
+        fontFamily: 'inherit',
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
+// ── Section title style
+const sectionTitle = {
+  fontSize: 9, fontWeight: 700, color: C.t2,
+  textTransform: 'uppercase', letterSpacing: '1.5px',
+  marginBottom: 6,
 };
 
 // Derived filter options
@@ -107,54 +132,34 @@ export default function NoShow() {
       <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '14px 16px', boxShadow: SHADOW.card }}>
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
           <div>
-            <div style={{ fontSize: 9, color: C.t3, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 6 }}>Horário</div>
+            <div style={sectionTitle}>Horário</div>
             <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
               {HORARIOS.map(h => (
-                <button key={h} onClick={() => setHorFilter(horFilter === h ? null : h)} style={{
-                  padding: '4px 10px', borderRadius: 6, border: `1px solid ${C.border}`,
-                  background: horFilter === h ? C.accent : C.bgAlt,
-                  color: horFilter === h ? '#000' : C.t2,
-                  fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: FONT,
-                }}>{h}</button>
+                <FilterBtn key={h} label={h} active={horFilter === h} onClick={() => setHorFilter(horFilter === h ? null : h)} />
               ))}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: 9, color: C.t3, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 6 }}>Dia da Semana</div>
+            <div style={sectionTitle}>Dia da Semana</div>
             <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
               {DIAS.map(d => (
-                <button key={d} onClick={() => setDiaFilter(diaFilter === d ? null : d)} style={{
-                  padding: '4px 10px', borderRadius: 6, border: `1px solid ${C.border}`,
-                  background: diaFilter === d ? C.accent : C.bgAlt,
-                  color: diaFilter === d ? '#000' : C.t2,
-                  fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: FONT,
-                }}>{d}</button>
+                <FilterBtn key={d} label={d} active={diaFilter === d} onClick={() => setDiaFilter(diaFilter === d ? null : d)} />
               ))}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: 9, color: C.t3, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 6 }}>Ano</div>
+            <div style={sectionTitle}>Ano</div>
             <div style={{ display: 'flex', gap: 4 }}>
               {[null, 2024, 2025].map(a => (
-                <button key={a ?? 'todos'} onClick={() => setAnoFilter(anoFilter === a ? null : a)} style={{
-                  padding: '4px 10px', borderRadius: 6, border: `1px solid ${C.border}`,
-                  background: anoFilter === a ? C.accent : C.bgAlt,
-                  color: anoFilter === a ? '#000' : C.t2,
-                  fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: FONT,
-                }}>{a ?? 'Todos'}</button>
+                <FilterBtn key={a ?? 'todos'} label={a ?? 'Todos'} active={anoFilter === a} onClick={() => setAnoFilter(anoFilter === a ? null : a)} />
               ))}
             </div>
           </div>
           <div>
-            <div style={{ fontSize: 9, color: C.t3, textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 6 }}>Campeonato</div>
+            <div style={sectionTitle}>Campeonato</div>
             <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
               {CAMP_NAMES.map(c => (
-                <button key={c} onClick={() => setCampFilter(campFilter === c ? null : c)} style={{
-                  padding: '4px 10px', borderRadius: 6, border: `1px solid ${C.border}`,
-                  background: campFilter === c ? (CAMP_COLORS[c] || C.accent) : C.bgAlt,
-                  color: campFilter === c ? '#000' : C.t2,
-                  fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: FONT,
-                }}>{c}</button>
+                <FilterBtn key={c} label={c} active={campFilter === c} onClick={() => setCampFilter(campFilter === c ? null : c)} color={CAMP_COLORS[c]} />
               ))}
             </div>
           </div>

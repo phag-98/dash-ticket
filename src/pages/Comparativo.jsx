@@ -3,7 +3,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip,
   ResponsiveContainer, LabelList, Cell,
 } from 'recharts';
-import { C, FONT, SHADOW } from '../tokens';
+import { C, FONT, SHADOW, CAMP_COLORS as TOKEN_CAMP_COLORS } from '../tokens';
 import { faturamentoPorCampeonatoAno, partidas } from '../data/data';
 
 const fmtM = v => {
@@ -16,17 +16,40 @@ const fmtK = v => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`;
 // Unique campeonato names
 const CAMP_NAMES = [...new Set(faturamentoPorCampeonatoAno.map(d => d.campeonato).filter(Boolean))].sort();
 
-// Camp colors
+// Camp colors — use design tokens
 const CAMP_COLORS = {
-  'Brasileirão':    '#4ade80',
-  'Carioca':        '#f87171',
-  'Copa do Brasil': '#60a5fa',
-  'Libertadores':   '#a78bfa',
-  'Recopa':         '#fb923c',
-  'Sulamericana':   '#fbbf24',
-  'Supermundial':   '#34d399',
-  'Mundial':        '#e879f9',
-  'Supercopa':      '#64748b',
+  ...TOKEN_CAMP_COLORS,
+  'Sulamericana':   C.amber,
+  'Supermundial':   C.green,
+  'Mundial':        C.lib,
+  'Supercopa':      C.t3,
+};
+
+// ── Consistent filter button
+function FilterBtn({ label, active, onClick, color }) {
+  const bg     = active ? (color || C.accent) : C.card;
+  const col    = active ? '#000' : C.t2;
+  const border = active ? (color || C.accent) : C.border;
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        padding: '4px 14px', borderRadius: 20, border: `1px solid ${border}`,
+        background: bg, color: col,
+        fontSize: 10, fontWeight: active ? 700 : 500, cursor: 'pointer',
+        letterSpacing: '0.5px', whiteSpace: 'nowrap', transition: 'all 0.12s ease',
+        fontFamily: 'inherit',
+      }}
+    >
+      {label}
+    </button>
+  );
+}
+
+// ── Section title style
+const sectionTitle = {
+  fontSize: 10, fontWeight: 700, color: C.t2,
+  textTransform: 'uppercase', letterSpacing: '1.5px',
 };
 
 function Card({ children, title, subtitle, style = {} }) {
@@ -34,7 +57,7 @@ function Card({ children, title, subtitle, style = {} }) {
     <div style={{ background: C.card, borderRadius: 10, border: `1px solid ${C.border}`, boxShadow: SHADOW.card, ...style }}>
       {(title || subtitle) && (
         <div style={{ padding: '12px 16px 4px' }}>
-          {title && <div style={{ fontSize: 11, fontWeight: 700, color: C.t1, marginBottom: 2 }}>{title}</div>}
+          {title && <div style={{ ...sectionTitle, marginBottom: 2 }}>{title}</div>}
           {subtitle && <div style={{ fontSize: 9, color: C.t3 }}>{subtitle}</div>}
         </div>
       )}
@@ -101,14 +124,22 @@ export default function Comparativo() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       {/* Filters */}
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-        {['Todos', ...CAMP_NAMES].map(c => (
-          <button key={c} onClick={() => setCampFilter(c === 'Todos' ? null : c)} style={{
-            padding: '5px 14px', borderRadius: 6, border: `1px solid ${C.border}`,
-            background: (campFilter === c || (c === 'Todos' && !campFilter)) ? C.accent : C.card,
-            color: (campFilter === c || (c === 'Todos' && !campFilter)) ? '#000' : C.t2,
-            fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: FONT,
-          }}>{c}</button>
+      <div style={{
+        background: C.card, border: `1px solid ${C.border}`,
+        borderRadius: 10, padding: '10px 16px', boxShadow: SHADOW.card,
+        display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
+      }}>
+        <span style={sectionTitle}>Campeonato</span>
+        <div style={{ width: 1, height: 18, background: C.border, margin: '0 4px' }} />
+        <FilterBtn label="Todos" active={!campFilter} onClick={() => setCampFilter(null)} />
+        {CAMP_NAMES.map(c => (
+          <FilterBtn
+            key={c}
+            label={c}
+            active={campFilter === c}
+            onClick={() => setCampFilter(campFilter === c ? null : c)}
+            color={CAMP_COLORS[c]}
+          />
         ))}
       </div>
 
