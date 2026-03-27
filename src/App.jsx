@@ -40,7 +40,7 @@ export default function App() {
         </div>
 
         {/* Tabs */}
-        <nav style={{ display:'flex', gap:4, flex:1 }}>
+        <nav style={{ display:'flex', gap:4, flex:1, overflowX:'auto', scrollbarWidth:'none' }}>
           {TABS.map(t => {
             const active = tab === t.id;
             return (
