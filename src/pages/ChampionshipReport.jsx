@@ -124,6 +124,11 @@ const DarkTooltip = ({ active, payload, label }) => {
 export default function ChampionshipReport() {
   const [campeonato, setCampeonato] = useState('Todos');
   const [ano, setAno] = useState('Todos');
+  const [selectedPartida, setSelectedPartida] = useState(null);
+
+  const handleRowClick = (idPartida) => {
+    setSelectedPartida(prev => prev === idPartida ? null : idPartida);
+  };
 
   const filteredFat = useMemo(() => {
     return faturamentoPorPartida.filter(p => {
@@ -138,10 +143,11 @@ export default function ChampionshipReport() {
       .filter(p => {
         if (campeonato !== 'Todos' && p.campeonato !== campeonato) return false;
         if (ano !== 'Todos' && String(p.ano) !== ano) return false;
+        if (selectedPartida && p.idPartida !== selectedPartida) return false;
         return true;
       })
       .map(p => ({ ...p, label: `${p.time} R${p.rodada}` }));
-  }, [campeonato, ano]);
+  }, [campeonato, ano, selectedPartida]);
 
   const setorKeys = useMemo(() => {
     const keys = new Set();
@@ -247,18 +253,31 @@ export default function ChampionshipReport() {
                 {top20.map((p, i) => {
                   const pct = (p.faturamento / maxFat) * 100;
                   const isTop = i === 0;
+                  const isSelected = selectedPartida === p.idPartida;
+                  const rowBg = isSelected
+                    ? `${C.accent}22`
+                    : i % 2 !== 0 ? '#e8e8e8' : '#ffffff';
                   return (
-                    <tr key={p.idPartida} style={{ borderBottom: `1px solid ${C.border}`, background: i % 2 !== 0 ? C.bgAlt : 'transparent' }}>
-                      <td style={{ padding: '7px 10px', color: C.t2, fontWeight: 600, fontSize: 10, whiteSpace: 'nowrap', fontFamily: "'Courier New', monospace" }}>{p.rodada}</td>
-                      <td style={{ padding: '7px 10px', color: C.t1, fontSize: 10, maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.time}</td>
-                      <td style={{ padding: '7px 6px', textAlign: 'center', fontSize: 10, color: C.t3, fontFamily: "'Courier New', monospace" }}>{p.ano}</td>
-                      <td style={{ padding: '7px 10px', background: `${C.accent}08` }}>
+                    <tr
+                      key={p.idPartida}
+                      onClick={() => handleRowClick(p.idPartida)}
+                      style={{
+                        borderBottom: `1px solid ${C.border}`,
+                        background: rowBg,
+                        cursor: 'pointer',
+                        borderLeft: isSelected ? `3px solid ${C.accent}` : '3px solid transparent',
+                        transition: 'background 0.15s',
+                      }}
+                    >
+                      <td style={{ padding: '8px 10px', color: '#333', fontWeight: 700, fontSize: 10, whiteSpace: 'nowrap', fontFamily: "'Courier New', monospace" }}>{p.rodada}</td>
+                      <td style={{ padding: '8px 10px', color: '#111', fontSize: 11, fontWeight: 500, maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.time}</td>
+                      <td style={{ padding: '8px 6px', textAlign: 'center', fontSize: 10, color: '#666', fontFamily: "'Courier New', monospace" }}>{p.ano}</td>
+                      <td style={{ padding: '8px 10px', background: isSelected ? `${C.accent}18` : `${C.accent}08` }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end' }}>
-                          {/* mini bar */}
-                          <div style={{ flex: 1, height: 4, borderRadius: 2, background: C.border, overflow: 'hidden', minWidth: 40 }}>
-                            <div style={{ width: `${pct}%`, height: '100%', background: isTop ? C.accent : `${C.accent}66`, borderRadius: 2 }} />
+                          <div style={{ flex: 1, height: 5, borderRadius: 2, background: '#ddd', overflow: 'hidden', minWidth: 40 }}>
+                            <div style={{ width: `${pct}%`, height: '100%', background: isTop ? C.accent : `${C.accent}99`, borderRadius: 2 }} />
                           </div>
-                          <span style={{ fontWeight: 700, color: isTop ? C.accent : C.t1, fontSize: 10, whiteSpace: 'nowrap', fontFamily: "'Courier New', monospace" }}>
+                          <span style={{ fontWeight: 700, color: isTop ? C.accent : '#222', fontSize: 10, whiteSpace: 'nowrap', fontFamily: "'Courier New', monospace" }}>
                             {fmtR(p.faturamento)}
                           </span>
                         </div>
@@ -286,7 +305,16 @@ export default function ChampionshipReport() {
           <Card>
             <div style={{ padding: '12px 16px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
-                <div style={{ ...sectionTitle }}>Público e Ticket Médio por Partida, Time e Setor</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <div style={{ ...sectionTitle }}>Público e Ticket Médio por Partida, Time e Setor</div>
+                  {selectedPartida && (
+                    <button onClick={() => setSelectedPartida(null)} style={{
+                      fontSize: 9, padding: '2px 8px', borderRadius: 10,
+                      background: C.accent, color: '#000', border: 'none',
+                      cursor: 'pointer', fontWeight: 700, letterSpacing: '0.5px',
+                    }}>✕ limpar filtro</button>
+                  )}
+                </div>
                 <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 10 }}>
                   {setorKeys.map(s => (
                     <span key={s} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: C.t2 }}>
