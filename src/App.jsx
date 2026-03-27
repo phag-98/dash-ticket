@@ -1,206 +1,87 @@
 import { useState } from 'react';
-import {
-  LayoutDashboard, BarChart2, Target, TrendingUp,
-  Landmark, Bell, Settings, ChevronRight,
-} from 'lucide-react';
-import { C, FONT, SHADOW } from './tokens';
-import VisaoGeral from './pages/VisaoGeral';
+import { C, FONT } from './tokens';
+import ChampionshipReport from './pages/ChampionshipReport';
+import Comparativo        from './pages/Comparativo';
+import Setores            from './pages/Setores';
+import NoShow             from './pages/NoShow';
+import Precos             from './pages/Precos';
 
-const NAV_ITEMS = [
-  { id: 'visao-geral',  label: 'Visão Geral',    Icon: LayoutDashboard, active: true },
-  { id: 'dre',          label: 'DRE',             Icon: BarChart2,        active: false },
-  { id: 'budget',       label: 'Budget',          Icon: Target,           active: false },
-  { id: 'forecast',     label: 'Forecast',        Icon: TrendingUp,       active: false },
-  { id: 'caixa',        label: 'Fluxo de Caixa',  Icon: Landmark,         active: false },
-  { id: 'alertas',      label: 'Alertas',         Icon: Bell,             active: false, badge: 2 },
+const TABS = [
+  { id: 'championship', label: 'Championship Report' },
+  { id: 'comparativo',  label: 'Comparativo' },
+  { id: 'setores',      label: 'Setores' },
+  { id: 'noshow',       label: 'No Show' },
+  { id: 'precos',       label: 'Preços' },
 ];
 
-const COMING_SOON = (
-  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 400, flexDirection: 'column', gap: 12 }}>
-    <div style={{ fontSize: 40 }}>🚧</div>
-    <div style={{ fontSize: 18, fontWeight: 700, color: C.t1 }}>Em desenvolvimento</div>
-    <div style={{ fontSize: 13, color: C.t3 }}>Esta seção estará disponível na próxima sprint</div>
-  </div>
-);
-
 export default function App() {
-  const [active, setActive] = useState('visao-geral');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [tab, setTab] = useState('championship');
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', fontFamily: FONT, background: C.bg }}>
+    <div style={{ minHeight:'100vh', background:C.bg, fontFamily:FONT, color:C.t1 }}>
 
-      {/* ── Sidebar ─── */}
-      <aside style={{
-        width: sidebarCollapsed ? 64 : 220,
-        background: C.navy,
-        display: 'flex',
-        flexDirection: 'column',
-        transition: 'width 0.2s ease',
-        flexShrink: 0,
-        position: 'sticky',
-        top: 0,
-        height: '100vh',
-        overflowX: 'hidden',
+      {/* ── Top bar ── */}
+      <header style={{
+        background:C.header, borderBottom:`1px solid ${C.border}`,
+        display:'flex', alignItems:'center', gap:0,
+        padding:'0 24px', height:52, position:'sticky', top:0, zIndex:100,
       }}>
         {/* Logo */}
-        <div style={{
-          padding: '20px 16px',
-          borderBottom: `1px solid ${C.navyMid}`,
-          display: 'flex', alignItems: 'center', gap: 10,
-        }}>
+        <div style={{ display:'flex', alignItems:'center', gap:10, marginRight:32, flexShrink:0 }}>
           <div style={{
-            width: 32, height: 32, borderRadius: 8,
-            background: C.blue,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0,
+            width:32, height:32, borderRadius:6,
+            background:C.accentBg, border:`1.5px solid ${C.accent}`,
+            display:'flex', alignItems:'center', justifyContent:'center',
           }}>
-            <BarChart2 size={16} color="#fff" />
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9" fill={C.accent}/>
+            </svg>
           </div>
-          {!sidebarCollapsed && (
-            <div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: '#fff', letterSpacing: '-0.3px' }}>FinDash</div>
-              <div style={{ fontSize: 9, color: '#94A3B8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Grupo Meridian</div>
-            </div>
-          )}
+          <div>
+            <div style={{ fontSize:12, fontWeight:800, color:'#fff', letterSpacing:'-0.3px', lineHeight:1.1 }}>BOTAFOGO</div>
+            <div style={{ fontSize:9, color:C.t3, textTransform:'uppercase', letterSpacing:'0.8px' }}>Ticket Dashboard</div>
+          </div>
         </div>
 
-        {/* Nav items */}
-        <nav style={{ flex: 1, padding: '12px 8px', display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {NAV_ITEMS.map(({ id, label, Icon, badge }) => {
-            const isActive = active === id;
+        {/* Tabs */}
+        <nav style={{ display:'flex', gap:4, flex:1 }}>
+          {TABS.map(t => {
+            const active = tab === t.id;
             return (
               <button
-                key={id}
-                onClick={() => setActive(id)}
-                title={sidebarCollapsed ? label : undefined}
+                key={t.id}
+                onClick={() => setTab(t.id)}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 10,
-                  padding: sidebarCollapsed ? '10px 16px' : '10px 12px',
-                  borderRadius: 8, border: 'none', cursor: 'pointer',
-                  background: isActive ? C.blue : 'transparent',
-                  color: isActive ? '#fff' : '#94A3B8',
-                  fontFamily: FONT,
-                  fontWeight: isActive ? 700 : 500,
-                  fontSize: 13,
-                  transition: 'all 0.15s ease',
-                  width: '100%',
-                  textAlign: 'left',
-                  position: 'relative',
-                  whiteSpace: 'nowrap',
+                  padding:'0 16px', height:52, border:'none', cursor:'pointer',
+                  background:'transparent', color: active ? '#fff' : C.t2,
+                  fontFamily:FONT, fontSize:11, fontWeight: active ? 700 : 500,
+                  borderBottom: active ? `2px solid ${C.accent}` : '2px solid transparent',
+                  transition:'all 0.15s ease',
+                  letterSpacing:'0.2px', whiteSpace:'nowrap',
                 }}
-                onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = C.navyMid; }}
-                onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = 'transparent'; }}
+                onMouseEnter={e=>{ if(!active) e.currentTarget.style.color='#fff'; }}
+                onMouseLeave={e=>{ if(!active) e.currentTarget.style.color=C.t2; }}
               >
-                <Icon size={16} style={{ flexShrink: 0 }} />
-                {!sidebarCollapsed && <span style={{ flex: 1 }}>{label}</span>}
-                {!sidebarCollapsed && badge && (
-                  <span style={{
-                    background: C.red, color: '#fff',
-                    borderRadius: 10, fontSize: 9, fontWeight: 700,
-                    padding: '1px 5px', minWidth: 16, textAlign: 'center',
-                  }}>{badge}</span>
-                )}
+                {t.label}
               </button>
             );
           })}
         </nav>
 
-        {/* Collapse toggle + Settings */}
-        <div style={{ padding: '12px 8px', borderTop: `1px solid ${C.navyMid}`, display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <button
-            onClick={() => setActive('settings')}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              padding: '10px 12px', borderRadius: 8,
-              border: 'none', cursor: 'pointer',
-              background: 'transparent', color: '#94A3B8',
-              fontFamily: FONT, fontWeight: 500, fontSize: 13,
-              width: '100%', whiteSpace: 'nowrap',
-            }}
-          >
-            <Settings size={16} />
-            {!sidebarCollapsed && 'Configurações'}
-          </button>
-          <button
-            onClick={() => setSidebarCollapsed(c => !c)}
-            style={{
-              display: 'flex', alignItems: 'center', justifyContent: sidebarCollapsed ? 'center' : 'flex-end',
-              padding: '8px 12px', borderRadius: 8,
-              border: 'none', cursor: 'pointer',
-              background: 'transparent', color: '#64748B',
-              fontFamily: FONT, fontSize: 11, gap: 4,
-              width: '100%',
-            }}
-          >
-            <ChevronRight size={14} style={{ transform: sidebarCollapsed ? 'rotate(0deg)' : 'rotate(180deg)', transition: 'transform 0.2s' }} />
-            {!sidebarCollapsed && <span>Recolher</span>}
-          </button>
+        {/* Right: branding */}
+        <div style={{ fontSize:10, color:C.t3, flexShrink:0 }}>
+          Maracanã · 2024–2025
         </div>
-      </aside>
+      </header>
 
-      {/* ── Main ─── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-
-        {/* Top bar */}
-        <header style={{
-          background: C.card,
-          borderBottom: `1px solid ${C.border}`,
-          padding: '0 28px',
-          height: 56,
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          boxShadow: '0 1px 0 #E2E8F0',
-          position: 'sticky', top: 0, zIndex: 10,
-        }}>
-          <div>
-            <span style={{ fontSize: 16, fontWeight: 700, color: C.t1 }}>
-              {NAV_ITEMS.find(n => n.id === active)?.label ?? 'Dashboard'}
-            </span>
-            <span style={{ fontSize: 11, color: C.t3, marginLeft: 8 }}>
-              Grupo Meridian S.A. · Consolidado
-            </span>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            {/* Period selector */}
-            <select style={{
-              border: `1px solid ${C.border}`, borderRadius: 6,
-              padding: '6px 12px', fontSize: 11, fontWeight: 600,
-              color: C.t1, background: C.card, cursor: 'pointer',
-              fontFamily: FONT,
-            }}>
-              <option>Jan–Jun 2025</option>
-              <option>Jan–Dez 2025</option>
-              <option>2024 (Ano Completo)</option>
-            </select>
-
-            {/* Currency */}
-            <select style={{
-              border: `1px solid ${C.border}`, borderRadius: 6,
-              padding: '6px 10px', fontSize: 11, fontWeight: 600,
-              color: C.t1, background: C.card, cursor: 'pointer',
-              fontFamily: FONT,
-            }}>
-              <option>BRL</option>
-              <option>USD</option>
-            </select>
-
-            {/* Avatar */}
-            <div style={{
-              width: 32, height: 32, borderRadius: '50%',
-              background: C.navy, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer',
-            }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: '#fff' }}>CF</span>
-            </div>
-          </div>
-        </header>
-
-        {/* Page content */}
-        <main style={{ padding: '24px 28px', flex: 1 }}>
-          {active === 'visao-geral' ? <VisaoGeral /> : COMING_SOON}
-        </main>
-      </div>
+      {/* ── Page content ── */}
+      <main style={{ padding:'20px 24px' }}>
+        {tab === 'championship' && <ChampionshipReport />}
+        {tab === 'comparativo'  && <Comparativo />}
+        {tab === 'setores'      && <Setores />}
+        {tab === 'noshow'       && <NoShow />}
+        {tab === 'precos'       && <Precos />}
+      </main>
     </div>
   );
 }
