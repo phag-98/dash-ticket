@@ -1,5 +1,13 @@
 // Shared team logo utilities
 
+export const COMP_LOGOS = {
+  'Brasileirão':    'brasileirão_.png',
+  'Carioca':        'Carioca.png',
+  'Copa do Brasil': 'CopaDoBrasil.png',
+  'Libertadores':   'Libertadores.png',
+  'Sulamericana':   'sulamericana.png',
+};
+
 export const LOGO_MAP = {
   'Flamengo':              'Flamengo.png',
   'Fluminense':            'Fluminense.png',

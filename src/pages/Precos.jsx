@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { C, SHADOW, CAMP_COLORS } from '../tokens';
-import { TeamBadge as TeamLogo } from '../teamLogos.jsx';
+import { TeamBadge as TeamLogo, COMP_LOGOS } from '../teamLogos.jsx';
 import { precosPorTimeETorcedor, torcedorCols, partidas } from '../data/data';
 
 // Filter buttons: 5 main campeonatos
@@ -11,6 +11,7 @@ function FilterBtn({ label, active, onClick, color }) {
   const bg     = active ? (color || C.accent) : C.card;
   const col    = active ? '#000' : C.t2;
   const border = active ? (color || C.accent) : C.border;
+  const logo   = COMP_LOGOS[label];
   return (
     <button
       onClick={onClick}
@@ -19,9 +20,10 @@ function FilterBtn({ label, active, onClick, color }) {
         background: bg, color: col,
         fontSize: 10, fontWeight: active ? 700 : 500, cursor: 'pointer',
         letterSpacing: '0.5px', whiteSpace: 'nowrap', transition: 'all 0.12s ease',
-        fontFamily: 'inherit',
+        fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 5,
       }}
     >
+      {logo && <img src={`/logos/${logo}`} style={{ width: 16, height: 16, objectFit: 'contain' }} />}
       {label}
     </button>
   );
