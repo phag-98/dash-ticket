@@ -4,16 +4,16 @@
 // ═══════════════════════════════════════
 
 export const C = {
-  // Base — carvão quente Botafogo
-  bg:        '#1a1a1a',
-  bgAlt:     '#212121',
-  card:      '#272727',
-  cardHover: '#2f2f2f',
-  border:    '#383838',
-  borderMid: '#444444',
+  // Base — cinza médio-escuro
+  bg:        '#323232',
+  bgAlt:     '#393939',
+  card:      '#404040',
+  cardHover: '#484848',
+  border:    '#555555',
+  borderMid: '#606060',
 
   // Header/nav
-  header:    '#141414',
+  header:    '#282828',
 
   // Botafogo accent — dourado quente
   accent:    '#C9A84C',
