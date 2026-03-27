@@ -9,37 +9,38 @@ import {
   partidas, faturamentoPorCampeonatoAno, ingressos, torcedores,
 } from '../data/data';
 
-// ── Logos dos times (Wikipedia/Wikimedia)
+// ── Logos dos times via API-Football CDN (id numérico)
+// Fonte: https://media.api-sports.io/football/teams/{id}.png
 const LOGOS = {
-  'Flamengo':           'https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Clube_de_Regatas_do_Flamengo_logo.svg/240px-Clube_de_Regatas_do_Flamengo_logo.svg.png',
-  'Fluminense':         'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Fluminense_FC_logo.svg/240px-Fluminense_FC_logo.svg.png',
-  'Vasco da Gama':      'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Club_de_Regatas_Vasco_da_Gama_logo.svg/240px-Club_de_Regatas_Vasco_da_Gama_logo.svg.png',
-  'Palmeiras':          'https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Palmeiras_logo.svg/240px-Palmeiras_logo.svg.png',
-  'São Paulo':          'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Brasao_do_Sao_Paulo_Futebol_Clube.svg/240px-Brasao_do_Sao_Paulo_Futebol_Clube.svg.png',
-  'Corinthians':        'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Sport_Club_Corinthians_Paulista_crest.svg/240px-Sport_Club_Corinthians_Paulista_crest.svg.png',
-  'Red Bull Bragantino':'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/RBBragantino.png/240px-RBBragantino.png',
-  'Internacional':      'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Sport_Club_Internacional.svg/240px-Sport_Club_Internacional.svg.png',
-  'Athlético':          'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Athletico_Paranaense_logo.svg/240px-Athletico_Paranaense_logo.svg.png',
-  'Atlético-MG':        'https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Atletico_mineiro_galo.svg/240px-Atletico_mineiro_galo.svg.png',
-  'Cruzeiro':           'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Cruzeiro_Esporte_Clube_logo.svg/240px-Cruzeiro_Esporte_Clube_logo.svg.png',
-  'Atlético-GO':        'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Atletico_Goianiense_logo.svg/240px-Atletico_Goianiense_logo.svg.png',
-  'Bahia':              'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Esporte_Clube_Bahia_logo.svg/240px-Esporte_Clube_Bahia_logo.svg.png',
-  'Fortaleza':          'https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Fortaleza_Esporte_Clube_logo.svg/240px-Fortaleza_Esporte_Clube_logo.svg.png',
-  'Vitória':            'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Esporte_Clube_Vit%C3%B3ria_logo.svg/240px-Esporte_Clube_Vit%C3%B3ria_logo.svg.png',
-  'Ceará':              'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Cear%C3%A1_Sporting_Club_logo.svg/240px-Cear%C3%A1_Sporting_Club_logo.svg.png',
-  'Cuiabá':             'https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Cuiab%C3%A1_Esporte_Clube.svg/240px-Cuiab%C3%A1_Esporte_Clube.svg.png',
-  'Criciúma':           'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Crici%C3%BAma_EC.svg/240px-Crici%C3%BAma_EC.svg.png',
-  'Juventude':          'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Esporte_Clube_Juventude_logo.svg/240px-Esporte_Clube_Juventude_logo.svg.png',
-  'Grêmio':             'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Gr%C3%AAmio_Foot-Ball_Porto_Alegrense_logo.svg/240px-Gr%C3%AAmio_Foot-Ball_Porto_Alegrense_logo.svg.png',
-  'Peñarol':            'https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Pe%C3%B1arol_logo.svg/240px-Pe%C3%B1arol_logo.svg.png',
-  'Racing':             'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Racing_Club_de_Avellaneda_logo.svg/240px-Racing_Club_de_Avellaneda_logo.svg.png',
-  'LDU Quito':          'https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/LDU_Quito_logo.svg/240px-LDU_Quito_logo.svg.png',
-  'Universitario':      'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Universitario_de_Deportes_logo.svg/240px-Universitario_de_Deportes_logo.svg.png',
-  'Estudiantes':        'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Estudiantes_de_La_Plata_logo.svg/240px-Estudiantes_de_La_Plata_logo.svg.png',
-  'Universidad de Chile':'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Universidad_de_Chile_logo.svg/240px-Universidad_de_Chile_logo.svg.png',
-  'Junior de Barranquilla':'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Atletico_Junior_logo.svg/240px-Atletico_Junior_logo.svg.png',
-  'Aurora':             'https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Club_Aurora_logo.svg/240px-Club_Aurora_logo.svg.png',
-  'Mirassol':           'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Mirassol_FC_logo.svg/240px-Mirassol_FC_logo.svg.png',
+  'Flamengo':              'https://media.api-sports.io/football/teams/127.png',
+  'Fluminense':            'https://media.api-sports.io/football/teams/121.png',
+  'Vasco da Gama':         'https://media.api-sports.io/football/teams/118.png',
+  'Palmeiras':             'https://media.api-sports.io/football/teams/131.png',
+  'São Paulo':             'https://media.api-sports.io/football/teams/126.png',
+  'Corinthians':           'https://media.api-sports.io/football/teams/130.png',
+  'Red Bull Bragantino':   'https://media.api-sports.io/football/teams/10591.png',
+  'Internacional':         'https://media.api-sports.io/football/teams/119.png',
+  'Athlético':             'https://media.api-sports.io/football/teams/128.png',
+  'Atlético-MG':           'https://media.api-sports.io/football/teams/1062.png',
+  'Cruzeiro':              'https://media.api-sports.io/football/teams/120.png',
+  'Atlético-GO':           'https://media.api-sports.io/football/teams/1193.png',
+  'Bahia':                 'https://media.api-sports.io/football/teams/117.png',
+  'Fortaleza':             'https://media.api-sports.io/football/teams/154.png',
+  'Vitória':               'https://media.api-sports.io/football/teams/4755.png',
+  'Ceará':                 'https://media.api-sports.io/football/teams/140.png',
+  'Cuiabá':                'https://media.api-sports.io/football/teams/9684.png',
+  'Criciúma':              'https://media.api-sports.io/football/teams/155.png',
+  'Mirassol':              'https://media.api-sports.io/football/teams/16618.png',
+  'Juventude':             'https://media.api-sports.io/football/teams/137.png',
+  'Grêmio':                'https://media.api-sports.io/football/teams/116.png',
+  'Peñarol':               'https://media.api-sports.io/football/teams/2283.png',
+  'Racing':                'https://media.api-sports.io/football/teams/435.png',
+  'LDU Quito':             'https://media.api-sports.io/football/teams/1046.png',
+  'Universitario':         'https://media.api-sports.io/football/teams/1052.png',
+  'Estudiantes':           'https://media.api-sports.io/football/teams/442.png',
+  'Universidad de Chile':  'https://media.api-sports.io/football/teams/1043.png',
+  'Junior de Barranquilla':'https://media.api-sports.io/football/teams/1077.png',
+  'Aurora':                'https://media.api-sports.io/football/teams/1160.png',
 };
 
 // Fix: merge ticketMedio correto de faturamentoPorPartida
@@ -186,7 +187,7 @@ export default function ChampionshipReport() {
         if (selectedPartida && p.idPartida !== selectedPartida) return false;
         return true;
       })
-      .map(p => ({ ...p, label: `${p.time} R${p.rodada}` }));
+      .map(p => ({ ...p, label: `${p.time} ${p.rodada}` }));
   }, [campeonato, ano, selectedPartida]);
 
   const setorKeys = useMemo(() => {

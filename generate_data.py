@@ -281,9 +281,11 @@ for _, r in time_full.iterrows():
 publicoETicketPorTime.sort(key=lambda x: -x["publico"])
 
 # ── 9e. Faturamento por campeonato e ano ─────────────────────────────────
-camp_ano_agg = bord_enrich.groupby(["CAMPEONATO","ANO"]).agg(
-    FATURAMENTO=("FATURAMENTO","sum"),
-    UTILIZADOS=("UTILIZADOS","sum"),
+# Use ingr_enrich (all 64 partidas, 2024+2025) instead of bord_enrich (only 2024)
+ingr_enrich["FAT_INGR"] = ingr_enrich["PÚBLICO"] * ingr_enrich["UNITÁRIO"]
+camp_ano_agg = ingr_enrich.groupby(["CAMPEONATO","ANO"]).agg(
+    FATURAMENTO=("FAT_INGR","sum"),
+    UTILIZADOS=("PÚBLICO","sum"),
     N_PARTIDAS=("ID_PARTIDA", lambda x: x.nunique()),
 ).reset_index()
 camp_ano_agg["TICKET_MEDIO"] = camp_ano_agg.apply(
