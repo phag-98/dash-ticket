@@ -4,26 +4,26 @@
 // ═══════════════════════════════════════
 
 export const C = {
-  // Base — cinza médio-escuro
-  bg:        '#323232',
-  bgAlt:     '#393939',
-  card:      '#404040',
-  cardHover: '#484848',
-  border:    '#555555',
-  borderMid: '#606060',
+  // Base — cinza claro / tema claro
+  bg:        '#efefef',
+  bgAlt:     '#e6e6e6',
+  card:      '#ffffff',
+  cardHover: '#f7f7f7',
+  border:    '#d8d8d8',
+  borderMid: '#c8c8c8',
 
   // Header/nav
-  header:    '#282828',
+  header:    '#1a1a1a',
 
   // Botafogo accent — dourado quente
   accent:    '#C9A84C',
   accentDim: '#8f7330',
-  accentBg:  'rgba(201,168,76,0.10)',
+  accentBg:  'rgba(201,168,76,0.12)',
 
   // Text
-  t1:        '#f0ece4',   // creme quente
-  t2:        '#a09888',   // cinza-dourado
-  t3:        '#5a5248',   // cinza escuro quente
+  t1:        '#1a1a1a',   // quase preto
+  t2:        '#555555',   // cinza médio
+  t3:        '#999999',   // cinza claro
 
   // Campeonatos
   bra:       '#7db87d',   // Brasileirão — verde médio
@@ -43,10 +43,10 @@ export const C = {
   ticketLine:'#c9a84c',   // Linha Ticket Médio — dourado
 
   // Semântico
-  green:     '#7db87d',
-  greenBg:   'rgba(125,184,125,0.12)',
-  red:       '#c97b7b',
-  redBg:     'rgba(201,123,123,0.12)',
+  green:     '#3a8a3a',
+  greenBg:   'rgba(58,138,58,0.10)',
+  red:       '#c0392b',
+  redBg:     'rgba(192,57,43,0.10)',
   amber:     '#C9A84C',
   amberBg:   'rgba(201,168,76,0.12)',
 };
