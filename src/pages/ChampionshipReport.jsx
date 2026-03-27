@@ -41,6 +41,14 @@ const LOGO_MAP = {
   'Peñarol':               'Peñarol.png',
   'Aurora':                'Aurora.png',
   'Junior de Barranquilla':'Junior Barranquilla.png',
+  'Boavista':              'Boavista.png',
+  'Capital':               'Capital.png',
+  'Carabobo':              'Carabobo.png',
+  'Estudiantes':           'Estudiantes de la Plata.png',
+  'Portuguesa':            'Portuguesa.png',
+  'Racing':                'Racing.png',
+  'Sampaio Corrêa':        'Sampaio Corrêa.png',
+  'Universidad de Chile':  'Universidad de Chile.png',
 };
 
 // ── Cores dos times para badge fallback
@@ -252,6 +260,11 @@ export default function ChampionshipReport() {
         if (ano !== 'Todos' && String(p.ano) !== ano) return false;
         if (selectedPartida && p.idPartida !== selectedPartida) return false;
         return true;
+      })
+      .sort((a, b) => {
+        const da = a.data.split('/').reverse().join('-');
+        const db = b.data.split('/').reverse().join('-');
+        return da.localeCompare(db);
       })
       .map(p => ({ ...p, label: `${p.time} ${p.rodada}` }));
   }, [campeonato, ano, selectedPartida]);
