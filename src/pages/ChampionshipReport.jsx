@@ -9,39 +9,35 @@ import {
   partidas, faturamentoPorCampeonatoAno, ingressos, torcedores,
 } from '../data/data';
 
-// ── Logos dos times via API-Football CDN (id numérico)
-// Fonte: https://media.api-sports.io/football/teams/{id}.png
-const LOGOS = {
-  'Flamengo':              'https://media.api-sports.io/football/teams/127.png',
-  'Fluminense':            'https://media.api-sports.io/football/teams/121.png',
-  'Vasco da Gama':         'https://media.api-sports.io/football/teams/118.png',
-  'Palmeiras':             'https://media.api-sports.io/football/teams/131.png',
-  'São Paulo':             'https://media.api-sports.io/football/teams/126.png',
-  'Corinthians':           'https://media.api-sports.io/football/teams/130.png',
-  'Red Bull Bragantino':   'https://media.api-sports.io/football/teams/10591.png',
-  'Internacional':         'https://media.api-sports.io/football/teams/119.png',
-  'Athlético':             'https://media.api-sports.io/football/teams/128.png',
-  'Atlético-MG':           'https://media.api-sports.io/football/teams/1062.png',
-  'Cruzeiro':              'https://media.api-sports.io/football/teams/120.png',
-  'Atlético-GO':           'https://media.api-sports.io/football/teams/1193.png',
-  'Bahia':                 'https://media.api-sports.io/football/teams/117.png',
-  'Fortaleza':             'https://media.api-sports.io/football/teams/154.png',
-  'Vitória':               'https://media.api-sports.io/football/teams/4755.png',
-  'Ceará':                 'https://media.api-sports.io/football/teams/140.png',
-  'Cuiabá':                'https://media.api-sports.io/football/teams/9684.png',
-  'Criciúma':              'https://media.api-sports.io/football/teams/155.png',
-  'Mirassol':              'https://media.api-sports.io/football/teams/16618.png',
-  'Juventude':             'https://media.api-sports.io/football/teams/137.png',
-  'Grêmio':                'https://media.api-sports.io/football/teams/116.png',
-  'Peñarol':               'https://media.api-sports.io/football/teams/2283.png',
-  'Racing':                'https://media.api-sports.io/football/teams/435.png',
-  'LDU Quito':             'https://media.api-sports.io/football/teams/1046.png',
-  'Universitario':         'https://media.api-sports.io/football/teams/1052.png',
-  'Estudiantes':           'https://media.api-sports.io/football/teams/442.png',
-  'Universidad de Chile':  'https://media.api-sports.io/football/teams/1043.png',
-  'Junior de Barranquilla':'https://media.api-sports.io/football/teams/1077.png',
-  'Aurora':                'https://media.api-sports.io/football/teams/1160.png',
+// ── Cores dos times para badge de iniciais
+const TEAM_COLORS = {
+  'Flamengo': '#cc0000', 'Fluminense': '#6b0f1a', 'Vasco da Gama': '#000000',
+  'Palmeiras': '#006400', 'São Paulo': '#cc0000', 'Corinthians': '#000000',
+  'Red Bull Bragantino': '#cc0000', 'Internacional': '#cc0000', 'Athlético': '#cc0000',
+  'Atlético-MG': '#000000', 'Cruzeiro': '#003087', 'Atlético-GO': '#cc0000',
+  'Bahia': '#003087', 'Fortaleza': '#003087', 'Vitória': '#cc0000',
+  'Ceará': '#000000', 'Cuiabá': '#cc8800', 'Criciúma': '#cc8800',
+  'Mirassol': '#cc8800', 'Juventude': '#006400', 'Grêmio': '#003087',
+  'Peñarol': '#cc8800', 'Racing': '#003087', 'LDU Quito': '#cc8800',
+  'Universitario': '#cc0000', 'Estudiantes': '#000000', 'Universidad de Chile': '#003087',
+  'Junior de Barranquilla': '#cc0000', 'Aurora': '#006400', 'Racing': '#003087',
+  'Carabobo': '#006400', 'Capital': '#003087', 'Juventude': '#006400',
 };
+
+function TeamBadge({ name, size = 22 }) {
+  const initials = name.split(' ').filter(w => w.length > 2).slice(0, 2).map(w => w[0].toUpperCase()).join('') || name.slice(0, 2).toUpperCase();
+  const bg = TEAM_COLORS[name] || '#555';
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: '50%', background: bg,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: size * 0.38, fontWeight: 800, color: '#fff',
+      flexShrink: 0, letterSpacing: '-0.5px', fontFamily: 'inherit',
+    }}>
+      {initials}
+    </div>
+  );
+}
 
 // Fix: merge ticketMedio correto de faturamentoPorPartida
 const fatMap = Object.fromEntries(faturamentoPorPartida.map(p => [p.idPartida, p.ticketMedio]));
@@ -333,10 +329,7 @@ export default function ChampionshipReport() {
                       <td style={{ padding: '8px 10px', color: '#333', fontWeight: 700, fontSize: 10, whiteSpace: 'nowrap', fontFamily: "'Courier New', monospace" }}>{p.rodada}</td>
                       <td style={{ padding: '8px 10px', color: '#111', fontSize: 11, fontWeight: 500, maxWidth: 140 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          {LOGOS[p.time]
-                            ? <img src={LOGOS[p.time]} alt={p.time} style={{ width: 18, height: 18, objectFit: 'contain', flexShrink: 0 }} onError={e => e.target.style.display='none'} />
-                            : <div style={{ width: 18, height: 18, borderRadius: '50%', background: C.border, flexShrink: 0 }} />
-                          }
+                          <TeamBadge name={p.time} size={22} />
                           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.time}</span>
                         </div>
                       </td>
