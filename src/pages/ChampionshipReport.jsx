@@ -6,8 +6,15 @@ import {
 import { C, SHADOW, CAMP_COLORS } from '../tokens';
 import {
   kpis, faturamentoPorPartida, publicoPorTorcedor, publicoPorSetorPartida,
-  partidas, faturamentoPorCampeonatoAno,
+  partidas, faturamentoPorCampeonatoAno, ingressos, torcedores,
 } from '../data/data';
+
+// Fix: merge ticketMedio correto de faturamentoPorPartida
+const fatMap = Object.fromEntries(faturamentoPorPartida.map(p => [p.idPartida, p.ticketMedio]));
+const publicoPorSetorPartidaFixed = publicoPorSetorPartida.map(p => ({
+  ...p,
+  ticketMedio: fatMap[p.idPartida] ?? p.ticketMedio,
+}));
 
 const CAMP_NAMES = [...new Set(partidas.map(p => p.campeonato).filter(Boolean))].sort();
 
@@ -139,7 +146,7 @@ export default function ChampionshipReport() {
   }, [campeonato, ano]);
 
   const comboData = useMemo(() => {
-    return publicoPorSetorPartida
+    return publicoPorSetorPartidaFixed
       .filter(p => {
         if (campeonato !== 'Todos' && p.campeonato !== campeonato) return false;
         if (ano !== 'Todos' && String(p.ano) !== ano) return false;
@@ -188,14 +195,29 @@ export default function ChampionshipReport() {
   const totalFat = filteredFat.reduce((s, p) => s + p.faturamento, 0);
   const maxFat = top20.length > 0 ? top20[0].faturamento : 1;
 
-  const sortedPublicoPorTorcedor = useMemo(() =>
-    [...publicoPorTorcedor].sort((a, b) => b.publico - a.publico), []);
+  const sortedPublicoPorTorcedor = useMemo(() => {
+    let base;
+    if (selectedPartida) {
+      // Filtra ingressos pela partida selecionada e reagrupa por torcedor
+      const torcedorMap = Object.fromEntries(torcedores.map(t => [t.id || t.ID_TORCEDOR, t.nome || t.NOME]));
+      const filtered = ingressos.filter(r => r.ID_PARTIDA === selectedPartida || r.idPartida === selectedPartida);
+      const grouped = {};
+      filtered.forEach(r => {
+        const nome = torcedorMap[r.ID_TORCEDOR || r.idTorcedor] || r.ID_TORCEDOR || r.idTorcedor || 'Outros';
+        grouped[nome] = (grouped[nome] || 0) + (r.PÚBLICO || r.publico || 0);
+      });
+      base = Object.entries(grouped).map(([torcedor, publico]) => ({ torcedor, publico }));
+    } else {
+      base = [...publicoPorTorcedor];
+    }
+    return base.filter(d => d.publico > 0).sort((a, b) => b.publico - a.publico);
+  }, [selectedPartida]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       {/* ── Row 1: Filtros + 4 KPIs em linha ── */}
-      <div style={{ display: 'flex', gap: 12, alignItems: 'stretch', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 12, alignItems: 'stretch', flexWrap: 'nowrap' }}>
 
         {/* Filtros */}
         <div style={{
