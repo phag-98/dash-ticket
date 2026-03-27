@@ -5,6 +5,7 @@ import {
   BarChart, Bar, Cell, LineChart, Line, ComposedChart, LabelList,
 } from 'recharts';
 import { C, FONT, SHADOW, CAMP_COLORS as TOKEN_CAMP_COLORS } from '../tokens';
+import { TeamBadge, TeamXTick, TeamYTick } from '../teamLogos';
 import {
   faturamentoPorPartida, publicoPorSetorPartida, unitarioPorTimeESetor,
   publicoETicketPorTime, faturamentoPorCampeonatoAno, partidas, kpis,
@@ -256,7 +257,12 @@ export default function VisaoGeral() {
                 <tbody>
                   {filteredPartidas.map((p, i) => (
                     <tr key={p.id} style={{ borderBottom: `1px solid ${C.border}`, background: i % 2 === 0 ? 'transparent' : C.bgAlt + '44' }}>
-                      <td style={{ padding: '4px 8px', color: C.t1 }}>{p.time}</td>
+                      <td style={{ padding: '4px 8px', color: C.t1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                          <TeamBadge name={p.time} size={16} />
+                          {p.time}
+                        </div>
+                      </td>
                       <td style={{ padding: '4px 8px', color: C.t2 }}>{p.rodada}</td>
                       <td style={{ padding: '4px 8px', color: C.t2, whiteSpace: 'nowrap' }}>{p.data}</td>
                       <td style={{ padding: '4px 8px', color: C.t3 }}>{p.diaSemana?.slice(0, 3)}</td>
@@ -302,10 +308,10 @@ export default function VisaoGeral() {
         {/* Faturamento por time descending */}
         <Card title="Soma de FATURAMENTO por Time (Top 15)">
           <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={fatPorTime} layout="vertical" margin={{ top: 8, right: 60, bottom: 4, left: 120 }}>
+            <BarChart data={fatPorTime} layout="vertical" margin={{ top: 8, right: 60, bottom: 4, left: 140 }}>
               <CartesianGrid stroke={C.border} strokeDasharray="3 3" horizontal={false} />
               <XAxis type="number" tick={{ fill: C.t3, fontSize: 8 }} axisLine={false} tickLine={false} tickFormatter={fmtM} />
-              <YAxis type="category" dataKey="time" tick={{ fill: C.t2, fontSize: 9 }} axisLine={false} tickLine={false} width={120} />
+              <YAxis type="category" dataKey="time" tick={<TeamYTick fill={C.t2} fontSize={9} />} axisLine={false} tickLine={false} width={140} />
               <RTooltip content={<DarkTooltip />} />
               <Bar dataKey="faturamento" name="Faturamento" radius={[0, 4, 4, 0]} barSize={12}>
                 <LabelList dataKey="faturamento" position="right" formatter={fmtM} style={{ fontSize: 7, fill: C.t3 }} />
@@ -328,9 +334,9 @@ export default function VisaoGeral() {
             ))}
           </div>
           <ResponsiveContainer width="100%" height={260}>
-            <LineChart data={unitarioPorTimeESetor.slice(0, 30)} margin={{ top: 8, right: 16, bottom: 80, left: 10 }}>
+            <LineChart data={unitarioPorTimeESetor.slice(0, 30)} margin={{ top: 8, right: 16, bottom: 36, left: 10 }}>
               <CartesianGrid stroke={C.border} strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="time" tick={{ fill: C.t3, fontSize: 7 }} axisLine={false} tickLine={false} angle={-45} textAnchor="end" height={90} interval={0} />
+              <XAxis dataKey="time" tick={<TeamXTick size={16} />} axisLine={false} tickLine={false} height={28} interval={0} />
               <YAxis tick={{ fill: C.t3, fontSize: 9 }} axisLine={false} tickLine={false} />
               <RTooltip content={<DarkTooltip />} />
               {setorKeysUnit.map((s, i) => (
@@ -344,9 +350,9 @@ export default function VisaoGeral() {
       {/* Row 3: Público por time */}
       <Card title="Público por Time (Top 15)">
         <ResponsiveContainer width="100%" height={240}>
-          <BarChart data={timePublico.slice(0, 15)} margin={{ top: 8, right: 16, bottom: 70, left: 10 }}>
+          <BarChart data={timePublico.slice(0, 15)} margin={{ top: 8, right: 16, bottom: 36, left: 10 }}>
             <CartesianGrid stroke={C.border} strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="time" tick={{ fill: C.t3, fontSize: 8 }} axisLine={false} tickLine={false} angle={-40} textAnchor="end" height={80} interval={0} />
+            <XAxis dataKey="time" tick={<TeamXTick size={18} />} axisLine={false} tickLine={false} height={30} interval={0} />
             <YAxis tick={{ fill: C.t3, fontSize: 9 }} axisLine={false} tickLine={false} tickFormatter={fmtK} />
             <RTooltip content={<DarkTooltip />} />
             <Bar dataKey="publico" name="Público" radius={[3, 3, 0, 0]} barSize={20}>

@@ -4,66 +4,14 @@ import {
   Tooltip as RTooltip, ResponsiveContainer, Cell, BarChart,
 } from 'recharts';
 import { C, SHADOW, CAMP_COLORS } from '../tokens';
+import { LOGO_MAP, TEAM_COLORS, TeamBadge } from '../teamLogos';
 import {
   kpis, faturamentoPorPartida, publicoPorTorcedor, publicoPorSetorPartida,
   partidas, faturamentoPorCampeonatoAno, ingressos, torcedores,
 } from '../data/data';
 
-// ── Mapeamento time → arquivo de logo
-const LOGO_MAP = {
-  'Flamengo':              'Flamengo.png',
-  'Fluminense':            'Fluminense.png',
-  'Vasco da Gama':         'Vasco.png',
-  'Palmeiras':             'Palmeiras.png',
-  'São Paulo':             'Sao Paulo.png',
-  'Corinthians':           'Corinthians.png',
-  'Red Bull Bragantino':   'RedBullBragantino.png',
-  'Internacional':         'Internacional.png',
-  'Athlético':             'Athletico.png',
-  'Atlético-MG':           'Atletico mineiro.png',
-  'Cruzeiro':              'Cruzeiro.png',
-  'Atlético-GO':           'Atlético Goianiense.png',
-  'Bahia':                 'Bahia.png',
-  'Fortaleza':             'Fortaleza.png',
-  'Vitória':               'Vitória.png',
-  'Ceará':                 'Ceará.png',
-  'Cuiabá':                'Cuiabá.png',
-  'Criciúma':              'Criciúma.png',
-  'Mirassol':              'Mirassol.png',
-  'Juventude':             'Juventude.png',
-  'Grêmio':                'Gremio.png',
-  'Volta Redonda':         'Volta Redonda.png',
-  'Bangu':                 'Bangu.png',
-  'Maricá':                'Maricá.png',
-  'Madureira':             'Madureira.png',
-  'LDU Quito':             'LDU Quito.png',
-  'Universitario':         'Universitario.png',
-  'Peñarol':               'Peñarol.png',
-  'Aurora':                'Aurora.png',
-  'Junior de Barranquilla':'Junior Barranquilla.png',
-  'Boavista':              'Boavista.png',
-  'Capital':               'Capital.png',
-  'Carabobo':              'Carabobo.png',
-  'Estudiantes':           'Estudiantes de la Plata.png',
-  'Portuguesa':            'Portuguesa.png',
-  'Racing':                'Racing.png',
-  'Sampaio Corrêa':        'Sampaio Corrêa.png',
-  'Universidad de Chile':  'Universidad de Chile.png',
-};
-
-// ── Cores dos times para badge fallback
-const TEAM_COLORS = {
-  'Flamengo': '#cc0000', 'Fluminense': '#6b0f1a', 'Vasco da Gama': '#000000',
-  'Palmeiras': '#006400', 'São Paulo': '#cc0000', 'Corinthians': '#000000',
-  'Red Bull Bragantino': '#cc0000', 'Internacional': '#cc0000', 'Athlético': '#cc0000',
-  'Atlético-MG': '#000000', 'Cruzeiro': '#003087', 'Atlético-GO': '#cc0000',
-  'Bahia': '#003087', 'Fortaleza': '#003087', 'Vitória': '#cc0000',
-  'Ceará': '#000000', 'Cuiabá': '#cc8800', 'Criciúma': '#cc8800',
-  'Mirassol': '#cc8800', 'Juventude': '#006400', 'Grêmio': '#003087',
-  'Peñarol': '#cc8800', 'Racing': '#003087', 'LDU Quito': '#cc8800',
-  'Universitario': '#cc0000', 'Estudiantes': '#000000', 'Universidad de Chile': '#003087',
-  'Junior de Barranquilla': '#cc0000', 'Aurora': '#006400',
-};
+const SOCIO_IDS = new Set(torcedores.filter(t => t.socio === 'Sim').map(t => t.id));
+const partidaById = Object.fromEntries(partidas.map(p => [p.id, p]));
 
 function CustomXTick({ x, y, payload }) {
   const [timeName, rodada] = payload.value.split('|');
@@ -82,36 +30,6 @@ function CustomXTick({ x, y, payload }) {
       )}
       <text x={0} y={30} textAnchor="middle" fill="#999" fontSize={7}>{rodada}</text>
     </g>
-  );
-}
-
-function TeamBadge({ name, size = 22 }) {
-  const logo = LOGO_MAP[name];
-  const initials = name.split(' ').filter(w => w.length > 2).slice(0, 2).map(w => w[0].toUpperCase()).join('') || name.slice(0, 2).toUpperCase();
-  const bg = TEAM_COLORS[name] || '#555';
-
-  if (logo) {
-    return (
-      <img
-        src={`/logos/${logo}`}
-        alt={name}
-        style={{ width: size, height: size, objectFit: 'contain', flexShrink: 0 }}
-        onError={e => {
-          e.target.style.display = 'none';
-          e.target.nextSibling && (e.target.nextSibling.style.display = 'flex');
-        }}
-      />
-    );
-  }
-  return (
-    <div style={{
-      width: size, height: size, borderRadius: '50%', background: bg,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      fontSize: size * 0.38, fontWeight: 800, color: '#fff',
-      flexShrink: 0, letterSpacing: '-0.5px',
-    }}>
-      {initials}
-    </div>
   );
 }
 
@@ -283,13 +201,30 @@ export default function ChampionshipReport() {
     const base = selectedPartida
       ? filteredFat.filter(p => p.idPartida === selectedPartida)
       : filteredFat;
+
+    // Compute percentualSocios from ingressos based on active filters
+    let percentualSocios = kpis.percentualSocios;
+    if (selectedPartida || campeonato !== 'Todos' || ano !== 'Todos') {
+      const ingFiltered = ingressos.filter(r => {
+        if (selectedPartida) return r.idPartida === selectedPartida;
+        const p = partidaById[r.idPartida];
+        if (!p) return false;
+        if (campeonato !== 'Todos' && p.campeonato !== campeonato) return false;
+        if (ano !== 'Todos' && String(p.ano) !== ano) return false;
+        return true;
+      });
+      const totalPub = ingFiltered.reduce((s, r) => s + r.publico, 0);
+      const socioPub = ingFiltered.filter(r => SOCIO_IDS.has(r.idTorcedor)).reduce((s, r) => s + r.publico, 0);
+      if (totalPub > 0) percentualSocios = socioPub / totalPub;
+    }
+
     if (!selectedPartida && campeonato === 'Todos' && ano === 'Todos') return kpis;
     const total_fat  = base.reduce((s, p) => s + p.faturamento, 0);
     const total_util = base.reduce((s, p) => s + p.utilizados, 0);
     const tm = total_util > 0 ? total_fat / total_util : 0;
     const pub_total  = base.reduce((s, p) => s + (p.utilizados || 0), 0);
     const media_pub  = base.length > 0 ? pub_total / base.length : 0;
-    return { ...kpis, ticketMedio: Math.round(tm * 100) / 100, faturamentoTotal: total_fat, publicoTotal: pub_total, mediaPublico: media_pub };
+    return { ...kpis, ticketMedio: Math.round(tm * 100) / 100, faturamentoTotal: total_fat, publicoTotal: pub_total, mediaPublico: media_pub, percentualSocios };
   }, [filteredFat, campeonato, ano, selectedPartida]);
 
   const kpiVariations = useMemo(() => {
@@ -356,7 +291,7 @@ export default function ChampionshipReport() {
         </div>
 
         {/* 4 KPIs */}
-        <KPI label="Sócios %" value={fmtPct(kpis.percentualSocios)} icon="⭐" accent variation={null} />
+        <KPI label="Sócios %" value={fmtPct(filteredKpis.percentualSocios)} icon="⭐" accent variation={null} />
         <KPI label="Ticket Médio" value={`R$ ${filteredKpis.ticketMedio.toFixed(2).replace('.', ',')}`} icon="🎟" variation={selectedPartida ? null : kpiVariations.ticketMedio} />
         <KPI label="Média de Público" value={fmtK(Math.round(filteredKpis.mediaPublico))} icon="👥" variation={selectedPartida ? null : kpiVariations.mediaPublico} />
         <KPI label="Público Total" value={filteredKpis.publicoTotal >= 1_000_000 ? `${(filteredKpis.publicoTotal/1_000_000).toFixed(2).replace('.',',')} Mi` : fmtK(Math.round(filteredKpis.publicoTotal))} icon="🏟" variation={selectedPartida ? null : kpiVariations.publicoTotal} />
