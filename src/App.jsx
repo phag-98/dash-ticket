@@ -4,6 +4,7 @@ import ChampionshipReport from './pages/ChampionshipReport';
 import Comparativo        from './pages/Comparativo';
 import Setores            from './pages/Setores';
 import NoShow             from './pages/NoShow';
+import VisaoGeral         from './pages/VisaoGeral';
 import Precos             from './pages/Precos';
 
 const TABS = [
@@ -11,6 +12,7 @@ const TABS = [
   { id: 'comparativo',  label: 'Comparativo' },
   { id: 'setores',      label: 'Setores' },
   { id: 'noshow',       label: 'No Show' },
+  { id: 'visaogeral',   label: 'Visão Geral' },
   { id: 'precos',       label: 'Preços' },
 ];
 
@@ -80,6 +82,7 @@ export default function App() {
         {tab === 'comparativo'  && <Comparativo />}
         {tab === 'setores'      && <Setores />}
         {tab === 'noshow'       && <NoShow />}
+        {tab === 'visaogeral'   && <VisaoGeral />}
         {tab === 'precos'       && <Precos />}
       </main>
     </div>

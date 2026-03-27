@@ -2,133 +2,151 @@ import { useState, useMemo } from 'react';
 import {
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid,
   Tooltip as RTooltip, ResponsiveContainer, ReferenceLine,
-  LineChart, Line, BarChart, Bar, Cell, LabelList,
+  LineChart, Line, BarChart, Bar, Cell,
 } from 'recharts';
-import { C, FONT, SHADOW, CAMP_COLORS, SETOR_COLORS } from '../tokens';
+import { C, FONT, SHADOW } from '../tokens';
 import {
-  CAMPEONATOS, SETORES, filtrarPartidas, kpiSummary, topFaturamento,
-  getSetorBreakdown, unitarioPorTimeSetor, faturamentoPorCampeonatoAno,
-} from '../data/mock';
+  precosPorTimeETorcedor, torcedorCols, faturamentoPorPartida,
+  unitarioPorTimeESetor, partidas, kpis,
+} from '../data/data';
 
-const fmtM = v => {
-  if (!v&&v!==0) return '—';
-  if (v>=1_000_000) return `R$ ${(v/1_000_000).toFixed(1).replace('.',',')} Mi`;
-  if (v>=1_000) return `R$ ${(v/1_000).toFixed(0)} Mil`;
-  return `R$ ${v}`;
+const fmtR = v => {
+  if (!v && v !== 0) return '—';
+  return `R$ ${Number(v).toFixed(2).replace('.', ',')}`;
 };
-const fmtK = v => v>=1000?`${(v/1000).toFixed(0)}k`:`${v}`;
+const fmtK = v => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`;
 
-function Card({ children, title, style={} }) {
+const CAMP_COLORS = {
+  'Brasileirão':    '#4ade80',
+  'Carioca':        '#f87171',
+  'Copa do Brasil': '#60a5fa',
+  'Libertadores':   '#a78bfa',
+  'Recopa':         '#fb923c',
+  'Sulamericana':   '#fbbf24',
+  'Supermundial':   '#34d399',
+  'Mundial':        '#e879f9',
+  'Supercopa':      '#64748b',
+};
+
+const SETOR_PALETTE = [
+  '#FFD700','#94a3b8','#00bcd4','#87ceeb','#6b7280','#b0b0c0','#6366f1',
+  '#f97316','#84cc16','#e879f9','#fbbf24','#34d399','#64748b','#f43f5e',
+];
+
+const CAMP_NAMES = [...new Set(partidas.map(p => p.campeonato).filter(Boolean))].sort();
+
+function Card({ children, title, style = {} }) {
   return (
-    <div style={{ background:C.card, borderRadius:10, border:`1px solid ${C.border}`, boxShadow:SHADOW.card, ...style }}>
-      {title&&<div style={{ padding:'12px 16px 0', fontSize:11, fontWeight:700, color:C.t1, marginBottom:4 }}>{title}</div>}
+    <div style={{ background: C.card, borderRadius: 10, border: `1px solid ${C.border}`, boxShadow: SHADOW.card, ...style }}>
+      {title && <div style={{ padding: '12px 16px 4px', fontSize: 11, fontWeight: 700, color: C.t1 }}>{title}</div>}
       {children}
     </div>
   );
 }
 
-const DarkTooltip = ({ active, payload }) => {
-  if (!active||!payload?.length) return null;
-  const d = payload[0]?.payload;
-  if (!d) return null;
+const DarkTooltip = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
   return (
-    <div style={{ background:'#1e1e2e', border:`1px solid ${C.border}`, borderRadius:8, padding:'10px 14px', fontSize:11, boxShadow:SHADOW.md }}>
-      <p style={{ fontWeight:700, color:C.t1, marginBottom:4 }}>{d.adversario||d.campeonato}</p>
-      {d.publico && <p style={{ color:C.t2 }}>Público: <b style={{ color:C.t1 }}>{d.publico.toLocaleString('pt-BR')}</b></p>}
-      {d.ticket_medio && <p style={{ color:C.t2 }}>Ticket Médio: <b style={{ color:C.accent }}>R$ {d.ticket_medio.toFixed(2)}</b></p>}
-      {d.campeonato && <p style={{ color:CAMP_COLORS[d.campeonato] }}>{d.campeonato}</p>}
+    <div style={{ background: '#1e1e2e', border: `1px solid ${C.border}`, borderRadius: 8, padding: '10px 14px', fontSize: 11, boxShadow: SHADOW.md }}>
+      <p style={{ fontWeight: 700, color: C.t1, marginBottom: 4 }}>{label}</p>
+      {payload.filter(p => p.value != null).map((p, i) => (
+        <p key={i} style={{ color: p.stroke || p.fill || C.t2, margin: '2px 0' }}>
+          <span style={{ color: C.t3 }}>{p.name}: </span>
+          <span style={{ fontWeight: 600 }}>R$ {Number(p.value).toFixed(2)}</span>
+        </p>
+      ))}
     </div>
   );
 };
 
 export default function Precos() {
-  const [campeonato, setCampeonato] = useState(null);
-  const [ano,        setAno]        = useState(null);
+  const [campFilter, setCampFilter] = useState(null);
 
-  const partidas = useMemo(()=>filtrarPartidas({ campeonato:campeonato||'Todos', ano:ano||'Todos' }),[campeonato,ano]);
-  const kpi      = useMemo(()=>kpiSummary(partidas),[partidas]);
-  const top5     = useMemo(()=>topFaturamento(partidas,5),[partidas]);
+  // Filter precosPorTimeETorcedor based on partidas in selected campeonato
+  const timesInCamp = useMemo(() => {
+    if (!campFilter) return null;
+    return new Set(partidas.filter(p => p.campeonato === campFilter).map(p => p.idTime));
+  }, [campFilter]);
 
-  // Scatter data: público vs ticket médio, colored by campeonato
-  const scatterGroups = useMemo(()=>{
-    return CAMPEONATOS.map(c=>({
-      campeonato:c,
-      data:partidas.filter(p=>p.campeonato===c).map(p=>({ ...p, x:p.publico, y:p.ticket_medio })),
-      fill:CAMP_COLORS[c],
-    })).filter(g=>g.data.length>0);
-  },[partidas]);
+  const filteredPrecos = useMemo(() => {
+    if (!timesInCamp) return precosPorTimeETorcedor;
+    return precosPorTimeETorcedor.filter(r => timesInCamp.has(r.idTime));
+  }, [timesInCamp]);
 
-  // Preço inteira by time+setor (ticket médio proxy)
-  const precoSetor = useMemo(()=>unitarioPorTimeSetor(partidas),[partidas]);
+  // Scatter: faturamento por partida, x=utilizados, y=ticketMedio
+  const scatterGroups = useMemo(() => {
+    return CAMP_NAMES.map(c => ({
+      campeonato: c,
+      data: faturamentoPorPartida.filter(p => !campFilter || p.campeonato === campFilter)
+        .filter(p => p.campeonato === c)
+        .map(p => ({ ...p, x: p.utilizados, y: p.ticketMedio })),
+      fill: CAMP_COLORS[c] || '#888',
+    })).filter(g => g.data.length > 0);
+  }, [campFilter]);
 
-  // Faturamento by campeonato ano for table
-  const campAnoData = useMemo(()=>faturamentoPorCampeonatoAno(),[]);
-
-  // Grouped bar by campeonato: ticket médio x setor (aggregate)
-  const ticketCampData = useMemo(()=>{
-    return CAMPEONATOS.map(c=>{
-      const ps = partidas.filter(p=>p.campeonato===c);
-      const row = { campeonato:c };
-      if (!ps.length) return null;
-      SETORES.forEach(s=>{
-        const vals = ps.flatMap(p=>getSetorBreakdown(p).filter(sd=>sd.setor===s.nome).map(sd=>sd.ticket_medio));
-        row[s.nome] = vals.length ? parseFloat((vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(2)) : 0;
+  // Setor keys from unitarioPorTimeESetor
+  const setorKeysUnit = useMemo(() => {
+    const keys = new Set();
+    unitarioPorTimeESetor.forEach(row => {
+      Object.keys(row).forEach(k => {
+        if (k !== 'idTime' && k !== 'time' && row[k] != null) keys.add(k);
       });
-      return row;
+    });
+    return [...keys];
+  }, []);
+
+  // Ticket médio by campeonato
+  const campSummary = useMemo(() => {
+    return CAMP_NAMES.map(c => {
+      const rows = faturamentoPorPartida.filter(p => p.campeonato === c);
+      if (!rows.length) return null;
+      const fat = rows.reduce((s, p) => s + p.faturamento, 0);
+      const util = rows.reduce((s, p) => s + p.utilizados, 0);
+      return { campeonato: c, ticketMedio: util > 0 ? fat / util : 0, nJogos: rows.length };
     }).filter(Boolean);
-  },[partidas]);
+  }, []);
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
-      {/* ── Filters ── */}
-      <div style={{ display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
-        <div style={{ display:'flex', gap:4 }}>
-          {[null,...CAMPEONATOS].map(c=>(
-            <button key={c??'todos'} onClick={()=>setCampeonato(c)} style={{
-              padding:'5px 12px', borderRadius:6, border:`1px solid ${C.border}`,
-              background:campeonato===c?(c?CAMP_COLORS[c]:C.accent):C.card,
-              color:campeonato===c?'#000':C.t2,
-              fontSize:10, fontWeight:600, cursor:'pointer', fontFamily:FONT,
-            }}>{c??'Todos'}</button>
-          ))}
-        </div>
-        <div style={{ width:1, height:24, background:C.border }}/>
-        <div style={{ display:'flex', gap:4 }}>
-          {[null,2024,2025].map(a=>(
-            <button key={a??'todos'} onClick={()=>setAno(a)} style={{
-              padding:'5px 12px', borderRadius:6, border:`1px solid ${C.border}`,
-              background:ano===a?C.accent:C.card, color:ano===a?'#000':C.t2,
-              fontSize:10, fontWeight:600, cursor:'pointer', fontFamily:FONT,
-            }}>{a??'Todos'}</button>
-          ))}
-        </div>
+      {/* Filters */}
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+        <button onClick={() => setCampFilter(null)} style={{
+          padding: '5px 14px', borderRadius: 6, border: `1px solid ${C.border}`,
+          background: !campFilter ? C.accent : C.card, color: !campFilter ? '#000' : C.t2,
+          fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: FONT,
+        }}>Todos</button>
+        {CAMP_NAMES.map(c => (
+          <button key={c} onClick={() => setCampFilter(campFilter === c ? null : c)} style={{
+            padding: '5px 14px', borderRadius: 6, border: `1px solid ${C.border}`,
+            background: campFilter === c ? (CAMP_COLORS[c] || C.accent) : C.card,
+            color: campFilter === c ? '#000' : C.t2,
+            fontSize: 10, fontWeight: 600, cursor: 'pointer', fontFamily: FONT,
+          }}>{c}</button>
+        ))}
       </div>
 
-      {/* ── Row 1: KPI + Scatter ── */}
-      <div style={{ display:'grid', gridTemplateColumns:'300px 1fr', gap:14 }}>
+      {/* Row 1: Jogos count + Scatter */}
+      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 14 }}>
 
-        {/* Left: Número de jogos + top partidas */}
-        <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+        {/* Número de jogos + ticket por camp */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <Card>
-            <div style={{ padding:'20px 20px 12px', textAlign:'center' }}>
-              <div style={{ fontSize:11, fontWeight:700, color:C.t2, textTransform:'uppercase', marginBottom:4 }}>Número de Jogos</div>
-              <div style={{ fontSize:52, fontWeight:900, color:C.accent, lineHeight:1 }}>{kpi.n_jogos}</div>
+            <div style={{ padding: '20px 20px 12px', textAlign: 'center' }}>
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.t2, textTransform: 'uppercase', marginBottom: 4 }}>Número de Jogos</div>
+              <div style={{ fontSize: 52, fontWeight: 900, color: C.accent, lineHeight: 1 }}>{partidas.length}</div>
             </div>
           </Card>
 
-          {/* Top 5 campeonatos */}
-          <Card title="Por Campeonato">
-            <div style={{ padding:'4px 0 8px' }}>
-              {campAnoData.filter(d=>!campeonato||d.campeonato===campeonato).reduce((acc,d)=>{
-                const ex = acc.find(a=>a.campeonato===d.campeonato);
-                if (ex) { ex.ticket_sum+=d.ticket_medio; ex.n++; ex.fat+=d.faturamento; }
-                else acc.push({ campeonato:d.campeonato, ticket_sum:d.ticket_medio, n:1, fat:d.faturamento });
-                return acc;
-              },[]).map((r,i)=>(
-                <div key={r.campeonato} style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'5px 14px', borderBottom:`1px solid ${C.border}` }}>
-                  <span style={{ fontSize:10, color:C.t1 }}>{r.campeonato}</span>
-                  <span style={{ fontSize:10, color:C.accent, fontWeight:700 }}>R$ {(r.ticket_sum/r.n).toFixed(2)}</span>
+          <Card title="Ticket Médio por Campeonato">
+            <div style={{ padding: '4px 0 8px' }}>
+              {campSummary.map((r, i) => (
+                <div key={r.campeonato} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '5px 14px', borderBottom: `1px solid ${C.border}` }}>
+                  <span style={{ fontSize: 10, color: C.t1 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: CAMP_COLORS[r.campeonato] || C.t3, display: 'inline-block', marginRight: 5 }} />
+                    {r.campeonato}
+                  </span>
+                  <span style={{ fontSize: 10, color: C.accent, fontWeight: 700 }}>R$ {r.ticketMedio.toFixed(2)}</span>
                 </div>
               ))}
             </div>
@@ -136,100 +154,101 @@ export default function Precos() {
         </div>
 
         {/* Scatter: Público vs Ticket Médio */}
-        <Card title="Público e Ticket Médio por Partida e Campeonato">
-          <div style={{ padding:'4px 16px 8px', display:'flex', gap:12 }}>
-            {scatterGroups.map(g=>(
-              <span key={g.campeonato} style={{ display:'flex', alignItems:'center', gap:4, fontSize:9, color:C.t2 }}>
-                <span style={{ width:8, height:8, borderRadius:'50%', background:g.fill, display:'inline-block' }}/>
+        <Card title="Público e Ticket Médio por Partida">
+          <div style={{ padding: '4px 16px 8px', display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            {scatterGroups.map(g => (
+              <span key={g.campeonato} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: C.t2 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: g.fill, display: 'inline-block' }} />
                 {g.campeonato}
               </span>
             ))}
           </div>
-          <ResponsiveContainer width="100%" height={280}>
-            <ScatterChart margin={{ top:8, right:24, bottom:16, left:16 }}>
-              <CartesianGrid stroke={C.border} strokeDasharray="3 3"/>
-              <XAxis type="number" dataKey="x" name="Público" tick={{ fill:C.t3, fontSize:9 }} axisLine={false} tickLine={false} tickFormatter={fmtK} label={{ value:'Público', position:'insideBottom', fill:C.t3, fontSize:9, offset:-4 }}/>
-              <YAxis type="number" dataKey="y" name="Ticket Médio" tick={{ fill:C.t3, fontSize:9 }} axisLine={false} tickLine={false} label={{ value:'Ticket Médio', angle:-90, position:'insideLeft', fill:C.t3, fontSize:9, dx:-4 }}/>
-              <RTooltip content={<DarkTooltip/>}/>
-              {scatterGroups.map(g=>(
-                <Scatter key={g.campeonato} name={g.campeonato} data={g.data} fill={g.fill} opacity={0.8} r={5}/>
+          <ResponsiveContainer width="100%" height={300}>
+            <ScatterChart margin={{ top: 8, right: 24, bottom: 20, left: 16 }}>
+              <CartesianGrid stroke={C.border} strokeDasharray="3 3" />
+              <XAxis type="number" dataKey="x" name="Utilizados" tick={{ fill: C.t3, fontSize: 9 }} axisLine={false} tickLine={false} tickFormatter={fmtK}
+                label={{ value: 'Público', position: 'insideBottom', fill: C.t3, fontSize: 9, offset: -8 }} />
+              <YAxis type="number" dataKey="y" name="Ticket Médio" tick={{ fill: C.t3, fontSize: 9 }} axisLine={false} tickLine={false}
+                label={{ value: 'Ticket Médio', angle: -90, position: 'insideLeft', fill: C.t3, fontSize: 9, dx: -4 }} />
+              <RTooltip content={({ active, payload }) => {
+                if (!active || !payload?.length) return null;
+                const d = payload[0]?.payload;
+                return (
+                  <div style={{ background: '#1e1e2e', border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', fontSize: 11 }}>
+                    <p style={{ fontWeight: 700, color: C.t1 }}>{d.time}</p>
+                    <p style={{ color: C.t2 }}>Público: <b style={{ color: C.t1 }}>{d.utilizados?.toLocaleString('pt-BR')}</b></p>
+                    <p style={{ color: C.accent }}>TM: R$ {d.ticketMedio?.toFixed(2)}</p>
+                  </div>
+                );
+              }} />
+              {scatterGroups.map(g => (
+                <Scatter key={g.campeonato} name={g.campeonato} data={g.data} fill={g.fill} opacity={0.8} r={5} />
               ))}
-              <ReferenceLine y={kpi.ticket_medio} stroke={C.t3} strokeDasharray="4 2"/>
+              <ReferenceLine y={kpis.ticketMedio} stroke={C.t3} strokeDasharray="4 2" />
             </ScatterChart>
           </ResponsiveContainer>
         </Card>
       </div>
 
-      {/* ── Row 2: Preço por setor + stacked bars ── */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
-
-        {/* Preço inteira por time e setor */}
-        <Card title="Ticket Médio por Time e Setor">
-          <div style={{ padding:'4px 16px 8px', display:'flex', gap:10, flexWrap:'wrap' }}>
-            {SETORES.map(s=>(
-              <span key={s.id} style={{ display:'flex', alignItems:'center', gap:4, fontSize:9, color:C.t2 }}>
-                <span style={{ width:14, height:2, background:SETOR_COLORS[s.nome], display:'inline-block' }}/>
-                {s.nome}
-              </span>
-            ))}
-          </div>
-          <ResponsiveContainer width="100%" height={240}>
-            <LineChart data={precoSetor} margin={{ top:8, right:16, bottom:60, left:10 }}>
-              <CartesianGrid stroke={C.border} strokeDasharray="3 3" vertical={false}/>
-              <XAxis dataKey="adversario" tick={{ fill:C.t3, fontSize:8 }} axisLine={false} tickLine={false} angle={-45} textAnchor="end" height={70} interval={0}/>
-              <YAxis tick={{ fill:C.t3, fontSize:9 }} axisLine={false} tickLine={false}/>
-              <RTooltip content={({ active, payload, label }) => {
-                if (!active||!payload?.length) return null;
-                return (
-                  <div style={{ background:'#1e1e2e', border:`1px solid ${C.border}`, borderRadius:8, padding:'10px 14px', fontSize:11 }}>
-                    <p style={{ fontWeight:700, color:C.t1, marginBottom:4 }}>{label}</p>
-                    {payload.filter(p=>p.value!=null).map((p,i)=>(
-                      <p key={i} style={{ color:p.stroke, margin:'2px 0', fontSize:10 }}>{p.name}: <b>{p.value}</b></p>
-                    ))}
-                  </div>
-                );
-              }}/>
-              {SETORES.map(s=>(
-                <Line key={s.id} type="monotone" dataKey={s.nome} stroke={SETOR_COLORS[s.nome]} strokeWidth={1.5} dot={{ r:2, fill:SETOR_COLORS[s.nome] }} connectNulls/>
+      {/* Matrix table: TIME x TORCEDOR */}
+      <Card title="Preço Médio por Time e Tipo de Torcedor">
+        <div style={{ overflowX: 'auto', padding: '8px 0 8px' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 9 }}>
+            <thead>
+              <tr style={{ background: C.bgAlt, position: 'sticky', top: 0 }}>
+                <th style={{ padding: '7px 12px', textAlign: 'left', fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase', whiteSpace: 'nowrap', minWidth: 120 }}>Time</th>
+                {torcedorCols.map(col => (
+                  <th key={col} style={{ padding: '7px 8px', textAlign: 'right', fontSize: 8, fontWeight: 700, color: C.t3, textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{col}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filteredPrecos.map((r, i) => (
+                <tr key={r.idTime} style={{ borderBottom: `1px solid ${C.border}`, background: i % 2 === 0 ? 'transparent' : C.bgAlt + '44' }}>
+                  <td style={{ padding: '5px 12px', color: C.t1, fontWeight: 500, whiteSpace: 'nowrap', fontSize: 10 }}>{r.time}</td>
+                  {torcedorCols.map(col => {
+                    const v = r[col];
+                    return (
+                      <td key={col} style={{ padding: '5px 8px', textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
+                        {v != null ? (
+                          <span style={{ color: v > 100 ? C.accent : v > 50 ? C.green : v > 0 ? C.t2 : C.t3, fontWeight: v > 100 ? 700 : 400 }}>
+                            R$ {Number(v).toFixed(0)}
+                          </span>
+                        ) : (
+                          <span style={{ color: C.t3 }}>—</span>
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
               ))}
-            </LineChart>
-          </ResponsiveContainer>
-        </Card>
+            </tbody>
+          </table>
+        </div>
+      </Card>
 
-        {/* Ticket médio por campeonato e setor — grouped bars */}
-        <Card title="Ticket Médio por Campeonato e Setor">
-          <div style={{ padding:'4px 16px 8px', display:'flex', gap:10, flexWrap:'wrap' }}>
-            {SETORES.map(s=>(
-              <span key={s.id} style={{ display:'flex', alignItems:'center', gap:4, fontSize:9, color:C.t2 }}>
-                <span style={{ width:8, height:8, borderRadius:2, background:SETOR_COLORS[s.nome], display:'inline-block' }}/>
-                {s.nome}
-              </span>
+      {/* Unitário por time e setor */}
+      <Card title="Preço Unitário por Time e Setor (Linha)">
+        <div style={{ padding: '4px 16px 0', display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {setorKeysUnit.map((s, i) => (
+            <span key={s} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: C.t2 }}>
+              <span style={{ width: 14, height: 2, background: SETOR_PALETTE[i % SETOR_PALETTE.length], display: 'inline-block' }} />
+              {s}
+            </span>
+          ))}
+        </div>
+        <ResponsiveContainer width="100%" height={260}>
+          <LineChart data={unitarioPorTimeESetor.slice(0, 30)} margin={{ top: 8, right: 16, bottom: 80, left: 10 }}>
+            <CartesianGrid stroke={C.border} strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="time" tick={{ fill: C.t3, fontSize: 7 }} axisLine={false} tickLine={false} angle={-45} textAnchor="end" height={90} interval={0} />
+            <YAxis tick={{ fill: C.t3, fontSize: 9 }} axisLine={false} tickLine={false} />
+            <RTooltip content={<DarkTooltip />} />
+            {setorKeysUnit.map((s, i) => (
+              <Line key={s} type="monotone" dataKey={s} stroke={SETOR_PALETTE[i % SETOR_PALETTE.length]} strokeWidth={1.5} dot={false} connectNulls />
             ))}
-          </div>
-          <ResponsiveContainer width="100%" height={240}>
-            <BarChart data={ticketCampData} margin={{ top:8, right:16, bottom:32, left:10 }}>
-              <CartesianGrid stroke={C.border} strokeDasharray="3 3" vertical={false}/>
-              <XAxis dataKey="campeonato" tick={{ fill:C.t3, fontSize:9 }} axisLine={false} tickLine={false} angle={-20} textAnchor="end" height={40} interval={0}/>
-              <YAxis tick={{ fill:C.t3, fontSize:9 }} axisLine={false} tickLine={false}/>
-              <RTooltip content={({ active, payload, label }) => {
-                if (!active||!payload?.length) return null;
-                return (
-                  <div style={{ background:'#1e1e2e', border:`1px solid ${C.border}`, borderRadius:8, padding:'10px 14px', fontSize:11 }}>
-                    <p style={{ fontWeight:700, color:C.t1, marginBottom:4 }}>{label}</p>
-                    {payload.map((p,i)=>(
-                      <p key={i} style={{ color:p.fill, margin:'2px 0', fontSize:10 }}>{p.name}: <b>{p.value}</b></p>
-                    ))}
-                  </div>
-                );
-              }}/>
-              {SETORES.map(s=>(
-                <Bar key={s.id} dataKey={s.nome} fill={SETOR_COLORS[s.nome]} barSize={8} radius={[2,2,0,0]}/>
-              ))}
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
-
-      </div>
+          </LineChart>
+        </ResponsiveContainer>
+      </Card>
 
     </div>
   );
