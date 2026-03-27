@@ -9,6 +9,39 @@ import {
   partidas, faturamentoPorCampeonatoAno, ingressos, torcedores,
 } from '../data/data';
 
+// ── Logos dos times (Wikipedia/Wikimedia)
+const LOGOS = {
+  'Flamengo':           'https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Clube_de_Regatas_do_Flamengo_logo.svg/240px-Clube_de_Regatas_do_Flamengo_logo.svg.png',
+  'Fluminense':         'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Fluminense_FC_logo.svg/240px-Fluminense_FC_logo.svg.png',
+  'Vasco da Gama':      'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Club_de_Regatas_Vasco_da_Gama_logo.svg/240px-Club_de_Regatas_Vasco_da_Gama_logo.svg.png',
+  'Palmeiras':          'https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Palmeiras_logo.svg/240px-Palmeiras_logo.svg.png',
+  'São Paulo':          'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Brasao_do_Sao_Paulo_Futebol_Clube.svg/240px-Brasao_do_Sao_Paulo_Futebol_Clube.svg.png',
+  'Corinthians':        'https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Sport_Club_Corinthians_Paulista_crest.svg/240px-Sport_Club_Corinthians_Paulista_crest.svg.png',
+  'Red Bull Bragantino':'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/RBBragantino.png/240px-RBBragantino.png',
+  'Internacional':      'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Sport_Club_Internacional.svg/240px-Sport_Club_Internacional.svg.png',
+  'Athlético':          'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Athletico_Paranaense_logo.svg/240px-Athletico_Paranaense_logo.svg.png',
+  'Atlético-MG':        'https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Atletico_mineiro_galo.svg/240px-Atletico_mineiro_galo.svg.png',
+  'Cruzeiro':           'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Cruzeiro_Esporte_Clube_logo.svg/240px-Cruzeiro_Esporte_Clube_logo.svg.png',
+  'Atlético-GO':        'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Atletico_Goianiense_logo.svg/240px-Atletico_Goianiense_logo.svg.png',
+  'Bahia':              'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9d/Esporte_Clube_Bahia_logo.svg/240px-Esporte_Clube_Bahia_logo.svg.png',
+  'Fortaleza':          'https://upload.wikimedia.org/wikipedia/commons/thumb/8/82/Fortaleza_Esporte_Clube_logo.svg/240px-Fortaleza_Esporte_Clube_logo.svg.png',
+  'Vitória':            'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Esporte_Clube_Vit%C3%B3ria_logo.svg/240px-Esporte_Clube_Vit%C3%B3ria_logo.svg.png',
+  'Ceará':              'https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Cear%C3%A1_Sporting_Club_logo.svg/240px-Cear%C3%A1_Sporting_Club_logo.svg.png',
+  'Cuiabá':             'https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Cuiab%C3%A1_Esporte_Clube.svg/240px-Cuiab%C3%A1_Esporte_Clube.svg.png',
+  'Criciúma':           'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/Crici%C3%BAma_EC.svg/240px-Crici%C3%BAma_EC.svg.png',
+  'Juventude':          'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Esporte_Clube_Juventude_logo.svg/240px-Esporte_Clube_Juventude_logo.svg.png',
+  'Grêmio':             'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f4/Gr%C3%AAmio_Foot-Ball_Porto_Alegrense_logo.svg/240px-Gr%C3%AAmio_Foot-Ball_Porto_Alegrense_logo.svg.png',
+  'Peñarol':            'https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Pe%C3%B1arol_logo.svg/240px-Pe%C3%B1arol_logo.svg.png',
+  'Racing':             'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Racing_Club_de_Avellaneda_logo.svg/240px-Racing_Club_de_Avellaneda_logo.svg.png',
+  'LDU Quito':          'https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/LDU_Quito_logo.svg/240px-LDU_Quito_logo.svg.png',
+  'Universitario':      'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Universitario_de_Deportes_logo.svg/240px-Universitario_de_Deportes_logo.svg.png',
+  'Estudiantes':        'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Estudiantes_de_La_Plata_logo.svg/240px-Estudiantes_de_La_Plata_logo.svg.png',
+  'Universidad de Chile':'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Universidad_de_Chile_logo.svg/240px-Universidad_de_Chile_logo.svg.png',
+  'Junior de Barranquilla':'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Atletico_Junior_logo.svg/240px-Atletico_Junior_logo.svg.png',
+  'Aurora':             'https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Club_Aurora_logo.svg/240px-Club_Aurora_logo.svg.png',
+  'Mirassol':           'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Mirassol_FC_logo.svg/240px-Mirassol_FC_logo.svg.png',
+};
+
 // Fix: merge ticketMedio correto de faturamentoPorPartida
 const fatMap = Object.fromEntries(faturamentoPorPartida.map(p => [p.idPartida, p.ticketMedio]));
 const publicoPorSetorPartidaFixed = publicoPorSetorPartida.map(p => ({
@@ -169,12 +202,17 @@ export default function ChampionshipReport() {
   }, [comboData]);
 
   const filteredKpis = useMemo(() => {
-    if (campeonato === 'Todos' && ano === 'Todos') return kpis;
-    const total_fat  = filteredFat.reduce((s, p) => s + p.faturamento, 0);
-    const total_util = filteredFat.reduce((s, p) => s + p.utilizados, 0);
+    const base = selectedPartida
+      ? filteredFat.filter(p => p.idPartida === selectedPartida)
+      : filteredFat;
+    if (!selectedPartida && campeonato === 'Todos' && ano === 'Todos') return kpis;
+    const total_fat  = base.reduce((s, p) => s + p.faturamento, 0);
+    const total_util = base.reduce((s, p) => s + p.utilizados, 0);
     const tm = total_util > 0 ? total_fat / total_util : 0;
-    return { ...kpis, ticketMedio: Math.round(tm * 100) / 100, faturamentoTotal: total_fat };
-  }, [filteredFat, campeonato, ano]);
+    const pub_total  = base.reduce((s, p) => s + (p.utilizados || 0), 0);
+    const media_pub  = base.length > 0 ? pub_total / base.length : 0;
+    return { ...kpis, ticketMedio: Math.round(tm * 100) / 100, faturamentoTotal: total_fat, publicoTotal: pub_total, mediaPublico: media_pub };
+  }, [filteredFat, campeonato, ano, selectedPartida]);
 
   const kpiVariations = useMemo(() => {
     const filterByCamp = (rows) => campeonato !== 'Todos' ? rows.filter(r => r.campeonato === campeonato) : rows;
@@ -251,9 +289,9 @@ export default function ChampionshipReport() {
 
         {/* 4 KPIs */}
         <KPI label="Sócios %" value={fmtPct(kpis.percentualSocios)} icon="⭐" accent variation={null} />
-        <KPI label="Ticket Médio" value={`R$ ${filteredKpis.ticketMedio.toFixed(2).replace('.', ',')}`} icon="🎟" variation={kpiVariations.ticketMedio} />
-        <KPI label="Média de Público" value={`${(kpis.mediaPublico / 1000).toFixed(1).replace('.', ',')} Mil`} icon="👥" variation={kpiVariations.mediaPublico} />
-        <KPI label="Público Total" value={`${(kpis.publicoTotal / 1_000_000).toFixed(2).replace('.', ',')} Mi`} icon="🏟" variation={kpiVariations.publicoTotal} />
+        <KPI label="Ticket Médio" value={`R$ ${filteredKpis.ticketMedio.toFixed(2).replace('.', ',')}`} icon="🎟" variation={selectedPartida ? null : kpiVariations.ticketMedio} />
+        <KPI label="Média de Público" value={fmtK(Math.round(filteredKpis.mediaPublico))} icon="👥" variation={selectedPartida ? null : kpiVariations.mediaPublico} />
+        <KPI label="Público Total" value={filteredKpis.publicoTotal >= 1_000_000 ? `${(filteredKpis.publicoTotal/1_000_000).toFixed(2).replace('.',',')} Mi` : fmtK(Math.round(filteredKpis.publicoTotal))} icon="🏟" variation={selectedPartida ? null : kpiVariations.publicoTotal} />
       </div>
 
       {/* ── Row 2: Tabela + Gráficos ── */}
@@ -292,7 +330,15 @@ export default function ChampionshipReport() {
                       }}
                     >
                       <td style={{ padding: '8px 10px', color: '#333', fontWeight: 700, fontSize: 10, whiteSpace: 'nowrap', fontFamily: "'Courier New', monospace" }}>{p.rodada}</td>
-                      <td style={{ padding: '8px 10px', color: '#111', fontSize: 11, fontWeight: 500, maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.time}</td>
+                      <td style={{ padding: '8px 10px', color: '#111', fontSize: 11, fontWeight: 500, maxWidth: 140 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          {LOGOS[p.time]
+                            ? <img src={LOGOS[p.time]} alt={p.time} style={{ width: 18, height: 18, objectFit: 'contain', flexShrink: 0 }} onError={e => e.target.style.display='none'} />
+                            : <div style={{ width: 18, height: 18, borderRadius: '50%', background: C.border, flexShrink: 0 }} />
+                          }
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.time}</span>
+                        </div>
+                      </td>
                       <td style={{ padding: '8px 6px', textAlign: 'center', fontSize: 10, color: '#666', fontFamily: "'Courier New', monospace" }}>{p.ano}</td>
                       <td style={{ padding: '8px 10px', background: isSelected ? `${C.accent}18` : `${C.accent}08` }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end' }}>
