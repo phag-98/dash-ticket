@@ -64,9 +64,11 @@ export default function App() {
           })}
         </nav>
 
-        {/* Right: branding */}
-        <div style={{ fontSize:10, color:C.t3, flexShrink:0 }}>
-          <span style={{ color:C.accentDim, letterSpacing:'1px', textTransform:'uppercase', fontSize:9 }}>Maracanã · 2024–2025</span>
+        {/* Right: white star */}
+        <div style={{ flexShrink:0 }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9" fill="#ffffff"/>
+          </svg>
         </div>
       </header>
 
