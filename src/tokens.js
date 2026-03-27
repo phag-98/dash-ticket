@@ -4,54 +4,55 @@
 // ═══════════════════════════════════════
 
 export const C = {
-  // Base — fundo escuro
-  bg:        '#0d0d14',
-  bgAlt:     '#111118',
-  card:      '#16161f',
-  cardHover: '#1c1c28',
-  border:    '#252533',
-  borderMid: '#2e2e3e',
+  // Base — carvão quente Botafogo
+  bg:        '#1a1a1a',
+  bgAlt:     '#212121',
+  card:      '#272727',
+  cardHover: '#2f2f2f',
+  border:    '#383838',
+  borderMid: '#444444',
 
   // Header/nav
-  header:    '#0a0a11',
+  header:    '#141414',
 
-  // Botafogo accent — verde-amarelo estrela
-  accent:    '#C8F400',
-  accentDim: '#8eb000',
-  accentBg:  'rgba(200,244,0,0.08)',
+  // Botafogo accent — dourado quente
+  accent:    '#C9A84C',
+  accentDim: '#8f7330',
+  accentBg:  'rgba(201,168,76,0.10)',
 
   // Text
-  t1:        '#f0f0f8',
-  t2:        '#94a3b8',
-  t3:        '#555566',
+  t1:        '#f0ece4',   // creme quente
+  t2:        '#a09888',   // cinza-dourado
+  t3:        '#5a5248',   // cinza escuro quente
 
   // Campeonatos
-  bra:       '#4ade80',   // Brasileirão — verde
-  car:       '#f87171',   // Carioca — vermelho
-  cob:       '#60a5fa',   // Copa do Brasil — azul
-  lib:       '#a78bfa',   // Libertadores — roxo
-  rec:       '#fb923c',   // Recopa — laranja
+  bra:       '#7db87d',   // Brasileirão — verde médio
+  car:       '#c97b7b',   // Carioca — vermelho médio
+  cob:       '#7da8c9',   // Copa do Brasil — azul médio
+  lib:       '#9e8fba',   // Libertadores — roxo médio
+  rec:       '#c9a07a',   // Recopa — laranja médio
 
   // Setores
-  lesteInf:  '#FFD700',   // Leste Inferior — amarelo
-  lesteSup:  '#94a3b8',   // Leste Superior — cinza
-  maracana:  '#00bcd4',   // Maracanã Mais — teal
-  norte:     '#87ceeb',   // Norte — azul claro
-  oesteInf:  '#444455',   // Oeste Inferior — escuro
-  oesteSup:  '#b0b0c0',   // Oeste Superior — cinza claro
-  sul:       '#1a237e',   // Sul — azul escuro
-  ticketLine:'#ff6b35',   // Linha Ticket Médio
+  lesteInf:  '#C9A84C',   // Leste Inferior — dourado
+  lesteSup:  '#8a9aa8',   // Leste Superior — cinza azulado
+  maracana:  '#5b9eac',   // Maracanã Mais — teal suave
+  norte:     '#7ab0c4',   // Norte — azul claro
+  oesteInf:  '#555555',   // Oeste Inferior — cinza escuro
+  oesteSup:  '#9a9a9a',   // Oeste Superior — cinza médio
+  sul:       '#4a5f8a',   // Sul — azul escuro suave
+  ticketLine:'#c9a84c',   // Linha Ticket Médio — dourado
 
   // Semântico
-  green:     '#4ade80',
-  greenBg:   'rgba(74,222,128,0.12)',
-  red:       '#f87171',
-  redBg:     'rgba(248,113,113,0.12)',
-  amber:     '#fbbf24',
-  amberBg:   'rgba(251,191,36,0.12)',
+  green:     '#7db87d',
+  greenBg:   'rgba(125,184,125,0.12)',
+  red:       '#c97b7b',
+  redBg:     'rgba(201,123,123,0.12)',
+  amber:     '#C9A84C',
+  amberBg:   'rgba(201,168,76,0.12)',
 };
 
-export const FONT = "'Inter', 'Segoe UI', -apple-system, sans-serif";
+export const FONT = "'Georgia', 'Times New Roman', serif";
+export const FONT_UI = "'Inter', 'Segoe UI', -apple-system, sans-serif";
 
 export const SHADOW = {
   card: '0 2px 8px rgba(0,0,0,0.4)',

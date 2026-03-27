@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { C, FONT } from './tokens';
+import { C, FONT, FONT_UI } from './tokens';
 import ChampionshipReport from './pages/ChampionshipReport';
 import Comparativo        from './pages/Comparativo';
 import Setores            from './pages/Setores';
@@ -20,7 +20,7 @@ export default function App() {
   const [tab, setTab] = useState('championship');
 
   return (
-    <div style={{ minHeight:'100vh', background:C.bg, fontFamily:FONT, color:C.t1 }}>
+    <div style={{ minHeight:'100vh', background:C.bg, fontFamily:FONT_UI, color:C.t1 }}>
 
       {/* ── Top bar ── */}
       <header style={{
@@ -29,19 +29,13 @@ export default function App() {
         padding:'0 24px', height:52, position:'sticky', top:0, zIndex:100,
       }}>
         {/* Logo */}
-        <div style={{ display:'flex', alignItems:'center', gap:10, marginRight:32, flexShrink:0 }}>
-          <div style={{
-            width:32, height:32, borderRadius:6,
-            background:C.accentBg, border:`1.5px solid ${C.accent}`,
-            display:'flex', alignItems:'center', justifyContent:'center',
-          }}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9" fill={C.accent}/>
-            </svg>
-          </div>
+        <div style={{ display:'flex', alignItems:'center', gap:12, marginRight:32, flexShrink:0 }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9" fill={C.accent}/>
+          </svg>
           <div>
-            <div style={{ fontSize:12, fontWeight:800, color:'#fff', letterSpacing:'-0.3px', lineHeight:1.1 }}>BOTAFOGO</div>
-            <div style={{ fontSize:9, color:C.t3, textTransform:'uppercase', letterSpacing:'0.8px' }}>Ticket Dashboard</div>
+            <div style={{ fontSize:13, fontWeight:700, color:C.t1, letterSpacing:'2px', textTransform:'uppercase', lineHeight:1.1, fontFamily:FONT_UI }}>BOTAFOGO</div>
+            <div style={{ fontSize:9, color:C.accentDim, textTransform:'uppercase', letterSpacing:'1.5px' }}>Ticket Dashboard</div>
           </div>
         </div>
 
@@ -55,13 +49,13 @@ export default function App() {
                 onClick={() => setTab(t.id)}
                 style={{
                   padding:'0 16px', height:52, border:'none', cursor:'pointer',
-                  background:'transparent', color: active ? '#fff' : C.t2,
-                  fontFamily:FONT, fontSize:11, fontWeight: active ? 700 : 500,
+                  background:'transparent', color: active ? C.accent : C.t2,
+                  fontFamily:FONT_UI, fontSize:11, fontWeight: active ? 700 : 400,
                   borderBottom: active ? `2px solid ${C.accent}` : '2px solid transparent',
                   transition:'all 0.15s ease',
-                  letterSpacing:'0.2px', whiteSpace:'nowrap',
+                  letterSpacing:'1px', whiteSpace:'nowrap', textTransform:'uppercase',
                 }}
-                onMouseEnter={e=>{ if(!active) e.currentTarget.style.color='#fff'; }}
+                onMouseEnter={e=>{ if(!active) e.currentTarget.style.color=C.t1; }}
                 onMouseLeave={e=>{ if(!active) e.currentTarget.style.color=C.t2; }}
               >
                 {t.label}
@@ -72,7 +66,7 @@ export default function App() {
 
         {/* Right: branding */}
         <div style={{ fontSize:10, color:C.t3, flexShrink:0 }}>
-          Maracanã · 2024–2025
+          <span style={{ color:C.accentDim, letterSpacing:'1px', textTransform:'uppercase', fontSize:9 }}>Maracanã · 2024–2025</span>
         </div>
       </header>
 
