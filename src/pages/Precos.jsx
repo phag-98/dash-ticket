@@ -5,6 +5,80 @@ import { precosPorTimeETorcedor, torcedorCols, partidas } from '../data/data';
 // Filter buttons: 5 main campeonatos
 const FILTER_CAMPS = ['Brasileirão', 'Carioca', 'Copa do Brasil', 'Libertadores', 'Recopa'];
 
+// ── Mapeamento time → arquivo de logo
+const LOGO_MAP = {
+  'Flamengo':              'Flamengo.png',
+  'Fluminense':            'Fluminense.png',
+  'Vasco da Gama':         'Vasco.png',
+  'Palmeiras':             'Palmeiras.png',
+  'São Paulo':             'Sao Paulo.png',
+  'Corinthians':           'Corinthians.png',
+  'Red Bull Bragantino':   'RedBullBragantino.png',
+  'Internacional':         'Internacional.png',
+  'Athlético':             'Athletico.png',
+  'Atlético-MG':           'Atletico mineiro.png',
+  'Cruzeiro':              'Cruzeiro.png',
+  'Atlético-GO':           'Atlético Goianiense.png',
+  'Bahia':                 'Bahia.png',
+  'Fortaleza':             'Fortaleza.png',
+  'Vitória':               'Vitória.png',
+  'Ceará':                 'Ceará.png',
+  'Cuiabá':                'Cuiabá.png',
+  'Criciúma':              'Criciúma.png',
+  'Mirassol':              'Mirassol.png',
+  'Juventude':             'Juventude.png',
+  'Grêmio':                'Gremio.png',
+  'Volta Redonda':         'Volta Redonda.png',
+  'Bangu':                 'Bangu.png',
+  'Maricá':                'Maricá.png',
+  'Madureira':             'Madureira.png',
+  'LDU Quito':             'LDU Quito.png',
+  'Universitario':         'Universitario.png',
+  'Peñarol':               'Peñarol.png',
+  'Aurora':                'Aurora.png',
+  'Junior de Barranquilla':'Junior Barranquilla.png',
+};
+
+// ── Cores dos times para badge fallback
+const TEAM_COLORS = {
+  'Flamengo': '#cc0000', 'Fluminense': '#6b0f1a', 'Vasco da Gama': '#000000',
+  'Palmeiras': '#006400', 'São Paulo': '#cc0000', 'Corinthians': '#000000',
+  'Red Bull Bragantino': '#cc0000', 'Internacional': '#cc0000', 'Athlético': '#cc0000',
+  'Atlético-MG': '#000000', 'Cruzeiro': '#003087', 'Atlético-GO': '#cc0000',
+  'Bahia': '#003087', 'Fortaleza': '#003087', 'Vitória': '#cc0000',
+  'Ceará': '#000000', 'Cuiabá': '#cc8800', 'Criciúma': '#cc8800',
+  'Mirassol': '#cc8800', 'Juventude': '#006400', 'Grêmio': '#003087',
+  'Peñarol': '#cc8800', 'Racing': '#003087', 'LDU Quito': '#cc8800',
+  'Universitario': '#cc0000', 'Estudiantes': '#000000', 'Universidad de Chile': '#003087',
+  'Junior de Barranquilla': '#cc0000', 'Aurora': '#006400',
+};
+
+function TeamLogo({ name, size = 20 }) {
+  const logo = LOGO_MAP[name];
+  const initials = name.split(' ').filter(w => w.length > 2).slice(0, 2).map(w => w[0].toUpperCase()).join('') || name.slice(0, 2).toUpperCase();
+  const bg = TEAM_COLORS[name] || '#555';
+  if (logo) {
+    return (
+      <img
+        src={`/logos/${logo}`}
+        alt={name}
+        style={{ width: size, height: size, objectFit: 'contain', flexShrink: 0 }}
+        onError={e => { e.target.style.display = 'none'; }}
+      />
+    );
+  }
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: '50%', background: bg,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: size * 0.38, fontWeight: 800, color: '#fff',
+      flexShrink: 0, letterSpacing: '-0.5px',
+    }}>
+      {initials}
+    </div>
+  );
+}
+
 // ── Consistent filter button component (Task 3)
 function FilterBtn({ label, active, onClick, color }) {
   const bg     = active ? (color || C.accent) : C.card;
@@ -148,7 +222,7 @@ export default function Precos() {
                   textAlign: 'left',
                   fontSize: 9, fontWeight: 700, color: C.t2,
                   textTransform: 'uppercase', letterSpacing: '1.2px',
-                  whiteSpace: 'nowrap', minWidth: 140,
+                  whiteSpace: 'nowrap', minWidth: 160,
                   position: 'sticky', left: 0, top: 0, zIndex: 3,
                   background: C.bgAlt,
                   borderRight: `1px solid ${C.border}`,
@@ -180,7 +254,7 @@ export default function Precos() {
                   key={r.idTime}
                   style={{
                     borderBottom: `1px solid ${C.border}`,
-                    background: i % 2 === 0 ? 'transparent' : 'rgba(57,57,57,0.35)',
+                    background: i % 2 === 0 ? C.card : C.bgAlt,
                   }}
                 >
                   {/* Sticky first column: TIME name */}
@@ -189,11 +263,15 @@ export default function Precos() {
                     color: C.t1, fontWeight: 600,
                     whiteSpace: 'nowrap', fontSize: 10,
                     position: 'sticky', left: 0, zIndex: 1,
-                    background: i % 2 === 0 ? C.card : '#3a3a3a',
+                    background: i % 2 === 0 ? C.card : C.bgAlt,
                     borderRight: `1px solid ${C.border}`,
                     minHeight: 32,
+                    minWidth: 160,
                   }}>
-                    {r.time}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <TeamLogo name={r.time} size={20} />
+                      {r.time}
+                    </div>
                   </td>
 
                   {torcedorCols.map(col => {

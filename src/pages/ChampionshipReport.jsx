@@ -188,21 +188,21 @@ function KPI({ label, value, icon, accent = false, variation }) {
     <div style={{
       background: accent ? C.accentBg : C.card,
       border: `1px solid ${accent ? C.accent + '40' : C.border}`,
-      borderRadius: 10, padding: '14px 18px',
-      display: 'flex', alignItems: 'center', gap: 14,
-      boxShadow: SHADOW.card, flex: 1,
+      borderRadius: 10, padding: '10px 14px',
+      display: 'flex', alignItems: 'center', gap: 10,
+      boxShadow: SHADOW.card, flex: 1, minWidth: 120,
     }}>
       <div style={{
-        width: 40, height: 40, borderRadius: 10,
+        width: 34, height: 34, borderRadius: 8,
         background: accent ? C.accent + '22' : C.bgAlt,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 18, flexShrink: 0,
+        fontSize: 16, flexShrink: 0,
       }}>{icon}</div>
       <div>
         <div style={{ fontSize: 9, color: C.t2, textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: 2 }}>{label}</div>
-        <div style={{ fontSize: 22, fontWeight: 800, color: accent ? C.accent : C.t1, letterSpacing: '-0.5px', lineHeight: 1 }}>{value}</div>
+        <div style={{ fontSize: 18, fontWeight: 800, color: accent ? C.accent : C.t1, letterSpacing: '-0.5px', lineHeight: 1 }}>{value}</div>
         {hasVar && (
-          <div style={{ marginTop: 5, display: 'inline-flex', alignItems: 'center', background: varBg, borderRadius: 6, padding: '2px 6px' }}>
+          <div style={{ marginTop: 4, display: 'inline-flex', alignItems: 'center', background: varBg, borderRadius: 6, padding: '2px 6px' }}>
             <span style={{ fontSize: 9, fontWeight: 700, color: varColor }}>
               {variation >= 0 ? '+' : ''}{variation.toFixed(1)}% vs 2024
             </span>
@@ -333,18 +333,14 @@ export default function ChampionshipReport() {
         }}>
           <div style={sectionTitle}>Filtros</div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-              <FilterBtn label="Todos" active={campeonato === 'Todos'} onClick={() => setCampeonato('Todos')} />
-              {CAMP_NAMES.map(c => (
-                <FilterBtn key={c} label={c} active={campeonato === c} onClick={() => setCampeonato(c)} color={CAMP_COLORS[c]} />
-              ))}
-            </div>
+            <FilterBtn label="Todos" active={campeonato === 'Todos'} onClick={() => setCampeonato('Todos')} />
+            {CAMP_NAMES.map(c => (
+              <FilterBtn key={c} label={c} active={campeonato === c} onClick={() => setCampeonato(c)} color={CAMP_COLORS[c]} />
+            ))}
             <div style={{ width: 1, height: 18, background: C.border, flexShrink: 0 }} />
-            <div style={{ display: 'flex', gap: 4 }}>
-              {['Todos', '2024', '2025'].map(a => (
-                <FilterBtn key={a} label={a} active={ano === a} onClick={() => setAno(a)} />
-              ))}
-            </div>
+            {['Todos', '2024', '2025'].map(a => (
+              <FilterBtn key={a} label={a} active={ano === a} onClick={() => setAno(a)} />
+            ))}
           </div>
         </div>
 
