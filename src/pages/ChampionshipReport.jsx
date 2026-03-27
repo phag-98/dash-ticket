@@ -4,7 +4,7 @@ import {
   Tooltip as RTooltip, ResponsiveContainer, Cell, BarChart,
 } from 'recharts';
 import { C, SHADOW, CAMP_COLORS } from '../tokens';
-import { LOGO_MAP, TEAM_COLORS, TeamBadge } from '../teamLogos';
+import { LOGO_MAP, TEAM_COLORS, TeamBadge } from '../teamLogos.jsx';
 import {
   kpis, faturamentoPorPartida, publicoPorTorcedor, publicoPorSetorPartida,
   partidas, faturamentoPorCampeonatoAno, ingressos, torcedores,

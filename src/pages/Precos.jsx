@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { C, SHADOW, CAMP_COLORS } from '../tokens';
-import { TeamBadge as TeamLogo } from '../teamLogos';
+import { TeamBadge as TeamLogo } from '../teamLogos.jsx';
 import { precosPorTimeETorcedor, torcedorCols, partidas } from '../data/data';
 
 // Filter buttons: 5 main campeonatos

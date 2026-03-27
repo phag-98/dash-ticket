@@ -5,7 +5,7 @@ import {
   BarChart, Bar, Cell, LineChart, Line, ComposedChart, LabelList,
 } from 'recharts';
 import { C, FONT, SHADOW, CAMP_COLORS as TOKEN_CAMP_COLORS } from '../tokens';
-import { TeamBadge, TeamXTick, TeamYTick } from '../teamLogos';
+import { TeamBadge, TeamXTick, TeamYTick } from '../teamLogos.jsx';
 import {
   faturamentoPorPartida, publicoPorSetorPartida, unitarioPorTimeESetor,
   publicoETicketPorTime, faturamentoPorCampeonatoAno, partidas, kpis,
