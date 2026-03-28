@@ -57,14 +57,8 @@ export default function App() {
           padding:'0 24px', height:48,
         }}>
           {/* Logo mark */}
-          <div style={{ display:'flex', alignItems:'center', gap:8, marginRight:28, flexShrink:0, borderRight:'1px solid #333', paddingRight:28 }}>
-            <svg width="22" height="22" viewBox="0 0 24 24">
-              <polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9" fill={C.accent}/>
-            </svg>
-            <span style={{ fontSize:10, fontWeight:700, color:'#ffffff', letterSpacing:'1.5px', textTransform:'uppercase', fontFamily:FONT_UI, lineHeight:1 }}>
-              Ticket<br/>
-              <span style={{ color:C.accent }}>Dashboard</span>
-            </span>
+          <div style={{ display:'flex', alignItems:'center', marginRight:28, flexShrink:0, borderRight:'1px solid #555', paddingRight:28 }}>
+            <img src="/botafogo.png" alt="Botafogo" style={{ height:36, width:'auto', objectFit:'contain' }} />
           </div>
 
           {/* Tabs */}
