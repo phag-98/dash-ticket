@@ -8,6 +8,35 @@ export const COMP_LOGOS = {
   'Sulamericana':   'sulamericana.png',
 };
 
+// XAxis tick for vertical bar charts with campeonato on X (shows logo + short name)
+export function CompXTick({ x, y, payload }) {
+  const logo = COMP_LOGOS[payload.value];
+  const size = 16;
+  const label = payload.value.length > 10 ? payload.value.slice(0, 9) + '…' : payload.value;
+  return (
+    <g transform={`translate(${x},${y + 4})`}>
+      {logo
+        ? <image href={`/logos/${logo}`} x={-size / 2} y={0} width={size} height={size} />
+        : <text x={0} y={size / 2} textAnchor="middle" fill="#999" fontSize={8}>{label}</text>
+      }
+      <text x={0} y={size + 6} textAnchor="middle" fill="#aaa" fontSize={7}>{label}</text>
+    </g>
+  );
+}
+
+// YAxis tick for horizontal bar charts with campeonato on Y (shows logo + name)
+export function CompYTick({ x, y, payload }) {
+  const logo = COMP_LOGOS[payload.value];
+  const size = 14;
+  const label = payload.value.length > 12 ? payload.value.slice(0, 11) + '…' : payload.value;
+  return (
+    <g transform={`translate(${x},${y})`}>
+      {logo && <image href={`/logos/${logo}`} x={-size - 6} y={-size / 2} width={size} height={size} />}
+      <text x={-size - 10} y={0} dy="0.35em" textAnchor="end" fill="#555" fontSize={9}>{label}</text>
+    </g>
+  );
+}
+
 export const LOGO_MAP = {
   'Flamengo':              'Flamengo.png',
   'Fluminense':            'Fluminense.png',
