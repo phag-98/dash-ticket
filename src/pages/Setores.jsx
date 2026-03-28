@@ -1,13 +1,13 @@
 import { useState, useMemo } from 'react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip as RTooltip, ResponsiveContainer, BarChart, Bar, Cell,
+  Tooltip as RTooltip, ResponsiveContainer, Treemap,
 } from 'recharts';
 import { C, SHADOW, CAMP_COLORS as TOKEN_CAMP_COLORS } from '../tokens';
 import { COMP_LOGOS, LOGO_MAP, TEAM_COLORS } from '../teamLogos.jsx';
 import {
   faturamentoPorSetor, unitarioPorTimeESetor,
-  faturamentoPorPartida, partidas,
+  faturamentoPorPartida, faturamentoPorAdversario, partidas,
 } from '../data/data';
 
 const fmtM = v => {
@@ -74,20 +74,44 @@ const DarkTooltip = ({ active, payload, label }) => {
   );
 };
 
-function CustomXTick({ x, y, payload }) {
-  const [timeName, rodada] = (payload.value || '').split('|');
-  const logoFile = LOGO_MAP[timeName];
-  const bg = TEAM_COLORS[timeName] || '#888';
-  const initials = (timeName || '').split(' ').filter(w => w.length > 2).slice(0, 2).map(w => w[0]).join('').toUpperCase() || (timeName || '').slice(0, 2).toUpperCase();
+// Treemap content with team name + value
+const TREEMAP_COLORS = ['#C9A84C','#a08030','#7a6020','#556b00','#cc5522','#6699cc','#4477aa','#88aadd','#e879f9','#fbbf24','#34d399','#64748b','#f43f5e','#a78bfa','#4ade80','#60a5fa','#fb923c'];
+const TreeContent = ({ x, y, width, height, name, value, index }) => {
+  if (!width || !height || width < 20 || height < 20) return null;
+  const fill = TREEMAP_COLORS[index % TREEMAP_COLORS.length];
+  const logo = LOGO_MAP[name];
+  const logoSize = Math.min(width - 8, height - 20, 28);
   return (
-    <g transform={`translate(${x},${y})`}>
+    <g>
+      <rect x={x} y={y} width={width} height={height} fill={fill} stroke="#fff" strokeWidth={1} rx={2} />
+      {logo && logoSize >= 14 && (
+        <image href={`/logos/${logo}`} x={x + 4} y={y + 4} width={logoSize} height={logoSize} style={{ objectFit: 'contain' }} />
+      )}
+      {width > 50 && height > 32 && (
+        <text x={x + 6} y={y + height - 14} fill="#fff" fontSize={8} fontWeight={700}>{name}</text>
+      )}
+      {width > 50 && height > 44 && (
+        <text x={x + 6} y={y + height - 4} fill="#ffffff99" fontSize={7}>{fmtM(value)}</text>
+      )}
+    </g>
+  );
+};
+
+// XAxis tick with team logo (for bottom line chart)
+function TeamXTick({ x, y, payload }) {
+  const name = payload.value || '';
+  const logoFile = LOGO_MAP[name];
+  const bg = TEAM_COLORS[name] || '#888';
+  const initials = name.split(' ').filter(w => w.length > 2).slice(0, 2).map(w => w[0]).join('').toUpperCase() || name.slice(0, 2).toUpperCase();
+  const size = 18;
+  return (
+    <g transform={`translate(${x},${y + 4})`}>
       {logoFile
-        ? <image href={`/logos/${logoFile}`} x={-10} y={4} width={20} height={20} />
-        : <foreignObject x={-10} y={4} width={20} height={20}>
-            <div style={{ width: 20, height: 20, borderRadius: '50%', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 7, fontWeight: 800, color: '#fff' }}>{initials}</div>
+        ? <image href={`/logos/${logoFile}`} x={-size / 2} y={0} width={size} height={size} />
+        : <foreignObject x={-size / 2} y={0} width={size} height={size}>
+            <div style={{ width: size, height: size, borderRadius: '50%', background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 6, fontWeight: 800, color: '#fff' }}>{initials}</div>
           </foreignObject>
       }
-      <text x={0} y={30} textAnchor="middle" fill="#999" fontSize={7}>{rodada}</text>
     </g>
   );
 }
@@ -209,20 +233,25 @@ export default function Setores() {
             </ResponsiveContainer>
           </Card>
 
-          {/* Faturamento por adversário — escudos, ordenado por data */}
-          <Card title="Faturamento por Adversário (Time) — por data">
+          {/* Faturamento por adversário — treemap com escudos */}
+          <Card title="Faturamento por Adversário (Time)">
             <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={adversarioData} margin={{ top: 8, right: 8, bottom: 36, left: 10 }}>
-                <CartesianGrid stroke={C.border} strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" tick={<CustomXTick />} axisLine={false} tickLine={false} height={46} interval={0} />
-                <YAxis tick={{ fill: C.t3, fontSize: 8 }} axisLine={false} tickLine={false} tickFormatter={fmtM} />
-                <RTooltip content={<DarkTooltip />} />
-                <Bar dataKey="faturamento" name="Faturamento" radius={[3, 3, 0, 0]} maxBarSize={22}>
-                  {adversarioData.map((_, i) => (
-                    <Cell key={i} fill={i % 2 === 0 ? C.accent : `${C.accent}88`} />
-                  ))}
-                </Bar>
-              </BarChart>
+              <Treemap
+                data={faturamentoPorAdversario.slice(0, 20).map(a => ({ name: a.time || a.idTime, value: a.faturamento }))}
+                dataKey="value"
+                content={<TreeContent />}
+              >
+                <RTooltip content={({ active, payload }) => {
+                  if (!active || !payload?.length) return null;
+                  const d = payload[0]?.payload;
+                  return (
+                    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', fontSize: 11 }}>
+                      <p style={{ fontWeight: 700, color: C.t1 }}>{d.name}</p>
+                      <p style={{ color: C.accent }}>{fmtM(d.value)}</p>
+                    </div>
+                  );
+                }} />
+              </Treemap>
             </ResponsiveContainer>
           </Card>
         </div>
@@ -238,10 +267,10 @@ export default function Setores() {
             </span>
           ))}
         </div>
-        <ResponsiveContainer width="100%" height={260}>
-          <LineChart data={unitarioPorTimeESetor} margin={{ top: 8, right: 16, bottom: 80, left: 10 }}>
+        <ResponsiveContainer width="100%" height={280}>
+          <LineChart data={unitarioPorTimeESetor} margin={{ top: 8, right: 16, bottom: 36, left: 10 }}>
             <CartesianGrid stroke={C.border} strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="time" tick={{ fill: C.t3, fontSize: 7 }} axisLine={false} tickLine={false} angle={-45} textAnchor="end" height={90} interval={0} />
+            <XAxis dataKey="time" tick={<TeamXTick />} axisLine={false} tickLine={false} height={30} interval={0} />
             <YAxis tick={{ fill: C.t3, fontSize: 9 }} axisLine={false} tickLine={false} />
             <RTooltip content={<DarkTooltip />} />
             {setorKeysUnit.map(s => (
