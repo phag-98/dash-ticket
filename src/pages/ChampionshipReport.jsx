@@ -125,7 +125,7 @@ function KPI({ label, value, icon, accent = false, variation }) {
         fontSize: 16, flexShrink: 0, overflow: 'hidden',
       }}>
         {icon?.startsWith('/')
-          ? <img src={icon} style={{ width: 28, height: 28, objectFit: 'cover', borderRadius: 6 }} />
+          ? <img src={icon} style={{ width: 38, height: 38, objectFit: 'cover', borderRadius: 6 }} />
           : icon}
       </div>
       <div>
