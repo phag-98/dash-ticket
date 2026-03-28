@@ -51,8 +51,8 @@ export default function App() {
 
         {/* Row 2 — Navigation */}
         <div style={{
-          background:C.header,
-          borderBottom:`2px solid #2a2a2a`,
+          background:'#4a4a4a',
+          borderBottom:`2px solid #3a3a3a`,
           display:'flex', alignItems:'center',
           padding:'0 24px', height:48,
         }}>
