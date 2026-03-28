@@ -6,6 +6,7 @@ export const COMP_LOGOS = {
   'Copa do Brasil': 'CopaDoBrasil.png',
   'Libertadores':   'Libertadores.png',
   'Sulamericana':   'sulamericana.png',
+  'Recopa':         'Recopa.png',
 };
 
 // XAxis tick for vertical bar charts with campeonato on X (shows logo + short name)

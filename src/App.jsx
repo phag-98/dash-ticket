@@ -58,7 +58,7 @@ export default function App() {
         }}>
           {/* Logo mark */}
           <div style={{ display:'flex', alignItems:'center', marginRight:28, flexShrink:0, borderRight:'1px solid #555', paddingRight:28 }}>
-            <img src="/botafogo.png" alt="Botafogo" style={{ height:36, width:'auto', objectFit:'contain' }} />
+            <img src="/logos/Botafogo.png" alt="Botafogo" style={{ height:36, width:'auto', objectFit:'contain' }} />
           </div>
 
           {/* Tabs */}
