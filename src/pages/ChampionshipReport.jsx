@@ -122,8 +122,12 @@ function KPI({ label, value, icon, accent = false, variation }) {
         width: 34, height: 34, borderRadius: 8,
         background: accent ? C.accent + '22' : C.bgAlt,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 16, flexShrink: 0,
-      }}>{icon}</div>
+        fontSize: 16, flexShrink: 0, overflow: 'hidden',
+      }}>
+        {icon?.startsWith('/')
+          ? <img src={icon} style={{ width: 28, height: 28, objectFit: 'cover', borderRadius: 6 }} />
+          : icon}
+      </div>
       <div>
         <div style={{ fontSize: 9, color: C.t2, textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: 2 }}>{label}</div>
         <div style={{ fontSize: 18, fontWeight: 800, color: accent ? C.accent : C.t1, letterSpacing: '-0.5px', lineHeight: 1 }}>{value}</div>
@@ -293,7 +297,7 @@ export default function ChampionshipReport() {
         </div>
 
         {/* 4 KPIs */}
-        <KPI label="Sócios %" value={fmtPct(filteredKpis.percentualSocios)} icon="⭐" accent variation={null} />
+        <KPI label="Sócios %" value={fmtPct(filteredKpis.percentualSocios)} icon="/logos/sócio.png" accent variation={null} />
         <KPI label="Ticket Médio" value={`R$ ${filteredKpis.ticketMedio.toFixed(2).replace('.', ',')}`} icon="🎟" variation={selectedPartida ? null : kpiVariations.ticketMedio} />
         <KPI label="Média de Público" value={fmtK(Math.round(filteredKpis.mediaPublico))} icon="👥" variation={selectedPartida ? null : kpiVariations.mediaPublico} />
         <KPI label="Público Total" value={filteredKpis.publicoTotal >= 1_000_000 ? `${(filteredKpis.publicoTotal/1_000_000).toFixed(2).replace('.',',')} Mi` : fmtK(Math.round(filteredKpis.publicoTotal))} icon="🏟" variation={selectedPartida ? null : kpiVariations.publicoTotal} />
