@@ -254,21 +254,27 @@ export default function ChampionshipReport() {
 
   const sortedPublicoPorTorcedor = useMemo(() => {
     let base;
-    if (selectedPartida) {
-      // Filtra ingressos pela partida selecionada e reagrupa por torcedor
-      const torcedorMap = Object.fromEntries(torcedores.map(t => [t.id || t.ID_TORCEDOR, t.nome || t.NOME]));
-      const filtered = ingressos.filter(r => r.ID_PARTIDA === selectedPartida || r.idPartida === selectedPartida);
+    if (selectedPartida || campeonato !== 'Todos' || ano !== 'Todos') {
+      const torcedorMap = Object.fromEntries(torcedores.map(t => [t.id, t.nome]));
+      const filtered = ingressos.filter(r => {
+        if (selectedPartida) return r.idPartida === selectedPartida;
+        const p = partidaById[r.idPartida];
+        if (!p) return false;
+        if (campeonato !== 'Todos' && p.campeonato !== campeonato) return false;
+        if (ano !== 'Todos' && String(p.ano) !== ano) return false;
+        return true;
+      });
       const grouped = {};
       filtered.forEach(r => {
-        const nome = torcedorMap[r.ID_TORCEDOR || r.idTorcedor] || r.ID_TORCEDOR || r.idTorcedor || 'Outros';
-        grouped[nome] = (grouped[nome] || 0) + (r.PÚBLICO || r.publico || 0);
+        const nome = torcedorMap[r.idTorcedor] || r.idTorcedor || 'Outros';
+        grouped[nome] = (grouped[nome] || 0) + (r.publico || 0);
       });
       base = Object.entries(grouped).map(([torcedor, publico]) => ({ torcedor, publico }));
     } else {
       base = [...publicoPorTorcedor];
     }
     return base.filter(d => d.publico > 0).sort((a, b) => b.publico - a.publico);
-  }, [selectedPartida]);
+  }, [selectedPartida, campeonato, ano]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -297,7 +303,7 @@ export default function ChampionshipReport() {
         </div>
 
         {/* 4 KPIs */}
-        <KPI label="Sócios %" value={fmtPct(filteredKpis.percentualSocios)} icon="/logos/sócio.png" accent variation={null} />
+        <KPI label="Sócios %" value={fmtPct(filteredKpis.percentualSocios)} icon="/logos/sócio.png" variation={null} />
         <KPI label="Ticket Médio" value={`R$ ${filteredKpis.ticketMedio.toFixed(2).replace('.', ',')}`} icon="🎟" variation={selectedPartida ? null : kpiVariations.ticketMedio} />
         <KPI label="Média de Público" value={fmtK(Math.round(filteredKpis.mediaPublico))} icon="👥" variation={selectedPartida ? null : kpiVariations.mediaPublico} />
         <KPI label="Público Total" value={filteredKpis.publicoTotal >= 1_000_000 ? `${(filteredKpis.publicoTotal/1_000_000).toFixed(2).replace('.',',')} Mi` : fmtK(Math.round(filteredKpis.publicoTotal))} icon="🏟" variation={selectedPartida ? null : kpiVariations.publicoTotal} />
