@@ -6,9 +6,27 @@ import {
 import { C, SHADOW, CAMP_COLORS as TOKEN_CAMP_COLORS } from '../tokens';
 import { COMP_LOGOS, LOGO_MAP, TEAM_COLORS } from '../teamLogos.jsx';
 import {
-  faturamentoPorSetor, unitarioPorTimeESetor,
-  faturamentoPorPartida, faturamentoPorAdversario, partidas,
+  faturamentoPorSetor, faturamentoPorPartida,
+  faturamentoPorAdversario, partidas, ingressos,
 } from '../data/data';
+
+// Setor ID → name map
+const setorNameMap = Object.fromEntries(faturamentoPorSetor.map(s => [s.idSetor, s.setor]));
+
+// Pre-compute per-partida unitário by setor (paying tickets only)
+const unitarioByPartida = (() => {
+  const map = {};
+  ingressos.forEach(r => {
+    if (!r.idPartida || !r.unitario || r.unitario <= 0) return;
+    const setor = setorNameMap[r.idSetor];
+    if (!setor) return;
+    if (!map[r.idPartida]) map[r.idPartida] = {};
+    if (!map[r.idPartida][setor]) map[r.idPartida][setor] = { total: 0, count: 0 };
+    map[r.idPartida][setor].total += r.unitario * (r.publico || 0);
+    map[r.idPartida][setor].count += (r.publico || 0);
+  });
+  return map;
+})();
 
 const fmtM = v => {
   if (!v && v !== 0) return '—';
@@ -99,7 +117,7 @@ const TreeContent = ({ x, y, width, height, name, value, index }) => {
 
 // XAxis tick with team logo (for bottom line chart)
 function TeamXTick({ x, y, payload }) {
-  const name = payload.value || '';
+  const name = (payload.value || '').split('|')[0];
   const logoFile = LOGO_MAP[name];
   const bg = TEAM_COLORS[name] || '#888';
   const initials = name.split(' ').filter(w => w.length > 2).slice(0, 2).map(w => w[0]).join('').toUpperCase() || name.slice(0, 2).toUpperCase();
@@ -145,13 +163,31 @@ export default function Setores() {
     .map(p => ({ ...p, label: `${p.time}|${p.rodada}` }))
   , [filteredFat]);
 
+  const filteredUnitario = useMemo(() => {
+    return partidas
+      .filter(p => {
+        if (campeonato !== 'Todos' && p.campeonato !== campeonato) return false;
+        if (ano !== 'Todos' && String(p.ano) !== ano) return false;
+        return true;
+      })
+      .sort((a, b) => (a.data || '').split('/').reverse().join('-').localeCompare((b.data || '').split('/').reverse().join('-')))
+      .map(p => {
+        const setorData = unitarioByPartida[p.id] || {};
+        const row = { time: p.time, label: `${p.time}|${p.rodada}` };
+        Object.entries(setorData).forEach(([setor, { total, count }]) => {
+          row[setor] = count > 0 ? Math.round(total / count * 100) / 100 : null;
+        });
+        return row;
+      });
+  }, [campeonato, ano]);
+
   const setorKeysUnit = useMemo(() => {
     const keys = new Set();
-    unitarioPorTimeESetor.forEach(row => Object.keys(row).forEach(k => {
-      if (k !== 'idTime' && k !== 'time' && row[k] != null) keys.add(k);
+    filteredUnitario.forEach(row => Object.keys(row).forEach(k => {
+      if (k !== 'time' && k !== 'label' && row[k] != null) keys.add(k);
     }));
     return [...keys];
-  }, []);
+  }, [filteredUnitario]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -268,9 +304,9 @@ export default function Setores() {
           ))}
         </div>
         <ResponsiveContainer width="100%" height={280}>
-          <LineChart data={unitarioPorTimeESetor} margin={{ top: 8, right: 16, bottom: 36, left: 10 }}>
+          <LineChart data={filteredUnitario} margin={{ top: 8, right: 16, bottom: 36, left: 10 }}>
             <CartesianGrid stroke={C.border} strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="time" tick={<TeamXTick />} axisLine={false} tickLine={false} height={30} interval={0} />
+            <XAxis dataKey="label" tick={<TeamXTick />} axisLine={false} tickLine={false} height={30} interval={0} />
             <YAxis tick={{ fill: C.t3, fontSize: 9 }} axisLine={false} tickLine={false} />
             <RTooltip content={<DarkTooltip />} />
             {setorKeysUnit.map(s => (
