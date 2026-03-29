@@ -249,6 +249,34 @@ export default function ChampionshipReport() {
     };
   }, [campeonato]);
 
+  const comboSocioData = useMemo(() => {
+    const byPartida = {};
+    ingressos.forEach(r => {
+      const p = partidaById[r.idPartida];
+      if (!p) return;
+      if (campeonato !== 'Todos' && p.campeonato !== campeonato) return;
+      if (ano !== 'Todos' && String(p.ano) !== ano) return;
+      if (selectedPartida && r.idPartida !== selectedPartida) return;
+      if (!byPartida[r.idPartida]) byPartida[r.idPartida] = { socio: 0, naoSocio: 0 };
+      if (SOCIO_IDS.has(r.idTorcedor)) byPartida[r.idPartida].socio += r.publico || 0;
+      else byPartida[r.idPartida].naoSocio += r.publico || 0;
+    });
+    return partidas
+      .filter(p => {
+        if (campeonato !== 'Todos' && p.campeonato !== campeonato) return false;
+        if (ano !== 'Todos' && String(p.ano) !== ano) return false;
+        if (selectedPartida && p.id !== selectedPartida) return false;
+        return !!byPartida[p.id];
+      })
+      .sort((a, b) => (a.data || '').split('/').reverse().join('-').localeCompare((b.data || '').split('/').reverse().join('-')))
+      .map(p => ({
+        label: `${p.time}|${p.rodada}`,
+        socio: byPartida[p.id]?.socio || 0,
+        naoSocio: byPartida[p.id]?.naoSocio || 0,
+        ticketMedio: fatMap[p.id] ?? 0,
+      }));
+  }, [campeonato, ano, selectedPartida]);
+
   const top20 = filteredFat.slice(0, 20);
   const totalFat = filteredFat.reduce((s, p) => s + p.faturamento, 0);
   const maxFat = top20.length > 0 ? top20[0].faturamento : 1;
@@ -387,7 +415,7 @@ export default function ChampionshipReport() {
             <div style={{ padding: '12px 16px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <div style={{ ...sectionTitle }}>Público e Ticket Médio por Partida, Time e Setor</div>
+                  <div style={{ ...sectionTitle }}>Público e Ticket Médio por Partida, Time e Sócio</div>
                   {selectedPartida && (
                     <button onClick={() => setSelectedPartida(null)} style={{
                       fontSize: 9, padding: '2px 8px', borderRadius: 10,
@@ -396,31 +424,32 @@ export default function ChampionshipReport() {
                     }}>✕ limpar filtro</button>
                   )}
                 </div>
-                <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-                  {setorKeys.map(s => (
-                    <span key={s} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: C.t2 }}>
-                      <span style={{ width: 8, height: 8, borderRadius: 2, background: getSetorColor(s), display: 'inline-block' }} />
-                      {s}
-                    </span>
-                  ))}
+                <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 12 }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: C.t2 }}>
-                    <svg width="14" height="3"><line x1={0} y1={1.5} x2={14} y2={1.5} stroke={C.accent} strokeWidth={2} /></svg>
+                    <span style={{ width: 8, height: 8, borderRadius: 2, background: C.accent, display: 'inline-block' }} />
+                    Sócio
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: C.t2 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: 2, background: '#4a5568', display: 'inline-block' }} />
+                    Não Sócio
+                  </span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: C.t2 }}>
+                    <svg width="14" height="3"><line x1={0} y1={1.5} x2={14} y2={1.5} stroke={C.accentDim} strokeWidth={2} strokeDasharray="3 2" /></svg>
                     Ticket Médio
                   </span>
                 </div>
               </div>
             </div>
             <ResponsiveContainer width="100%" height={260}>
-              <ComposedChart data={comboData} margin={{ top: 8, right: 60, bottom: 60, left: 10 }}>
+              <ComposedChart data={comboSocioData} margin={{ top: 8, right: 60, bottom: 60, left: 10 }}>
                 <CartesianGrid stroke={C.border} strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="label" tick={<CustomXTick />} axisLine={false} tickLine={false} height={50} interval={0} />
                 <YAxis yAxisId="pub" orientation="left" tick={{ fill: C.t3, fontSize: 9 }} axisLine={false} tickLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
                 <YAxis yAxisId="tkt" orientation="right" tick={{ fill: C.t3, fontSize: 9 }} axisLine={false} tickLine={false} />
                 <RTooltip content={<DarkTooltip />} />
-                {setorKeys.map(s => (
-                  <Bar key={s} yAxisId="pub" dataKey={s} stackId="pub" fill={getSetorColor(s)} barSize={14} />
-                ))}
-                <Line yAxisId="tkt" type="monotone" dataKey="ticketMedio" name="Ticket Médio" stroke={C.accent} strokeWidth={2} dot={false} />
+                <Bar yAxisId="pub" dataKey="socio" name="Sócio" stackId="pub" fill={C.accent} barSize={14} />
+                <Bar yAxisId="pub" dataKey="naoSocio" name="Não Sócio" stackId="pub" fill="#4a5568" barSize={14} radius={[3, 3, 0, 0]} />
+                <Line yAxisId="tkt" type="monotone" dataKey="ticketMedio" name="Ticket Médio" stroke={C.accentDim} strokeWidth={2} dot={false} strokeDasharray="4 2" />
               </ComposedChart>
             </ResponsiveContainer>
           </Card>
