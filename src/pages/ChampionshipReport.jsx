@@ -450,7 +450,7 @@ export default function ChampionshipReport() {
               </div>
             </div>
             <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={sortedPublicoPorTorcedor} margin={{ top: 12, right: 16, bottom: 60, left: 10 }}>
+              <BarChart data={sortedPublicoPorTorcedor} margin={{ top: 28, right: 16, bottom: 60, left: 10 }}>
                 <CartesianGrid stroke={C.border} strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="torcedor" tick={{ fill: C.t3, fontSize: 8 }} axisLine={false} tickLine={false} angle={-35} textAnchor="end" height={70} interval={0} />
                 <YAxis hide />
