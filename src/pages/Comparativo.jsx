@@ -5,7 +5,9 @@ import {
 } from 'recharts';
 import { C, FONT, SHADOW, CAMP_COLORS as TOKEN_CAMP_COLORS } from '../tokens';
 import { COMP_LOGOS, CompXTick, CompYTick, TeamBadge } from '../teamLogos.jsx';
-import { faturamentoPorCampeonatoAno, partidas } from '../data/data';
+import { faturamentoPorCampeonatoAno, faturamentoPorPartida, partidas } from '../data/data';
+
+const fatByPartida = Object.fromEntries(faturamentoPorPartida.map(p => [p.idPartida, p]));
 
 const fmtM = v => {
   if (!v) return '0';
@@ -288,6 +290,8 @@ export default function Comparativo() {
                 {['Time', 'Campeonato', 'Data', 'Rodada', 'Dia', 'Horário'].map(h => (
                   <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
+                <th style={{ padding: '8px 12px', textAlign: 'right', fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>Público</th>
+                <th style={{ padding: '8px 12px', textAlign: 'right', fontSize: 9, fontWeight: 700, color: C.accent, textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>Faturamento</th>
               </tr>
             </thead>
             <tbody>
@@ -313,6 +317,8 @@ export default function Comparativo() {
                   <td style={{ padding: '6px 12px', color: C.t2 }}>{p.rodada}</td>
                   <td style={{ padding: '6px 12px', color: C.t3 }}>{p.diaSemana}</td>
                   <td style={{ padding: '6px 12px', color: C.t3 }}>{p.horario}</td>
+                  <td style={{ padding: '6px 12px', textAlign: 'right', color: C.t2, fontWeight: 500 }}>{fatByPartida[p.id]?.utilizados?.toLocaleString('pt-BR') ?? '—'}</td>
+                  <td style={{ padding: '6px 12px', textAlign: 'right', color: C.accent, fontWeight: 700 }}>{fatByPartida[p.id] ? fmtM(fatByPartida[p.id].faturamento) : '—'}</td>
                 </tr>
               ))}
             </tbody>
