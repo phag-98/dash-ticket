@@ -274,14 +274,7 @@ export default function ChampionshipReport() {
     } else {
       base = [...publicoPorTorcedor];
     }
-    return base
-      .filter(d => d.publico > 0)
-      .sort((a, b) => {
-        const sa = SOCIO_NOMES.has(a.torcedor) ? 0 : 1;
-        const sb = SOCIO_NOMES.has(b.torcedor) ? 0 : 1;
-        if (sa !== sb) return sa - sb;
-        return b.publico - a.publico;
-      });
+    return base.filter(d => d.publico > 0).sort((a, b) => b.publico - a.publico);
   }, [selectedPartida, campeonato, ano]);
 
   return (
