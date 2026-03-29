@@ -18,9 +18,9 @@ export function CompXTick({ x, y, payload }) {
     <g transform={`translate(${x},${y + 4})`}>
       {logo
         ? <image href={`/logos/${logo}`} x={-size / 2} y={0} width={size} height={size} />
-        : <text x={0} y={size / 2} textAnchor="middle" fill="#999" fontSize={8}>{label}</text>
+        : <text x={0} y={size / 2} textAnchor="middle" fill="#666" fontSize={8}>{label}</text>
       }
-      <text x={0} y={size + 6} textAnchor="middle" fill="#aaa" fontSize={7}>{label}</text>
+      <text x={0} y={size + 6} textAnchor="middle" fill="#666" fontSize={7}>{label}</text>
     </g>
   );
 }

@@ -262,14 +262,14 @@ export default function Comparativo() {
                       {r.campeonato}
                     </span>
                   </td>
-                  <td style={{ padding: '6px 8px', textAlign: 'center', color: '#8888aa', fontWeight: 600 }}>{r['2024'] || '—'}</td>
+                  <td style={{ padding: '6px 8px', textAlign: 'center', color: '#5a5a8a', fontWeight: 600 }}>{r['2024'] || '—'}</td>
                   <td style={{ padding: '6px 8px', textAlign: 'center', color: C.accent, fontWeight: 600 }}>{r['2025'] || '—'}</td>
                   <td style={{ padding: '6px 8px', textAlign: 'center', color: C.t1, fontWeight: 700 }}>{r.total}</td>
                 </tr>
               ))}
               <tr style={{ borderTop: `2px solid ${C.border}`, background: C.bgAlt }}>
                 <td style={{ padding: '6px 12px', fontWeight: 700, color: C.t1, fontSize: 10 }}>Total</td>
-                <td style={{ padding: '6px 8px', textAlign: 'center', color: '#8888aa', fontWeight: 700 }}>{totalJogos['2024']}</td>
+                <td style={{ padding: '6px 8px', textAlign: 'center', color: '#5a5a8a', fontWeight: 700 }}>{totalJogos['2024']}</td>
                 <td style={{ padding: '6px 8px', textAlign: 'center', color: C.accent, fontWeight: 700 }}>{totalJogos['2025']}</td>
                 <td style={{ padding: '6px 8px', textAlign: 'center', color: C.t1, fontWeight: 800 }}>{totalJogos.total}</td>
               </tr>

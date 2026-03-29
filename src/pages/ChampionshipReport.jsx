@@ -28,7 +28,7 @@ function CustomXTick({ x, y, payload }) {
           <div style={{width:20,height:20,borderRadius:'50%',background:bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:7,fontWeight:800,color:'#fff'}}>{initials}</div>
         </foreignObject>
       )}
-      <text x={0} y={30} textAnchor="middle" fill="#999" fontSize={7}>{rodada}</text>
+      <text x={0} y={30} textAnchor="middle" fill={C.t3} fontSize={7}>{rodada}</text>
     </g>
   );
 }
@@ -435,7 +435,7 @@ export default function ChampionshipReport() {
                 <RTooltip content={<DarkTooltip />} />
                 <Bar dataKey="publico" name="Público" radius={[3, 3, 0, 0]} barSize={28}>
                   {sortedPublicoPorTorcedor.slice(0, 12).map((_, i) => (
-                    <Cell key={i} fill={i === 0 ? C.accent : '#888888'} />
+                    <Cell key={i} fill={i === 0 ? C.accent : '#4a5568'} />
                   ))}
                 </Bar>
               </BarChart>
