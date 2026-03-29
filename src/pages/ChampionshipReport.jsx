@@ -354,7 +354,7 @@ export default function ChampionshipReport() {
                 </tr>
               </thead>
               <tbody>
-                {top20.map((p, i) => {
+                {filteredFat.map((p, i) => {
                   const pct = (p.faturamento / maxFat) * 100;
                   const isTop = i === 0;
                   const isSelected = selectedPartida === p.idPartida;
