@@ -11,6 +11,7 @@ import {
 } from '../data/data';
 
 const SOCIO_IDS = new Set(torcedores.filter(t => t.socio === 'Sim').map(t => t.id));
+const SOCIO_NOMES = new Set(torcedores.filter(t => t.socio === 'Sim').map(t => t.nome));
 const partidaById = Object.fromEntries(partidas.map(p => [p.id, p]));
 
 function CustomXTick({ x, y, payload }) {
@@ -273,7 +274,14 @@ export default function ChampionshipReport() {
     } else {
       base = [...publicoPorTorcedor];
     }
-    return base.filter(d => d.publico > 0).sort((a, b) => b.publico - a.publico);
+    return base
+      .filter(d => d.publico > 0)
+      .sort((a, b) => {
+        const sa = SOCIO_NOMES.has(a.torcedor) ? 0 : 1;
+        const sb = SOCIO_NOMES.has(b.torcedor) ? 0 : 1;
+        if (sa !== sb) return sa - sb;
+        return b.publico - a.publico;
+      });
   }, [selectedPartida, campeonato, ano]);
 
   return (
@@ -426,16 +434,48 @@ export default function ChampionshipReport() {
 
           {/* Público por tipo de torcedor */}
           <Card>
-            <div style={{ padding: '12px 16px 0', ...sectionTitle }}>Público por Tipo de Torcedor</div>
+            <div style={{ padding: '12px 16px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 6 }}>
+              <span style={sectionTitle}>Público por Tipo de Torcedor</span>
+              <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
+                {(() => {
+                  const totalSocio = sortedPublicoPorTorcedor.filter(d => SOCIO_NOMES.has(d.torcedor)).reduce((s, d) => s + d.publico, 0);
+                  const totalNao   = sortedPublicoPorTorcedor.filter(d => !SOCIO_NOMES.has(d.torcedor)).reduce((s, d) => s + d.publico, 0);
+                  const total = totalSocio + totalNao;
+                  return (
+                    <>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 9, color: C.t2 }}>
+                        <span style={{ width: 10, height: 10, borderRadius: 2, background: C.accent, display: 'inline-block' }} />
+                        Sócio {total > 0 ? `· ${((totalSocio / total) * 100).toFixed(0)}%` : ''}
+                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 9, color: C.t2 }}>
+                        <span style={{ width: 10, height: 10, borderRadius: 2, background: '#4a5568', display: 'inline-block' }} />
+                        Não Sócio {total > 0 ? `· ${((totalNao / total) * 100).toFixed(0)}%` : ''}
+                      </span>
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
             <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={sortedPublicoPorTorcedor.slice(0, 12)} margin={{ top: 16, right: 16, bottom: 60, left: 10 }}>
+              <BarChart data={sortedPublicoPorTorcedor} margin={{ top: 12, right: 16, bottom: 60, left: 10 }}>
                 <CartesianGrid stroke={C.border} strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="torcedor" tick={{ fill: C.t3, fontSize: 8 }} axisLine={false} tickLine={false} angle={-35} textAnchor="end" height={70} interval={0} />
                 <YAxis tick={{ fill: C.t3, fontSize: 9 }} axisLine={false} tickLine={false} tickFormatter={fmtK} />
-                <RTooltip content={<DarkTooltip />} />
-                <Bar dataKey="publico" name="Público" radius={[3, 3, 0, 0]} barSize={28}>
-                  {sortedPublicoPorTorcedor.slice(0, 12).map((_, i) => (
-                    <Cell key={i} fill={i === 0 ? C.accent : '#4a5568'} />
+                <RTooltip content={({ active, payload }) => {
+                  if (!active || !payload?.length) return null;
+                  const d = payload[0].payload;
+                  const isSocio = SOCIO_NOMES.has(d.torcedor);
+                  return (
+                    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', fontSize: 11, boxShadow: SHADOW.md }}>
+                      <p style={{ fontWeight: 700, color: C.t1, marginBottom: 3 }}>{d.torcedor}</p>
+                      <p style={{ color: isSocio ? C.accent : '#4a5568', fontSize: 10, marginBottom: 2 }}>{isSocio ? 'Sócio' : 'Não Sócio'}</p>
+                      <p style={{ color: C.t2 }}>Público: <strong>{d.publico.toLocaleString('pt-BR')}</strong></p>
+                    </div>
+                  );
+                }} />
+                <Bar dataKey="publico" name="Público" radius={[3, 3, 0, 0]} barSize={26}>
+                  {sortedPublicoPorTorcedor.map((d, i) => (
+                    <Cell key={i} fill={SOCIO_NOMES.has(d.torcedor) ? C.accent : '#4a5568'} />
                   ))}
                 </Bar>
               </BarChart>
