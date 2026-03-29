@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import {
   ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip as RTooltip, ResponsiveContainer, Cell, BarChart,
+  Tooltip as RTooltip, ResponsiveContainer, Cell, BarChart, LabelList,
 } from 'recharts';
 import { C, SHADOW, CAMP_COLORS } from '../tokens';
 import { LOGO_MAP, TEAM_COLORS, TeamBadge, COMP_LOGOS } from '../teamLogos.jsx';
@@ -453,7 +453,7 @@ export default function ChampionshipReport() {
               <BarChart data={sortedPublicoPorTorcedor} margin={{ top: 12, right: 16, bottom: 60, left: 10 }}>
                 <CartesianGrid stroke={C.border} strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="torcedor" tick={{ fill: C.t3, fontSize: 8 }} axisLine={false} tickLine={false} angle={-35} textAnchor="end" height={70} interval={0} />
-                <YAxis tick={{ fill: C.t3, fontSize: 9 }} axisLine={false} tickLine={false} tickFormatter={fmtK} />
+                <YAxis hide />
                 <RTooltip content={({ active, payload }) => {
                   if (!active || !payload?.length) return null;
                   const d = payload[0].payload;
@@ -470,6 +470,7 @@ export default function ChampionshipReport() {
                   {sortedPublicoPorTorcedor.map((d, i) => (
                     <Cell key={i} fill={SOCIO_NOMES.has(d.torcedor) ? C.accent : '#4a5568'} />
                   ))}
+                  <LabelList dataKey="publico" position="top" formatter={fmtK} style={{ fontSize: 8, fill: C.t2, fontWeight: 600 }} />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
