@@ -6,6 +6,8 @@ import Setores            from './pages/Setores';
 import NoShow             from './pages/NoShow';
 import VisaoGeral         from './pages/VisaoGeral';
 import Precos             from './pages/Precos';
+import PLJogos            from './pages/PLJogos';
+import PLDespesas         from './pages/PLDespesas';
 
 const TABS = [
   { id: 'championship', label: 'Championship Report' },
@@ -14,6 +16,8 @@ const TABS = [
   { id: 'noshow',       label: 'No Show' },
   { id: 'visaogeral',   label: 'Visão Geral' },
   { id: 'precos',       label: 'Preços' },
+  { id: 'pljogos',      label: 'P&L Jogos' },
+  { id: 'pldespesas',   label: 'P&L Despesas' },
 ];
 
 export default function App() {
@@ -80,6 +84,8 @@ export default function App() {
         {tab === 'noshow'       && <NoShow />}
         {tab === 'visaogeral'   && <VisaoGeral />}
         {tab === 'precos'       && <Precos />}
+        {tab === 'pljogos'      && <PLJogos />}
+        {tab === 'pldespesas'   && <PLDespesas />}
       </main>
     </div>
   );

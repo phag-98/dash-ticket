@@ -531,6 +531,95 @@ publicoPorSetorPartida.sort(key=lambda x: x.get("data",""))
 # Also collect unique setor names in the data
 all_setor_names = sorted(set(s["nome"] for s in setores))
 
+# ── 9n. P&L por Partida ─────────────────────────────────────────────────────
+
+fDesp  = pd.read_excel(BASE / "fDespesas.xlsx")
+fAB    = pd.read_excel(BASE / "fA&B.xlsx")
+fAcom  = pd.read_excel(BASE / "fAcomodacao.xlsx")
+fArKid = pd.read_excel(BASE / "fArenaKids.xlsx")
+fEstac = pd.read_excel(BASE / "fEstacionamento.xlsx")
+fFac   = pd.read_excel(BASE / "fFacial.xlsx")
+fFire  = pd.read_excel(BASE / "fFirezone.xlsx")
+dCF1   = pd.read_excel(BASE / "dCatFinanceira1.xlsx")
+dCF2   = pd.read_excel(BASE / "dCatFinanceira2.xlsx")
+dDesc  = pd.read_excel(BASE / "dDescDespesa.xlsx")
+
+for df in [fDesp, fAB, fAcom, fArKid, fEstac, fFac, fFire, dCF1, dCF2, dDesc]:
+    df.columns = [str(c).strip() for c in df.columns]
+
+cat2_name = dict(zip(dCF2["ID_CAT_FIN_2"], dCF2["CAT_FIN_2"]))
+cat2_cat1 = dict(zip(dCF2["ID_CAT_FIN_2"], dCF2["ID_CAT_FIN_1"]))
+cat1_name = dict(zip(dCF1["ID_CAT_FIN_1"], dCF1["CAT_FIN_1"]))
+desc_cat2 = dict(zip(dDesc["ID_DESC_DESPESA"], dDesc["ID_CAT_FIN_2"]))
+
+# ── Revenues por partida ────────────────────────────────────────────────────
+rev_matchday = fBord.groupby("ID_PARTIDA")["FATURAMENTO"].sum().reset_index()
+rev_matchday["ID_CAT_FIN_2"] = "mat-3"
+rev_matchday.rename(columns={"FATURAMENTO": "VALOR"}, inplace=True)
+
+rev_ab     = fAB[["ID_PARTIDA","VALOR","ID_CAT_FIN_2"]].copy()
+rev_park   = fEstac[["ID_PARTIDA","VALOR","ID_CAT_FIN_2"]].copy()
+rev_fire   = fFire.rename(columns={"FATURAMENTO_FIREZONE":"VALOR"})[["ID_PARTIDA","VALOR","ID_CAT_FIN_2"]].copy()
+rev_arena  = fArKid.rename(columns={"FATURAMENTO_ARENA_KIDS":"VALOR"})[["ID_PARTIDA","VALOR","ID_CAT_FIN_2"]].copy()
+
+# ── Expenses por partida ────────────────────────────────────────────────────
+fDesp["ID_CAT_FIN_2"] = fDesp["ID_DESC_DESPESA"].map(desc_cat2)
+fFac_exp = fFac[["ID_PARTIDA","VALOR","ID_CAT_FIN_2"]].copy()
+fAcom_exp = fAcom[["ID_PARTIDA","VALOR","ID_CAT_FIN_2"]].copy()
+
+COLS = ["ID_PARTIDA","VALOR","ID_CAT_FIN_2"]
+pl_rows = pd.concat([
+    rev_matchday[COLS], rev_ab[COLS], rev_park[COLS], rev_fire[COLS], rev_arena[COLS],
+    fDesp[COLS], fFac_exp[COLS], fAcom_exp[COLS],
+], ignore_index=True)
+
+pl_rows["CAT_FIN_2"] = pl_rows["ID_CAT_FIN_2"].map(cat2_name)
+pl_rows["ID_CAT_FIN_1"] = pl_rows["ID_CAT_FIN_2"].map(cat2_cat1)
+pl_rows["CAT_FIN_1"] = pl_rows["ID_CAT_FIN_1"].map(cat1_name)
+pl_rows = pl_rows[pl_rows["ID_PARTIDA"].notna() & pl_rows["CAT_FIN_1"].notna()]
+
+pl_rows = pl_rows.merge(
+    dPart[["ID_PARTIDA","CAMPEONATO","TIME","DATA","ANO","MES","RODADA","ID_CAMPEONATO"]],
+    on="ID_PARTIDA", how="left"
+)
+
+# ── Agrega por partida ──────────────────────────────────────────────────────
+CAT1_ORDER = ["revenues","operating expenses","margin","logístics","federations"]
+
+plPorPartida = []
+for pid, grp in pl_rows.groupby("ID_PARTIDA"):
+    info = grp.iloc[0]
+    dt = info["DATA"]
+    data_str = dt.strftime("%d/%m/%Y") if pd.notna(dt) else ""
+
+    cat1_totals = {}
+    cat2_items  = {}
+    for _, row in grp.iterrows():
+        c1 = str(row["CAT_FIN_1"]) if pd.notna(row["CAT_FIN_1"]) else "other"
+        c2 = str(row["CAT_FIN_2"]) if pd.notna(row["CAT_FIN_2"]) else "other"
+        v  = sf(row["VALOR"])
+        cat1_totals[c1] = cat1_totals.get(c1, 0.0) + v
+        cat2_items.setdefault(c1, {})
+        cat2_items[c1][c2] = cat2_items[c1].get(c2, 0.0) + v
+
+    total = sum(cat1_totals.values())
+    plPorPartida.append({
+        "idPartida":    str(pid),
+        "campeonato":   str(info["CAMPEONATO"])   if pd.notna(info["CAMPEONATO"])   else "",
+        "idCampeonato": str(info["ID_CAMPEONATO"]) if pd.notna(info["ID_CAMPEONATO"]) else "",
+        "time":         str(info["TIME"])          if pd.notna(info["TIME"])          else "",
+        "data":         data_str,
+        "ano":          si(info["ANO"]),
+        "mes":          si(info["MES"]),
+        "rodada":       str(info["RODADA"]),
+        "cat1":         {k: sf(v) for k, v in cat1_totals.items()},
+        "cat2":         {c1: {c2: sf(v) for c2, v in c2s.items()} for c1, c2s in cat2_items.items()},
+        "total":        sf(total),
+    })
+
+plPorPartida = [p for p in plPorPartida if p["campeonato"]]
+plPorPartida.sort(key=lambda x: x["data"])
+
 # ── 10. Write JS file ────────────────────────────────────────────────────────
 def to_js(obj):
     """Convert to compact JS-compatible JSON (no trailing commas)."""
@@ -566,6 +655,7 @@ lines = [
     f"export const publicoPorSetorPartida = {to_js(publicoPorSetorPartida)};",
     f"export const torcedorCols = {to_js(torcedorCols)};",
     f"export const allSetorNames = {to_js(all_setor_names)};",
+    f"export const plPorPartida = {to_js(plPorPartida)};",
     "",
     "// Convenience: unique campeonato names",
     f"export const CAMPEONATOS = {to_js(sorted(set(p['campeonato'] for p in partidas if p['campeonato'])))};",
