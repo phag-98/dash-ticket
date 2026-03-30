@@ -553,9 +553,11 @@ cat1_name = dict(zip(dCF1["ID_CAT_FIN_1"], dCF1["CAT_FIN_1"]))
 desc_cat2 = dict(zip(dDesc["ID_DESC_DESPESA"], dDesc["ID_CAT_FIN_2"]))
 
 # ── Revenues por partida ────────────────────────────────────────────────────
-rev_matchday = fBord.groupby("ID_PARTIDA")["FATURAMENTO"].sum().reset_index()
+# Matchday ingresse: PÚBLICO * UNITÁRIO de fIngressos por ID_PARTIDA
+ingr_enrich["FAT_INGR_PL"] = ingr_enrich["PÚBLICO"] * ingr_enrich["UNITÁRIO"]
+rev_matchday = ingr_enrich.groupby("ID_PARTIDA")["FAT_INGR_PL"].sum().reset_index()
 rev_matchday["ID_CAT_FIN_2"] = "mat-3"
-rev_matchday.rename(columns={"FATURAMENTO": "VALOR"}, inplace=True)
+rev_matchday.rename(columns={"FAT_INGR_PL": "VALOR"}, inplace=True)
 
 rev_ab     = fAB[["ID_PARTIDA","VALOR","ID_CAT_FIN_2"]].copy()
 rev_park   = fEstac[["ID_PARTIDA","VALOR","ID_CAT_FIN_2"]].copy()
@@ -618,7 +620,14 @@ for pid, grp in pl_rows.groupby("ID_PARTIDA"):
     })
 
 plPorPartida = [p for p in plPorPartida if p["campeonato"]]
-plPorPartida.sort(key=lambda x: x["data"])
+# Ordena por data real (DD/MM/YYYY → YYYY-MM-DD)
+def parse_date(d):
+    try:
+        parts = d.split("/")
+        return (int(parts[2]), int(parts[1]), int(parts[0]))
+    except Exception:
+        return (9999, 99, 99)
+plPorPartida.sort(key=lambda x: parse_date(x["data"]))
 
 # ── 10. Write JS file ────────────────────────────────────────────────────────
 def to_js(obj):
