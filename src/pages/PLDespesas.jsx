@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  Tooltip as RTooltip, ResponsiveContainer, Cell, ReferenceLine,
+  Tooltip as RTooltip, ResponsiveContainer, ReferenceLine,
 } from 'recharts';
 import { C, FONT_UI, CAMP_COLORS } from '../tokens';
+import { COMP_LOGOS } from '../teamLogos.jsx';
 import { plPorPartida } from '../data/data';
 
 // ── Categorias de despesa (cat1 e cat2) ─────────────────────────────────────
@@ -32,18 +33,27 @@ const SUB_COLORS = [
   '#c97b7b','#7da8c9','#9e8fba','#c9a07a',
 ];
 
-function Pill({ label, active, color, onClick }) {
+function Pill({ label, active, color, logo, onClick }) {
   return (
     <button
       onClick={onClick}
       style={{
-        padding: '6px 14px', borderRadius: 8, border: 'none', cursor: 'pointer',
-        background: active ? (color || C.accent) : C.bgAlt,
-        color: active ? '#fff' : C.t2,
-        fontFamily: FONT_UI, fontSize: 12, fontWeight: active ? 600 : 400,
+        display: 'flex', alignItems: 'center', gap: 6,
+        padding: '5px 12px', borderRadius: 8,
+        border: `2px solid ${active ? (color || C.accent) : 'transparent'}`,
+        cursor: 'pointer',
+        background: active ? (color || C.accent) + '22' : C.bgAlt,
+        color: active ? (color || C.accent) : C.t2,
+        fontFamily: FONT_UI, fontSize: 12, fontWeight: active ? 700 : 400,
         transition: 'all 0.15s',
       }}
     >
+      {logo && (
+        <img src={`/logos/${logo}`} alt={label}
+          style={{ width: 18, height: 18, objectFit: 'contain' }}
+          onError={e => { e.target.style.display = 'none'; }}
+        />
+      )}
       {label}
     </button>
   );
@@ -162,9 +172,9 @@ export default function PLDespesas() {
       {/* ── Filters row ── */}
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 12 }}>
         {allCamps.map(c => (
-          <Pill key={c} label={c} active={selCamps.has(c)} color={CAMP_COLORS[c] || C.accent} onClick={() => toggleCamp(c)} />
+          <Pill key={c} label={c} active={selCamps.has(c)} color={CAMP_COLORS[c] || C.accent} logo={COMP_LOGOS[c]} onClick={() => toggleCamp(c)} />
         ))}
-        <div style={{ width: 1, background: C.border, alignSelf: 'stretch', margin: '0 4px' }} />
+        <div style={{ width: 1, height: 28, background: C.border, margin: '0 4px' }} />
         {allAnos.map(a => (
           <Pill key={a} label={String(a)} active={selAnos.has(a)} onClick={() => toggleAno(a)} />
         ))}
