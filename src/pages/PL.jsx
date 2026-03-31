@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip,
   ResponsiveContainer,
@@ -107,6 +107,73 @@ const PL_ROWS = [
 ];
 const COLLAPSIBLE = new Set(['revenues', 'opex', 'margin', 'logistics', 'federations']);
 
+// Breakdown: which items belong to each category
+const BREAKDOWN_GROUPS = {
+  revenues:   ['rebateIngresse', 'parking', 'matchdayIngresse', 'firezone', 'arenaKids', 'aeb'],
+  opex:       ['services', 'security', 'rentals', 'operatingExpenses', 'feesAndTaxes', 'facialRecognition', 'entertainment'],
+  margin:     ['margin'],
+  logistics:  ['accommodation'],
+  federations:['taxes', 'personnelExpenses', 'meal', 'arbitration'],
+  total:      ['totalRevenues', 'totalOperatingExpenses', 'margin', 'totalLogistics', 'totalFederations'],
+};
+// Label for each key used in breakdown
+const KEY_LABEL = Object.fromEntries(PL_ROWS.map(r => [r.key, r.label]));
+KEY_LABEL['totalRevenues']          = 'revenues';
+KEY_LABEL['totalOperatingExpenses'] = 'operating expenses';
+KEY_LABEL['totalLogistics']         = 'logistics';
+KEY_LABEL['totalFederations']       = 'federations';
+
+// ── Breakdown tooltip ────────────────────────────────────────────────────────
+function BreakdownTooltip({ info, partida }) {
+  if (!info || !partida) return null;
+  const keys = BREAKDOWN_GROUPS[info.rowId];
+  if (!keys || keys.length <= 1) return null;
+
+  const items = keys.map(k => ({ label: KEY_LABEL[k] || k, value: partida[k] ?? 0 }))
+    .filter(it => it.value !== 0);
+  if (!items.length) return null;
+
+  // Position: keep inside viewport
+  const TIP_W = 220;
+  const TIP_H = items.length * 22 + 48;
+  let left = info.x + 14;
+  let top  = info.y - TIP_H / 2;
+  if (left + TIP_W > window.innerWidth - 8)  left = info.x - TIP_W - 8;
+  if (top < 8)                               top  = 8;
+  if (top + TIP_H > window.innerHeight - 8) top  = window.innerHeight - TIP_H - 8;
+
+  return (
+    <div style={{
+      position: 'fixed', left, top, zIndex: 9999,
+      background: '#1e1e1e', border: '1px solid #444', borderRadius: 8,
+      padding: '10px 14px', minWidth: TIP_W, pointerEvents: 'none',
+      boxShadow: '0 8px 28px rgba(0,0,0,0.45)',
+      fontFamily: FONT_UI, fontSize: 10,
+    }}>
+      {/* Header */}
+      <div style={{ color: '#bbb', fontWeight: 700, fontSize: 9, letterSpacing: '1px', textTransform: 'uppercase', marginBottom: 8, borderBottom: '1px solid #333', paddingBottom: 6, display: 'flex', justifyContent: 'space-between' }}>
+        <span>DESC</span><span>VALOR</span>
+      </div>
+      {/* Rows */}
+      {items.map(it => (
+        <div key={it.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4, gap: 16 }}>
+          <span style={{ color: '#ccc', textTransform: 'capitalize' }}>{it.label}</span>
+          <span style={{ color: it.value < 0 ? '#ff9a9a' : it.value > 0 ? '#88cc88' : '#888', fontWeight: 600, whiteSpace: 'nowrap' }}>
+            {fmtBR(it.value)}
+          </span>
+        </div>
+      ))}
+      {/* Total line */}
+      <div style={{ borderTop: '1px solid #333', marginTop: 6, paddingTop: 6, display: 'flex', justifyContent: 'space-between' }}>
+        <span style={{ color: '#fff', fontWeight: 700 }}>Total</span>
+        <span style={{ color: '#fff', fontWeight: 700 }}>
+          {fmtBR(items.reduce((s, it) => s + it.value, 0))}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 // ── Static lists ─────────────────────────────────────────────────────────────
 const CAMP_NAMES = [...new Set(plPorPartida.map(d => d.campeonato).filter(Boolean))].sort();
 const YEARS      = [...new Set(plPorPartida.map(d => d.ano).filter(Boolean))].sort();
@@ -116,21 +183,39 @@ const FAT_MAP    = Object.fromEntries(faturamentoPorPartida.map(d => [d.idPartid
 const LABEL_W = 190;
 const COL_W   = 134;
 const HEAD_H  = 26;
+// Team logo row height (taller to fit logo)
+const TEAM_H  = 40;
 
 // ── Component ────────────────────────────────────────────────────────────────
 export default function PL() {
   const [campFilter, setCampFilter] = useState('ALL');
   const [yearFilter, setYearFilter] = useState('ALL');
   const [collapsed, setCollapsed]   = useState(new Set());
+  const [tooltipInfo, setTooltipInfo] = useState(null); // { rowId, partidaId, x, y }
 
   const toggleCollapse = (id) =>
     setCollapsed(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
-  // plPorPartida is already sorted by date from generate_data.py
+  // Hide tooltip on scroll
+  const tableRef = useRef(null);
+  useEffect(() => {
+    const el = tableRef.current;
+    if (!el) return;
+    const hide = () => setTooltipInfo(null);
+    el.addEventListener('scroll', hide, { passive: true });
+    return () => el.removeEventListener('scroll', hide);
+  }, []);
+
   const filtered = useMemo(() => plPorPartida.filter(d =>
     (campFilter === 'ALL' || d.campeonato === campFilter) &&
     (yearFilter === 'ALL' || d.ano === Number(yearFilter))
   ), [campFilter, yearFilter]);
+
+  const partidaMap = useMemo(() =>
+    Object.fromEntries(filtered.map(d => [d.idPartida, d]))
+  , [filtered]);
+
+  const activePartida = tooltipInfo ? partidaMap[tooltipInfo.partidaId] : null;
 
   // KPI attendance
   const { attTotal, attAvg } = useMemo(() => {
@@ -138,7 +223,7 @@ export default function PL() {
     return { attTotal: total, attAvg: filtered.length ? Math.round(total / filtered.length) : 0 };
   }, [filtered]);
 
-  // Chart data — already ordered by date
+  // Chart data
   const chartData = useMemo(() => filtered.map(d => ({
     name:     d.time,
     revenues: d.totalRevenues,
@@ -150,13 +235,19 @@ export default function PL() {
     PL_ROWS.filter(r => !(r.type === 'item' && r.cat && collapsed.has(r.cat)))
   , [collapsed]);
 
+  const handleCellEnter = (e, rowId, partidaId) => {
+    if (!BREAKDOWN_GROUPS[rowId] || BREAKDOWN_GROUPS[rowId].length <= 1) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    setTooltipInfo({ rowId, partidaId, x: rect.right, y: rect.top + rect.height / 2 });
+  };
+  const handleCellLeave = () => setTooltipInfo(null);
+
   return (
     <div style={{ fontFamily: FONT_UI, color: C.t1 }}>
 
       {/* ── Filters + KPIs ── */}
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 16, flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
-          {/* Championship filters */}
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
             <FilterBtn label="All" active={campFilter === 'ALL'} onClick={() => setCampFilter('ALL')} color={C.accent} />
             {CAMP_NAMES.map(c => (
@@ -164,7 +255,6 @@ export default function PL() {
                 color={CAMP_COLORS[c]} logo={COMP_LOGOS[c]} />
             ))}
           </div>
-          {/* Year filters */}
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <span style={{ fontSize: 10, color: C.t3, fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Ano</span>
             <FilterBtn label="Todos" active={yearFilter === 'ALL'} onClick={() => setYearFilter('ALL')} color={C.accent} />
@@ -173,7 +263,6 @@ export default function PL() {
             ))}
           </div>
         </div>
-        {/* KPI cards */}
         <div style={{ display: 'flex', gap: 12, flexShrink: 0 }}>
           {[{ v: attTotal, l: 'Attendance' }, { v: attAvg, l: 'Average Attendance' }].map(({ v, l }) => (
             <div key={l} style={{
@@ -187,7 +276,7 @@ export default function PL() {
         </div>
       </div>
 
-      {/* ── Chart (full width, on top) ── */}
+      {/* ── Chart ── */}
       <div style={{
         background: C.card, border: `1px solid ${C.border}`, borderRadius: 10,
         boxShadow: SHADOW.card, padding: '16px 16px 8px', marginBottom: 16,
@@ -207,12 +296,7 @@ export default function PL() {
         <ResponsiveContainer width="100%" height={260}>
           <LineChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 36 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={C.border} />
-            <XAxis
-              dataKey="name"
-              tick={<LogoTick />}
-              interval={0}
-              height={36}
-            />
+            <XAxis dataKey="name" tick={<LogoTick />} interval={0} height={36} />
             <YAxis tick={{ fontSize: 9, fill: C.t3 }} tickFormatter={fmtAxis} width={52} />
             <RTooltip content={<ChartTip />} />
             <Line type="monotone" dataKey="revenues" stroke="#6b4fa0" strokeWidth={2} dot={{ r: 3, fill: '#6b4fa0' }} activeDot={{ r: 5 }} />
@@ -222,12 +306,12 @@ export default function PL() {
         <div style={{ fontSize: 9, color: C.t3, textAlign: 'center', letterSpacing: '0.5px', textTransform: 'uppercase' }}>TIME</div>
       </div>
 
-      {/* ── P&L Table (full width, below) ── */}
+      {/* ── P&L Table ── */}
       <div style={{
         background: C.card, border: `1px solid ${C.border}`, borderRadius: 10,
         boxShadow: SHADOW.card, overflow: 'hidden',
       }}>
-        <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: 520 }}>
+        <div ref={tableRef} style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: 520 }}>
           <table style={{
             borderCollapse: 'collapse', fontSize: 10,
             minWidth: LABEL_W + filtered.length * COL_W,
@@ -236,22 +320,70 @@ export default function PL() {
 
             {/* Header rows */}
             <thead>
-              {[
-                { bg: '#1e1e1e', fn: d => d.idPartida,   label: 'ID_PARTIDA',   color: () => '#bbb',                            fs: 8 },
-                { bg: '#252525', fn: d => d.campeonato,  label: 'Championship', color: d => CAMP_COLORS[d.campeonato] || '#aaa', fs: 9 },
-                { bg: '#2c2c2c', fn: d => d.time,        label: 'Team',         color: () => C.accent,                          fs: 9 },
-              ].map((hdr, hi) => (
-                <tr key={hi} style={{ background: hdr.bg, position: 'sticky', top: hi * HEAD_H, zIndex: 10 - hi }}>
-                  <th style={{ ...thLabel, background: hdr.bg, color: '#bbb', position: 'sticky', left: 0, zIndex: 12 }}>
-                    {hdr.label}
+              {/* ID_PARTIDA row */}
+              <tr style={{ background: '#1e1e1e', position: 'sticky', top: 0, zIndex: 10 }}>
+                <th style={{ ...thLabel, background: '#1e1e1e', color: '#bbb', position: 'sticky', left: 0, zIndex: 12 }}>
+                  ID_PARTIDA
+                </th>
+                {filtered.map(d => (
+                  <th key={d.idPartida} style={{ ...thVal, background: '#1e1e1e', color: '#bbb', fontSize: 8 }}>
+                    {d.idPartida}
                   </th>
-                  {filtered.map(d => (
-                    <th key={d.idPartida} style={{ ...thVal, background: hdr.bg, color: hdr.color(d), fontSize: hdr.fs }}>
-                      {hdr.fn(d)}
+                ))}
+              </tr>
+
+              {/* Championship row */}
+              <tr style={{ background: '#252525', position: 'sticky', top: HEAD_H, zIndex: 9 }}>
+                <th style={{ ...thLabel, background: '#252525', color: '#bbb', position: 'sticky', left: 0, zIndex: 12 }}>
+                  Championship
+                </th>
+                {filtered.map(d => (
+                  <th key={d.idPartida} style={{ ...thVal, background: '#252525', fontSize: 9 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                      {COMP_LOGOS[d.campeonato] && (
+                        <img src={`/logos/${COMP_LOGOS[d.campeonato]}`} style={{ width: 13, height: 13, objectFit: 'contain', flexShrink: 0 }} />
+                      )}
+                      <span style={{ color: CAMP_COLORS[d.campeonato] || '#aaa', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {d.campeonato}
+                      </span>
+                    </div>
+                  </th>
+                ))}
+              </tr>
+
+              {/* Team row — with shield logo */}
+              <tr style={{ background: '#2c2c2c', position: 'sticky', top: HEAD_H * 2, zIndex: 8 }}>
+                <th style={{ ...thLabel, background: '#2c2c2c', color: '#bbb', position: 'sticky', left: 0, zIndex: 12, height: TEAM_H }}>
+                  Team
+                </th>
+                {filtered.map(d => {
+                  const logo = LOGO_MAP[d.time];
+                  return (
+                    <th key={d.idPartida} style={{ ...thVal, background: '#2c2c2c', height: TEAM_H, padding: '4px 6px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+                        {logo ? (
+                          <img
+                            src={`/logos/${logo}`}
+                            alt={d.time}
+                            style={{ width: 22, height: 22, objectFit: 'contain' }}
+                          />
+                        ) : (
+                          <div style={{
+                            width: 22, height: 22, borderRadius: '50%',
+                            background: '#555', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: 7, color: '#fff', fontWeight: 700,
+                          }}>
+                            {d.time.slice(0, 2).toUpperCase()}
+                          </div>
+                        )}
+                        <span style={{ color: C.accent, fontSize: 8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: COL_W - 12, display: 'block', textAlign: 'center' }}>
+                          {d.time}
+                        </span>
+                      </div>
                     </th>
-                  ))}
-                </tr>
-              ))}
+                  );
+                })}
+              </tr>
             </thead>
 
             {/* Body */}
@@ -259,6 +391,7 @@ export default function PL() {
               {visibleRows.map((row, i) => {
                 const isCat   = row.type === 'cat';
                 const isTotal = row.type === 'total';
+                const hasBreakdown = !!(BREAKDOWN_GROUPS[row.id] && BREAKDOWN_GROUPS[row.id].length > 1);
                 const rowBg   = isTotal ? '#1a1a1a' : isCat ? '#2e2e2e' : i % 2 === 0 ? C.card : '#f9f9f9';
                 return (
                   <tr key={row.id} style={{ background: rowBg }}>
@@ -286,8 +419,20 @@ export default function PL() {
                       const tc  = isTotal ? '#fff'
                         : isCat  ? (v < 0 ? '#ff9a9a' : v > 0 ? '#88cc88' : '#888')
                         : C.t1;
+                      const isHovered = tooltipInfo?.rowId === row.id && tooltipInfo?.partidaId === d.idPartida;
                       return (
-                        <td key={d.idPartida} style={{ ...tdVal, background: rowBg, fontWeight: (isCat || isTotal) ? 700 : 400, color: tc }}>
+                        <td
+                          key={d.idPartida}
+                          onMouseEnter={hasBreakdown ? (e) => handleCellEnter(e, row.id, d.idPartida) : undefined}
+                          onMouseLeave={hasBreakdown ? handleCellLeave : undefined}
+                          style={{
+                            ...tdVal,
+                            background: isHovered ? (isTotal ? '#2a2a2a' : isCat ? '#3a3a3a' : '#eef0ff') : rowBg,
+                            fontWeight: (isCat || isTotal) ? 700 : 400,
+                            color: tc,
+                            cursor: hasBreakdown ? 'crosshair' : 'default',
+                          }}
+                        >
                           {v === 0 ? <span style={{ color: '#aaa' }}>0,00</span> : (v < 0 ? `-${s}` : s)}
                         </td>
                       );
@@ -299,6 +444,9 @@ export default function PL() {
           </table>
         </div>
       </div>
+
+      {/* ── Breakdown tooltip (portal-like fixed position) ── */}
+      <BreakdownTooltip info={tooltipInfo} partida={activePartida} />
     </div>
   );
 }
