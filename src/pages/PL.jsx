@@ -396,7 +396,11 @@ export default function PL() {
               {visibleRows.map((row, i) => {
                 const isCat   = row.type === 'cat';
                 const isTotal = row.type === 'total';
-                const hasBreakdown = !!(BREAKDOWN_GROUPS[row.id] && BREAKDOWN_GROUPS[row.id].length > 1);
+                // category rows use own id; item rows use parent cat id
+                const breakdownId = BREAKDOWN_GROUPS[row.id]?.length > 1
+                  ? row.id
+                  : (row.cat && BREAKDOWN_GROUPS[row.cat]?.length > 1 ? row.cat : null);
+                const hasBreakdown = !!breakdownId;
                 const rowBg   = isTotal ? '#1a1a1a' : isCat ? '#2e2e2e' : i % 2 === 0 ? C.card : '#f9f9f9';
                 return (
                   <tr key={row.id} style={{ background: rowBg }}>
@@ -424,11 +428,12 @@ export default function PL() {
                       const tc  = isTotal ? '#fff'
                         : isCat  ? (v < 0 ? '#ff9a9a' : v > 0 ? '#88cc88' : '#888')
                         : C.t1;
-                      const isHovered = tooltipInfo?.rowId === row.id && tooltipInfo?.partidaId === d.idPartida;
+                      const isHovered = tooltipInfo?.partidaId === d.idPartida &&
+                        (tooltipInfo?.rowId === row.id || tooltipInfo?.rowId === breakdownId);
                       return (
                         <td
                           key={d.idPartida}
-                          onMouseEnter={hasBreakdown ? (e) => handleCellEnter(e, row.id, d.idPartida) : undefined}
+                          onMouseEnter={hasBreakdown ? (e) => handleCellEnter(e, breakdownId, d.idPartida) : undefined}
                           onMouseLeave={hasBreakdown ? handleCellLeave : undefined}
                           style={{
                             ...tdVal,
