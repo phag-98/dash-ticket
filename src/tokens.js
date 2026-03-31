@@ -22,8 +22,8 @@ export const C = {
 
   // Text
   t1:        '#1a1a1a',   // quase preto
-  t2:        '#555555',   // cinza médio
-  t3:        '#999999',   // cinza claro
+  t2:        '#444444',   // cinza médio
+  t3:        '#666666',   // cinza secundário (contraste ≥ 4.5:1 em fundo branco)
 
   // Campeonatos
   bra:       '#7db87d',   // Brasileirão — verde médio

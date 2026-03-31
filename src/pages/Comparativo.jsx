@@ -4,8 +4,10 @@ import {
   ResponsiveContainer, LabelList, Cell,
 } from 'recharts';
 import { C, FONT, SHADOW, CAMP_COLORS as TOKEN_CAMP_COLORS } from '../tokens';
-import { COMP_LOGOS } from '../teamLogos.jsx';
-import { faturamentoPorCampeonatoAno, partidas } from '../data/data';
+import { COMP_LOGOS, CompXTick, CompYTick, TeamBadge } from '../teamLogos.jsx';
+import { faturamentoPorCampeonatoAno, faturamentoPorPartida, partidas } from '../data/data';
+
+const fatByPartida = Object.fromEntries(faturamentoPorPartida.map(p => [p.idPartida, p]));
 
 const fmtM = v => {
   if (!v) return '0';
@@ -152,10 +154,10 @@ export default function Comparativo() {
         {/* Faturamento total por camp + ano (horizontal) */}
         <Card title="Faturamento por Campeonato e Ano" subtitle="● 2024  ● 2025">
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={fatData} layout="vertical" margin={{ top: 8, right: 60, bottom: 4, left: 90 }}>
+            <BarChart data={fatData} layout="vertical" margin={{ top: 8, right: 60, bottom: 4, left: 110 }}>
               <CartesianGrid stroke={C.border} strokeDasharray="3 3" horizontal={false} />
               <XAxis type="number" tick={{ fill: C.t3, fontSize: 8 }} axisLine={false} tickLine={false} tickFormatter={fmtM} />
-              <YAxis type="category" dataKey="campeonato" tick={{ fill: C.t2, fontSize: 9 }} axisLine={false} tickLine={false} width={90} />
+              <YAxis type="category" dataKey="campeonato" tick={<CompYTick />} axisLine={false} tickLine={false} width={110} />
               <RTooltip content={<DarkTooltip />} />
               <Bar dataKey="2024" name="2024" fill="#555566" radius={[0, 3, 3, 0]} barSize={9}>
                 <LabelList dataKey="2024" position="right" formatter={fmtM} style={{ fontSize: 7, fill: C.t3 }} />
@@ -170,9 +172,9 @@ export default function Comparativo() {
         {/* Faturamento médio */}
         <Card title="Faturamento Médio por Campeonato e Ano">
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={fatMedData} margin={{ top: 8, right: 16, bottom: 36, left: 8 }}>
+            <BarChart data={fatMedData} margin={{ top: 8, right: 16, bottom: 12, left: 8 }}>
               <CartesianGrid stroke={C.border} strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="campeonato" tick={{ fill: C.t3, fontSize: 8 }} axisLine={false} tickLine={false} angle={-30} textAnchor="end" height={50} interval={0} />
+              <XAxis dataKey="campeonato" tick={<CompXTick />} axisLine={false} tickLine={false} height={36} interval={0} />
               <YAxis tick={{ fill: C.t3, fontSize: 8 }} axisLine={false} tickLine={false} tickFormatter={fmtM} />
               <RTooltip content={<DarkTooltip />} />
               <Bar dataKey="2024" name="2024" fill="#555566" barSize={14} radius={[3, 3, 0, 0]}>
@@ -205,9 +207,9 @@ export default function Comparativo() {
         {/* Ticket Médio */}
         <Card title="Ticket Médio por Campeonato e Ano">
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={tktData} margin={{ top: 8, right: 16, bottom: 36, left: 8 }}>
+            <BarChart data={tktData} margin={{ top: 8, right: 16, bottom: 12, left: 8 }}>
               <CartesianGrid stroke={C.border} strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="campeonato" tick={{ fill: C.t3, fontSize: 8 }} axisLine={false} tickLine={false} angle={-30} textAnchor="end" height={50} interval={0} />
+              <XAxis dataKey="campeonato" tick={<CompXTick />} axisLine={false} tickLine={false} height={36} interval={0} />
               <YAxis tick={{ fill: C.t3, fontSize: 8 }} axisLine={false} tickLine={false} />
               <RTooltip content={<DarkTooltip />} />
               <Bar dataKey="2024" name="2024" fill="#555566" barSize={14} radius={[3, 3, 0, 0]}>
@@ -223,9 +225,9 @@ export default function Comparativo() {
         {/* Média de Público */}
         <Card title="Média de Público por Campeonato e Ano">
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={pubData} margin={{ top: 8, right: 16, bottom: 36, left: 8 }}>
+            <BarChart data={pubData} margin={{ top: 8, right: 16, bottom: 12, left: 8 }}>
               <CartesianGrid stroke={C.border} strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="campeonato" tick={{ fill: C.t3, fontSize: 8 }} axisLine={false} tickLine={false} angle={-30} textAnchor="end" height={50} interval={0} />
+              <XAxis dataKey="campeonato" tick={<CompXTick />} axisLine={false} tickLine={false} height={36} interval={0} />
               <YAxis tick={{ fill: C.t3, fontSize: 8 }} axisLine={false} tickLine={false} tickFormatter={fmtK} />
               <RTooltip content={<DarkTooltip />} />
               <Bar dataKey="2024" name="2024" fill="#555566" barSize={14} radius={[3, 3, 0, 0]}>
@@ -254,19 +256,22 @@ export default function Comparativo() {
               {jogosTable.map((r, i) => (
                 <tr key={r.campeonato} style={{ borderBottom: `1px solid ${C.border}`, background: i % 2 === 0 ? 'transparent' : C.bgAlt + '44' }}>
                   <td style={{ padding: '6px 12px', color: C.t1, fontSize: 10 }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5 }}>
-                      <span style={{ width: 8, height: 8, borderRadius: '50%', background: CAMP_COLORS[r.campeonato] || C.t3, display: 'inline-block', flexShrink: 0 }} />
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      {COMP_LOGOS[r.campeonato]
+                        ? <img src={`/logos/${COMP_LOGOS[r.campeonato]}`} style={{ width: 16, height: 16, objectFit: 'contain' }} />
+                        : <span style={{ width: 8, height: 8, borderRadius: '50%', background: CAMP_COLORS[r.campeonato] || C.t3, display: 'inline-block', flexShrink: 0 }} />
+                      }
                       {r.campeonato}
                     </span>
                   </td>
-                  <td style={{ padding: '6px 8px', textAlign: 'center', color: '#8888aa', fontWeight: 600 }}>{r['2024'] || '—'}</td>
+                  <td style={{ padding: '6px 8px', textAlign: 'center', color: '#5a5a8a', fontWeight: 600 }}>{r['2024'] || '—'}</td>
                   <td style={{ padding: '6px 8px', textAlign: 'center', color: C.accent, fontWeight: 600 }}>{r['2025'] || '—'}</td>
                   <td style={{ padding: '6px 8px', textAlign: 'center', color: C.t1, fontWeight: 700 }}>{r.total}</td>
                 </tr>
               ))}
               <tr style={{ borderTop: `2px solid ${C.border}`, background: C.bgAlt }}>
                 <td style={{ padding: '6px 12px', fontWeight: 700, color: C.t1, fontSize: 10 }}>Total</td>
-                <td style={{ padding: '6px 8px', textAlign: 'center', color: '#8888aa', fontWeight: 700 }}>{totalJogos['2024']}</td>
+                <td style={{ padding: '6px 8px', textAlign: 'center', color: '#5a5a8a', fontWeight: 700 }}>{totalJogos['2024']}</td>
                 <td style={{ padding: '6px 8px', textAlign: 'center', color: C.accent, fontWeight: 700 }}>{totalJogos['2025']}</td>
                 <td style={{ padding: '6px 8px', textAlign: 'center', color: C.t1, fontWeight: 800 }}>{totalJogos.total}</td>
               </tr>
@@ -285,6 +290,8 @@ export default function Comparativo() {
                 {['Time', 'Campeonato', 'Data', 'Rodada', 'Dia', 'Horário'].map(h => (
                   <th key={h} style={{ padding: '8px 12px', textAlign: 'left', fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
+                <th style={{ padding: '8px 12px', textAlign: 'right', fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>Público</th>
+                <th style={{ padding: '8px 12px', textAlign: 'right', fontSize: 9, fontWeight: 700, color: C.accent, textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>Faturamento</th>
               </tr>
             </thead>
             <tbody>
@@ -294,14 +301,24 @@ export default function Comparativo() {
                 return b.data.localeCompare(a.data);
               }).filter(p => !campFilter || p.campeonato === campFilter).map((p, i) => (
                 <tr key={p.id} style={{ borderBottom: `1px solid ${C.border}`, background: i % 2 === 0 ? 'transparent' : C.bgAlt + '44' }}>
-                  <td style={{ padding: '6px 12px', color: C.t1, fontWeight: 500 }}>{p.time}</td>
+                  <td style={{ padding: '6px 12px', color: C.t1, fontWeight: 500 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <TeamBadge name={p.time} size={18} />
+                      {p.time}
+                    </div>
+                  </td>
                   <td style={{ padding: '6px 12px' }}>
-                    <span style={{ background: (CAMP_COLORS[p.campeonato] || C.t3) + '22', color: CAMP_COLORS[p.campeonato] || C.t3, borderRadius: 4, padding: '2px 6px', fontSize: 9, fontWeight: 700 }}>{p.campeonato}</span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: (CAMP_COLORS[p.campeonato] || C.t3) + '22', color: CAMP_COLORS[p.campeonato] || C.t3, borderRadius: 4, padding: '2px 6px', fontSize: 9, fontWeight: 700 }}>
+                      {COMP_LOGOS[p.campeonato] && <img src={`/logos/${COMP_LOGOS[p.campeonato]}`} style={{ width: 12, height: 12, objectFit: 'contain' }} />}
+                      {p.campeonato}
+                    </span>
                   </td>
                   <td style={{ padding: '6px 12px', color: C.t2 }}>{p.data}</td>
                   <td style={{ padding: '6px 12px', color: C.t2 }}>{p.rodada}</td>
                   <td style={{ padding: '6px 12px', color: C.t3 }}>{p.diaSemana}</td>
                   <td style={{ padding: '6px 12px', color: C.t3 }}>{p.horario}</td>
+                  <td style={{ padding: '6px 12px', textAlign: 'right', color: C.t2, fontWeight: 500 }}>{fatByPartida[p.id]?.utilizados?.toLocaleString('pt-BR') ?? '—'}</td>
+                  <td style={{ padding: '6px 12px', textAlign: 'right', color: C.accent, fontWeight: 700 }}>{fatByPartida[p.id] ? fmtM(fatByPartida[p.id].faturamento) : '—'}</td>
                 </tr>
               ))}
             </tbody>
