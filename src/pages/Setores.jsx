@@ -13,17 +13,19 @@ import {
 // Setor ID → name map
 const setorNameMap = Object.fromEntries(faturamentoPorSetor.map(s => [s.idSetor, s.setor]));
 
-// Pre-compute per-partida unitário by setor (paying tickets only)
+// Pre-compute per-partida unitário by setor — apenas categoria "Inteira" (7IN)
 const unitarioByPartida = (() => {
   const map = {};
   ingressos.forEach(r => {
     if (!r.idPartida || !r.unitario || r.unitario <= 0) return;
+    if (r.idTorcedor !== '7IN') return;           // só Inteira
     const setor = setorNameMap[r.idSetor];
     if (!setor) return;
     if (!map[r.idPartida]) map[r.idPartida] = {};
-    if (!map[r.idPartida][setor]) map[r.idPartida][setor] = { total: 0, count: 0 };
-    map[r.idPartida][setor].total += r.unitario * (r.publico || 0);
-    map[r.idPartida][setor].count += (r.publico || 0);
+    // unitario já é o preço da Inteira; pega o max (pode haver múltiplas linhas por setor)
+    if (!map[r.idPartida][setor] || r.unitario > map[r.idPartida][setor]) {
+      map[r.idPartida][setor] = r.unitario;
+    }
   });
   return map;
 })();
@@ -174,8 +176,8 @@ export default function Setores() {
       .map(p => {
         const setorData = unitarioByPartida[p.id] || {};
         const row = { time: p.time, label: `${p.time}|${p.rodada}` };
-        Object.entries(setorData).forEach(([setor, { total, count }]) => {
-          row[setor] = count > 0 ? Math.round(total / count * 100) / 100 : null;
+        Object.entries(setorData).forEach(([setor, valor]) => {
+          row[setor] = valor || null;
         });
         return row;
       });
@@ -294,7 +296,7 @@ export default function Setores() {
       </div>
 
       {/* Unitário por time e setor */}
-      <Card title="Soma de UNITÁRIO por TIME e SETOR">
+      <Card title="Preço Inteira por Setor e Jogo">
         <div style={{ padding: '8px 16px 0', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           {setorKeysUnit.map(s => (
             <span key={s} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: C.t2 }}>
