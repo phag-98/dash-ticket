@@ -592,6 +592,25 @@ pl_base["totalFederations"]       = pl_base[["taxes","arbitration","personnelExp
 pl_base["total"]                  = pl_base["margin"] + pl_base["totalLogistics"] + pl_base["totalFederations"]
 pl_base = pl_base.sort_values("DATA")
 
+# ── despesasDetalhe: { idPartida: { catfin2: [{desc, valor}] } } ─────────────
+_desp_full = fDesp_cat.merge(
+    dDescDesp[["ID_DESC_DESPESA","DESC_DESPESA"]],
+    on="ID_DESC_DESPESA", how="left"
+)
+_desp_full = _desp_full[_desp_full["VALOR"] != 0].dropna(subset=["ID_CAT_FIN_2","DESC_DESPESA"])
+_desp_grouped = (
+    _desp_full.groupby(["ID_PARTIDA","ID_CAT_FIN_2","DESC_DESPESA"])["VALOR"]
+    .sum().reset_index()
+)
+despesasDetalhe = {}
+for _, row in _desp_grouped.iterrows():
+    pid  = str(row["ID_PARTIDA"])
+    cat  = str(row["ID_CAT_FIN_2"])
+    desc = str(row["DESC_DESPESA"]).strip()
+    val  = float(round(row["VALOR"], 2))
+    despesasDetalhe.setdefault(pid, {}).setdefault(cat, []).append({"desc": desc, "valor": val})
+
+
 plPorPartida = []
 for _, r in pl_base.iterrows():
     dt = r["DATA"]
@@ -664,6 +683,7 @@ lines = [
     f"export const torcedorCols = {to_js(torcedorCols)};",
     f"export const allSetorNames = {to_js(all_setor_names)};",
     f"export const plPorPartida = {to_js(plPorPartida)};",
+    f"export const despesasDetalhe = {to_js(despesasDetalhe)};",
     "",
     "// Convenience: unique campeonato names",
     f"export const CAMPEONATOS = {to_js(sorted(set(p['campeonato'] for p in partidas if p['campeonato'])))};",

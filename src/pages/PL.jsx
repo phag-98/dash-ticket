@@ -5,7 +5,7 @@ import {
 } from 'recharts';
 import { C, FONT_UI, SHADOW, CAMP_COLORS } from '../tokens';
 import { COMP_LOGOS, LOGO_MAP } from '../teamLogos.jsx';
-import { plPorPartida, faturamentoPorPartida } from '../data/data';
+import { plPorPartida, faturamentoPorPartida, despesasDetalhe } from '../data/data';
 
 // ── Formatters ───────────────────────────────────────────────────────────────
 const fmtBR = (v) => {
@@ -111,13 +111,11 @@ const PL_ROWS = [
 ];
 const COLLAPSIBLE = new Set(['revenues', 'opex', 'margin', 'logistics', 'federations']);
 
-// Breakdown: which items belong to each category
+// Breakdown: which items belong to each category (for revenues/margin/total — no raw data)
 const BREAKDOWN_GROUPS = {
   revenues:   ['rebateIngresse', 'parking', 'matchdayIngresse', 'firezone', 'arenaKids', 'aeb'],
-  opex:       ['services', 'security', 'rentals', 'operatingExpenses', 'feesAndTaxes', 'facialRecognition', 'entertainment'],
   margin:     ['margin'],
   logistics:  ['accommodation'],
-  federations:['taxes', 'personnelExpenses', 'meal', 'arbitration'],
   total:      ['totalRevenues', 'totalOperatingExpenses', 'margin', 'totalLogistics', 'totalFederations'],
 };
 // Label for each key used in breakdown
@@ -127,14 +125,41 @@ KEY_LABEL['totalOperatingExpenses'] = 'operating expenses';
 KEY_LABEL['totalLogistics']         = 'logistics';
 KEY_LABEL['totalFederations']       = 'federations';
 
+// Mapping from PL row id → catfin2 id (rows that have raw despesas detail)
+const ROW_TO_CATFIN2 = {
+  opex:              null, // uses catfin2 children below
+  services:          'ser-10',
+  security:          'sec-9',
+  rentals:           'ren-11',
+  operatingExpenses: 'ope-12',
+  feesAndTaxes:      'fee-13',
+  entertainment:     'ent-14',
+  federations:       null,
+  taxes:             'tax-17',
+  arbitration:       'arb-18',
+  personnelExpenses: 'per-19',
+  meal:              'mea-20',
+};
+
 // ── Breakdown tooltip ────────────────────────────────────────────────────────
 function BreakdownTooltip({ info, partida }) {
   if (!info || !partida) return null;
-  const keys = BREAKDOWN_GROUPS[info.rowId];
-  if (!keys || keys.length <= 1) return null;
 
-  const items = keys.map(k => ({ label: KEY_LABEL[k] || k, value: partida[k] ?? 0 }))
-    .filter(it => it.value !== 0);
+  let items = [];
+  const catfin2 = info.catfin2;
+
+  if (catfin2) {
+    // Use raw despesas detail grouped by DESC_DESPESA
+    const raw = despesasDetalhe[partida.idPartida]?.[catfin2] || [];
+    items = raw.filter(r => r.valor !== 0).map(r => ({ label: r.desc, value: r.valor }));
+  } else {
+    // Fallback: use aggregated PL keys
+    const keys = BREAKDOWN_GROUPS[info.rowId];
+    if (!keys || keys.length <= 1) return null;
+    items = keys.map(k => ({ label: KEY_LABEL[k] || k, value: partida[k] ?? 0 }))
+      .filter(it => it.value !== 0);
+  }
+
   if (!items.length) return null;
 
   // Position: keep inside viewport
@@ -240,10 +265,9 @@ export default function PL() {
     PL_ROWS.filter(r => !(r.type === 'item' && r.cat && collapsed.has(r.cat)))
   , [collapsed]);
 
-  const handleCellEnter = (e, rowId, partidaId) => {
-    if (!BREAKDOWN_GROUPS[rowId] || BREAKDOWN_GROUPS[rowId].length <= 1) return;
+  const handleCellEnter = (e, rowId, partidaId, catfin2) => {
     const rect = e.currentTarget.getBoundingClientRect();
-    setTooltipInfo({ rowId, partidaId, x: rect.right, y: rect.top + rect.height / 2 });
+    setTooltipInfo({ rowId, partidaId, catfin2, x: rect.right, y: rect.top + rect.height / 2 });
   };
   const handleCellLeave = () => setTooltipInfo(null);
 
@@ -396,11 +420,12 @@ export default function PL() {
               {visibleRows.map((row, i) => {
                 const isCat   = row.type === 'cat';
                 const isTotal = row.type === 'total';
-                // category rows use own id; item rows use parent cat id
-                const breakdownId = BREAKDOWN_GROUPS[row.id]?.length > 1
-                  ? row.id
+                // Determine catfin2 for raw detail, or fallback breakdownId for aggregated
+                const catfin2     = ROW_TO_CATFIN2[row.id] ?? null;
+                const breakdownId = catfin2 ? row.id
+                  : BREAKDOWN_GROUPS[row.id]?.length > 1 ? row.id
                   : (row.cat && BREAKDOWN_GROUPS[row.cat]?.length > 1 ? row.cat : null);
-                const hasBreakdown = !!breakdownId;
+                const hasBreakdown = !!(catfin2 || breakdownId);
                 const rowBg   = isTotal ? '#1a1a1a' : isCat ? '#2e2e2e' : i % 2 === 0 ? C.card : '#f9f9f9';
                 return (
                   <tr key={row.id} style={{ background: rowBg }}>
@@ -433,7 +458,7 @@ export default function PL() {
                       return (
                         <td
                           key={d.idPartida}
-                          onMouseEnter={hasBreakdown ? (e) => handleCellEnter(e, breakdownId, d.idPartida) : undefined}
+                          onMouseEnter={hasBreakdown ? (e) => handleCellEnter(e, row.id, d.idPartida, catfin2) : undefined}
                           onMouseLeave={hasBreakdown ? handleCellLeave : undefined}
                           style={{
                             ...tdVal,
