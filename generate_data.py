@@ -531,7 +531,141 @@ publicoPorSetorPartida.sort(key=lambda x: x.get("data",""))
 # Also collect unique setor names in the data
 all_setor_names = sorted(set(s["nome"] for s in setores))
 
-# ── 10. Write JS file ────────────────────────────────────────────────────────
+# ── 10. P&L por partida ─────────────────────────────────────────────────────
+dCatFin1 = pd.read_excel(BASE / "dCatFinanceira1.xlsx")
+dCatFin2 = pd.read_excel(BASE / "dCatFinanceira2.xlsx")
+dDescDesp = pd.read_excel(BASE / "dDescDespesa.xlsx")
+fDesp     = pd.read_excel(BASE / "fDespesas.xlsx")
+fAnB_rev  = pd.read_excel(BASE / "fA&B.xlsx")
+fAcom     = pd.read_excel(BASE / "fAcomodacao.xlsx")
+fAK       = pd.read_excel(BASE / "fArenaKids.xlsx")
+fEstac    = pd.read_excel(BASE / "fEstacionamento.xlsx")
+fFac      = pd.read_excel(BASE / "fFacial.xlsx")
+fFire     = pd.read_excel(BASE / "fFirezone.xlsx")
+
+for df in [dCatFin1, dCatFin2, dDescDesp, fDesp, fAnB_rev, fAcom, fAK, fEstac, fFac, fFire]:
+    df.columns = [str(c).strip() for c in df.columns]
+
+# Revenue: matchday ingresse from ingressos
+ingr_enrich["FAT_INGR"] = ingr_enrich["PÚBLICO"] * ingr_enrich["UNITÁRIO"]
+matchday_rev = ingr_enrich.groupby("ID_PARTIDA").agg(
+    matchdayIngresse=("FAT_INGR", "sum")
+).reset_index()
+
+# Revenue: parking
+parking_rev = fEstac.groupby("ID_PARTIDA")["VALOR"].sum().reset_index()
+parking_rev.columns = ["ID_PARTIDA", "parking"]
+
+# Revenue: firezone (deduplicate first)
+firezone_rev = fFire.drop_duplicates().groupby("ID_PARTIDA")["FATURAMENTO_FIREZONE"].sum().reset_index()
+firezone_rev.columns = ["ID_PARTIDA", "firezone"]
+
+# Revenue: arena kids (deduplicate first)
+ak_rev = fAK.drop_duplicates().groupby("ID_PARTIDA")["FATURAMENTO_ARENA_KIDS"].sum().reset_index()
+ak_rev.columns = ["ID_PARTIDA", "arenaKids"]
+
+# Revenue: a&b
+anb_rev = fAnB_rev.groupby("ID_PARTIDA")["VALOR"].sum().reset_index()
+anb_rev.columns = ["ID_PARTIDA", "aeb"]
+
+# Expenses: merge fDespesas with dDescDespesa to get ID_CAT_FIN_2
+fDesp_cat = fDesp.merge(dDescDesp[["ID_DESC_DESPESA", "ID_CAT_FIN_2"]], on="ID_DESC_DESPESA", how="left")
+
+def get_expense_by_cat(cat_id, col_name):
+    mask = fDesp_cat["ID_CAT_FIN_2"] == cat_id
+    return fDesp_cat[mask].groupby("ID_PARTIDA")["VALOR"].sum().reset_index().rename(columns={"VALOR": col_name})
+
+services_exp   = get_expense_by_cat("ser-10", "services")
+security_exp   = get_expense_by_cat("sec-9",  "security")
+rentals_exp    = get_expense_by_cat("ren-11",  "rentals")
+opex_exp       = get_expense_by_cat("ope-12",  "operatingExpenses")
+fees_exp       = get_expense_by_cat("fee-13",  "feesAndTaxes")
+entertain_exp  = get_expense_by_cat("ent-14",  "entertainment")
+taxes_exp      = get_expense_by_cat("tax-17",  "taxes")
+arbitration_exp= get_expense_by_cat("arb-18",  "arbitration")
+personnel_exp  = get_expense_by_cat("per-19",  "personnelExpenses")
+meal_exp       = get_expense_by_cat("mea-20",  "meal")
+
+# Facial recognition
+fac_exp = fFac.groupby("ID_PARTIDA")["VALOR"].sum().reset_index()
+fac_exp.columns = ["ID_PARTIDA", "facialRecognition"]
+
+# Logistics: accommodation
+accom_exp = fAcom.groupby("ID_PARTIDA")["VALOR"].sum().reset_index()
+accom_exp.columns = ["ID_PARTIDA", "accommodation"]
+
+# Build base: all partidas
+pl_base = dPart[["ID_PARTIDA", "ID_CAMPEONATO", "ID_TIME", "DATA", "ANO", "MES"]].copy()
+pl_base["CAMPEONATO"] = pl_base["ID_CAMPEONATO"].map(camp_map)
+pl_base["TIME"]       = pl_base["ID_TIME"].map(time_map)
+
+for df_m in [matchday_rev, parking_rev, firezone_rev, ak_rev, anb_rev,
+             services_exp, security_exp, rentals_exp, opex_exp, fees_exp,
+             entertain_exp, fac_exp, accom_exp, taxes_exp, arbitration_exp,
+             personnel_exp, meal_exp]:
+    pl_base = pl_base.merge(df_m, on="ID_PARTIDA", how="left")
+
+num_pl = ["matchdayIngresse", "parking", "firezone", "arenaKids", "aeb",
+          "services", "security", "rentals", "operatingExpenses", "feesAndTaxes",
+          "entertainment", "facialRecognition", "accommodation",
+          "taxes", "arbitration", "personnelExpenses", "meal"]
+pl_base[num_pl] = pl_base[num_pl].fillna(0.0)
+
+pl_base["totalRevenues"]           = pl_base[["matchdayIngresse","parking","firezone","arenaKids","aeb"]].sum(axis=1)
+pl_base["totalOperatingExpenses"]  = pl_base[["services","security","rentals","operatingExpenses","feesAndTaxes","entertainment","facialRecognition"]].sum(axis=1)
+pl_base["margin"]                  = pl_base["totalRevenues"] + pl_base["totalOperatingExpenses"]
+pl_base["totalLogistics"]          = pl_base["accommodation"]
+pl_base["totalFederations"]        = pl_base[["taxes","arbitration","personnelExpenses","meal"]].sum(axis=1)
+pl_base["total"]                   = pl_base["margin"] + pl_base["totalLogistics"] + pl_base["totalFederations"]
+
+# Sort by data
+pl_base = pl_base.merge(dPart[["ID_PARTIDA","RODADA"]], on="ID_PARTIDA", how="left")
+pl_base = pl_base.sort_values("DATA")
+
+plPorPartida = []
+for _, r in pl_base.iterrows():
+    dt = r["DATA"]
+    data_str = dt.strftime("%d/%m/%Y") if pd.notna(dt) else ""
+    plPorPartida.append({
+        "idPartida":              str(r["ID_PARTIDA"]),
+        "campeonato":             str(r["CAMPEONATO"]) if pd.notna(r["CAMPEONATO"]) else "",
+        "time":                   str(r["TIME"]) if pd.notna(r["TIME"]) else "",
+        "data":                   data_str,
+        "ano":                    si(r["ANO"]) if pd.notna(r["ANO"]) else 0,
+        "mes":                    si(r["MES"]) if pd.notna(r["MES"]) else 0,
+        # revenues
+        "matchdayIngresse":       sf(r["matchdayIngresse"]),
+        "rebateIngresse":         0.0,
+        "parking":                sf(r["parking"]),
+        "firezone":               sf(r["firezone"]),
+        "arenaKids":              sf(r["arenaKids"]),
+        "aeb":                    sf(r["aeb"]),
+        "totalRevenues":          sf(r["totalRevenues"]),
+        # operating expenses
+        "services":               sf(r["services"]),
+        "security":               sf(r["security"]),
+        "rentals":                sf(r["rentals"]),
+        "operatingExpenses":      sf(r["operatingExpenses"]),
+        "feesAndTaxes":           sf(r["feesAndTaxes"]),
+        "facialRecognition":      sf(r["facialRecognition"]),
+        "entertainment":          sf(r["entertainment"]),
+        "totalOperatingExpenses": sf(r["totalOperatingExpenses"]),
+        # margin
+        "margin":                 sf(r["margin"]),
+        # logistics
+        "accommodation":          sf(r["accommodation"]),
+        "totalLogistics":         sf(r["totalLogistics"]),
+        # federations
+        "taxes":                  sf(r["taxes"]),
+        "arbitration":            sf(r["arbitration"]),
+        "personnelExpenses":      sf(r["personnelExpenses"]),
+        "meal":                   sf(r["meal"]),
+        "totalFederations":       sf(r["totalFederations"]),
+        # total
+        "total":                  sf(r["total"]),
+    })
+
+# ── 11. Write JS file ────────────────────────────────────────────────────────
 def to_js(obj):
     """Convert to compact JS-compatible JSON (no trailing commas)."""
     return json.dumps(obj, ensure_ascii=False, separators=(",",":"))
@@ -566,6 +700,7 @@ lines = [
     f"export const publicoPorSetorPartida = {to_js(publicoPorSetorPartida)};",
     f"export const torcedorCols = {to_js(torcedorCols)};",
     f"export const allSetorNames = {to_js(all_setor_names)};",
+    f"export const plPorPartida = {to_js(plPorPartida)};",
     "",
     "// Convenience: unique campeonato names",
     f"export const CAMPEONATOS = {to_js(sorted(set(p['campeonato'] for p in partidas if p['campeonato'])))};",
