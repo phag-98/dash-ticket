@@ -76,14 +76,14 @@ export default function App() {
                   key={t.id}
                   onClick={() => setTab(t.id)}
                   style={{
-                    padding:'0 18px', height:48, border:'none', cursor:'pointer',
+                    padding:'0 10px', height:48, border:'none', cursor:'pointer',
                     background:'transparent',
                     color: active ? '#ffffff' : '#888',
-                    fontFamily:FONT_UI, fontSize:11, fontWeight: active ? 700 : 400,
+                    fontFamily:FONT_UI, fontSize:10, fontWeight: active ? 700 : 400,
                     borderBottom: active ? `3px solid ${C.accent}` : '3px solid transparent',
                     borderTop: '3px solid transparent',
                     transition:'all 0.15s ease',
-                    letterSpacing:'0.8px', whiteSpace:'nowrap', textTransform:'uppercase',
+                    letterSpacing:'0.5px', whiteSpace:'nowrap', textTransform:'uppercase',
                   }}
                   onMouseEnter={e=>{ if(!active){ e.currentTarget.style.color='#ccc'; e.currentTarget.style.borderBottomColor='#444'; }}}
                   onMouseLeave={e=>{ if(!active){ e.currentTarget.style.color='#888'; e.currentTarget.style.borderBottomColor='transparent'; }}}
