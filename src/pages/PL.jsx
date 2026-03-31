@@ -42,22 +42,26 @@ function FilterBtn({ label, active, onClick, color, logo }) {
   );
 }
 
-// ── Custom X-axis tick with team logo ────────────────────────────────────────
-function LogoTick({ x, y, payload }) {
+// ── Custom X-axis tick with team logo + competition badge ────────────────────
+function LogoTick({ x, y, payload, index, chartData }) {
   const name = payload?.value;
   const logo = LOGO_MAP[name];
-  const SIZE = 20;
-  if (logo) {
-    return (
-      <g transform={`translate(${x},${y + 4})`}>
-        <image href={`/logos/${logo}`} x={-SIZE / 2} y={0} width={SIZE} height={SIZE} />
-      </g>
-    );
-  }
+  const entry = chartData?.[index];
+  const compLogo = entry ? COMP_LOGOS[entry.campeonato] : null;
+  const TEAM_SIZE = 20;
+  const COMP_SIZE = 13;
   const short = (name || '').split(' ').slice(-1)[0].slice(0, 6);
   return (
     <g transform={`translate(${x},${y + 4})`}>
-      <text x={0} y={0} dy={12} textAnchor="middle" fill={C.t3} fontSize={8}>{short}</text>
+      {/* team logo or initials */}
+      {logo
+        ? <image href={`/logos/${logo}`} x={-TEAM_SIZE / 2} y={0} width={TEAM_SIZE} height={TEAM_SIZE} />
+        : <text x={0} y={0} dy={12} textAnchor="middle" fill={C.t3} fontSize={8}>{short}</text>
+      }
+      {/* competition badge below */}
+      {compLogo && (
+        <image href={`/logos/${compLogo}`} x={-COMP_SIZE / 2} y={TEAM_SIZE + 3} width={COMP_SIZE} height={COMP_SIZE} />
+      )}
     </g>
   );
 }
@@ -225,9 +229,10 @@ export default function PL() {
 
   // Chart data
   const chartData = useMemo(() => filtered.map(d => ({
-    name:     d.time,
-    revenues: d.totalRevenues,
-    costs:    Math.abs(d.totalOperatingExpenses + d.totalLogistics + d.totalFederations),
+    name:       d.time,
+    campeonato: d.campeonato,
+    revenues:   d.totalRevenues,
+    costs:      Math.abs(d.totalOperatingExpenses + d.totalLogistics + d.totalFederations),
   })), [filtered]);
 
   // Visible table rows
@@ -296,7 +301,7 @@ export default function PL() {
         <ResponsiveContainer width="100%" height={260}>
           <LineChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 36 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={C.border} />
-            <XAxis dataKey="name" tick={<LogoTick />} interval={0} height={36} />
+            <XAxis dataKey="name" tick={<LogoTick chartData={chartData} />} interval={0} height={52} />
             <YAxis tick={{ fontSize: 9, fill: C.t3 }} tickFormatter={fmtAxis} width={52} />
             <RTooltip content={<ChartTip />} />
             <Line type="monotone" dataKey="revenues" stroke="#6b4fa0" strokeWidth={2} dot={{ r: 3, fill: '#6b4fa0' }} activeDot={{ r: 5 }} />
