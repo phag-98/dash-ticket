@@ -531,7 +531,104 @@ publicoPorSetorPartida.sort(key=lambda x: x.get("data",""))
 # Also collect unique setor names in the data
 all_setor_names = sorted(set(s["nome"] for s in setores))
 
-# ── 10. Write JS file ────────────────────────────────────────────────────────
+# ── 10. P&L por partida ─────────────────────────────────────────────────────
+dCatFin1 = pd.read_excel(BASE / "dCatFinanceira1.xlsx")
+dCatFin2 = pd.read_excel(BASE / "dCatFinanceira2.xlsx")
+dDescDesp = pd.read_excel(BASE / "dDescDespesa.xlsx")
+fDesp     = pd.read_excel(BASE / "fDespesas.xlsx")
+fAnB_rev  = pd.read_excel(BASE / "fA&B.xlsx")
+fAcom     = pd.read_excel(BASE / "fAcomodacao.xlsx")
+fAK       = pd.read_excel(BASE / "fArenaKids.xlsx")
+fEstac    = pd.read_excel(BASE / "fEstacionamento.xlsx")
+fFac      = pd.read_excel(BASE / "fFacial.xlsx")
+fFire     = pd.read_excel(BASE / "fFirezone.xlsx")
+
+for df in [dCatFin1, dCatFin2, dDescDesp, fDesp, fAnB_rev, fAcom, fAK, fEstac, fFac, fFire]:
+    df.columns = [str(c).strip() for c in df.columns]
+
+ingr_enrich["FAT_INGR"] = ingr_enrich["PÚBLICO"] * ingr_enrich["UNITÁRIO"]
+matchday_rev = ingr_enrich.groupby("ID_PARTIDA").agg(matchdayIngresse=("FAT_INGR","sum")).reset_index()
+parking_rev  = fEstac.groupby("ID_PARTIDA")["VALOR"].sum().reset_index().rename(columns={"VALOR":"parking"})
+firezone_rev = fFire.drop_duplicates().groupby("ID_PARTIDA")["FATURAMENTO_FIREZONE"].sum().reset_index().rename(columns={"FATURAMENTO_FIREZONE":"firezone"})
+ak_rev       = fAK.drop_duplicates().groupby("ID_PARTIDA")["FATURAMENTO_ARENA_KIDS"].sum().reset_index().rename(columns={"FATURAMENTO_ARENA_KIDS":"arenaKids"})
+anb_rev      = fAnB_rev.groupby("ID_PARTIDA")["VALOR"].sum().reset_index().rename(columns={"VALOR":"aeb"})
+
+fDesp_cat = fDesp.merge(dDescDesp[["ID_DESC_DESPESA","ID_CAT_FIN_2"]], on="ID_DESC_DESPESA", how="left")
+def _exp(cat_id, col):
+    return fDesp_cat[fDesp_cat["ID_CAT_FIN_2"]==cat_id].groupby("ID_PARTIDA")["VALOR"].sum().reset_index().rename(columns={"VALOR":col})
+
+services_exp    = _exp("ser-10","services")
+security_exp    = _exp("sec-9", "security")
+rentals_exp     = _exp("ren-11","rentals")
+opex_exp        = _exp("ope-12","operatingExpenses")
+fees_exp        = _exp("fee-13","feesAndTaxes")
+entertain_exp   = _exp("ent-14","entertainment")
+taxes_exp       = _exp("tax-17","taxes")
+arbitration_exp = _exp("arb-18","arbitration")
+personnel_exp   = _exp("per-19","personnelExpenses")
+meal_exp        = _exp("mea-20","meal")
+fac_exp  = fFac.groupby("ID_PARTIDA")["VALOR"].sum().reset_index().rename(columns={"VALOR":"facialRecognition"})
+accom_exp= fAcom.groupby("ID_PARTIDA")["VALOR"].sum().reset_index().rename(columns={"VALOR":"accommodation"})
+
+pl_base = dPart[["ID_PARTIDA","ID_CAMPEONATO","ID_TIME","DATA","ANO","MES"]].copy()
+pl_base["CAMPEONATO"] = pl_base["ID_CAMPEONATO"].map(camp_map)
+pl_base["TIME"]       = pl_base["ID_TIME"].map(time_map)
+for df_m in [matchday_rev,parking_rev,firezone_rev,ak_rev,anb_rev,
+             services_exp,security_exp,rentals_exp,opex_exp,fees_exp,
+             entertain_exp,fac_exp,accom_exp,taxes_exp,arbitration_exp,
+             personnel_exp,meal_exp]:
+    pl_base = pl_base.merge(df_m, on="ID_PARTIDA", how="left")
+
+_num = ["matchdayIngresse","parking","firezone","arenaKids","aeb",
+        "services","security","rentals","operatingExpenses","feesAndTaxes",
+        "entertainment","facialRecognition","accommodation",
+        "taxes","arbitration","personnelExpenses","meal"]
+pl_base[_num] = pl_base[_num].fillna(0.0)
+pl_base["totalRevenues"]          = pl_base[["matchdayIngresse","parking","firezone","arenaKids","aeb"]].sum(axis=1)
+pl_base["totalOperatingExpenses"] = pl_base[["services","security","rentals","operatingExpenses","feesAndTaxes","entertainment","facialRecognition"]].sum(axis=1)
+pl_base["margin"]                 = pl_base["totalRevenues"] + pl_base["totalOperatingExpenses"]
+pl_base["totalLogistics"]         = pl_base["accommodation"]
+pl_base["totalFederations"]       = pl_base[["taxes","arbitration","personnelExpenses","meal"]].sum(axis=1)
+pl_base["total"]                  = pl_base["margin"] + pl_base["totalLogistics"] + pl_base["totalFederations"]
+pl_base = pl_base.sort_values("DATA")
+
+plPorPartida = []
+for _, r in pl_base.iterrows():
+    dt = r["DATA"]
+    plPorPartida.append({
+        "idPartida":              str(r["ID_PARTIDA"]),
+        "campeonato":             str(r["CAMPEONATO"]) if pd.notna(r["CAMPEONATO"]) else "",
+        "time":                   str(r["TIME"]) if pd.notna(r["TIME"]) else "",
+        "data":                   dt.strftime("%d/%m/%Y") if pd.notna(dt) else "",
+        "ano":                    si(r["ANO"]) if pd.notna(r["ANO"]) else 0,
+        "mes":                    si(r["MES"]) if pd.notna(r["MES"]) else 0,
+        "matchdayIngresse":       sf(r["matchdayIngresse"]),
+        "rebateIngresse":         0.0,
+        "parking":                sf(r["parking"]),
+        "firezone":               sf(r["firezone"]),
+        "arenaKids":              sf(r["arenaKids"]),
+        "aeb":                    sf(r["aeb"]),
+        "totalRevenues":          sf(r["totalRevenues"]),
+        "services":               sf(r["services"]),
+        "security":               sf(r["security"]),
+        "rentals":                sf(r["rentals"]),
+        "operatingExpenses":      sf(r["operatingExpenses"]),
+        "feesAndTaxes":           sf(r["feesAndTaxes"]),
+        "facialRecognition":      sf(r["facialRecognition"]),
+        "entertainment":          sf(r["entertainment"]),
+        "totalOperatingExpenses": sf(r["totalOperatingExpenses"]),
+        "margin":                 sf(r["margin"]),
+        "accommodation":          sf(r["accommodation"]),
+        "totalLogistics":         sf(r["totalLogistics"]),
+        "taxes":                  sf(r["taxes"]),
+        "arbitration":            sf(r["arbitration"]),
+        "personnelExpenses":      sf(r["personnelExpenses"]),
+        "meal":                   sf(r["meal"]),
+        "totalFederations":       sf(r["totalFederations"]),
+        "total":                  sf(r["total"]),
+    })
+
+# ── 11. Write JS file ────────────────────────────────────────────────────────
 def to_js(obj):
     """Convert to compact JS-compatible JSON (no trailing commas)."""
     return json.dumps(obj, ensure_ascii=False, separators=(",",":"))
@@ -566,6 +663,7 @@ lines = [
     f"export const publicoPorSetorPartida = {to_js(publicoPorSetorPartida)};",
     f"export const torcedorCols = {to_js(torcedorCols)};",
     f"export const allSetorNames = {to_js(all_setor_names)};",
+    f"export const plPorPartida = {to_js(plPorPartida)};",
     "",
     "// Convenience: unique campeonato names",
     f"export const CAMPEONATOS = {to_js(sorted(set(p['campeonato'] for p in partidas if p['campeonato'])))};",
