@@ -42,7 +42,7 @@ export default function App() {
         </div>
 
         {/* Tabs */}
-        <nav style={{ display:'flex', gap:4, flex:1, overflowX:'auto', scrollbarWidth:'none' }}>
+        <nav style={{ display:'flex', gap:2, flex:1, overflowX:'auto', scrollbarWidth:'none' }}>
           {TABS.map(t => {
             const active = tab === t.id;
             return (
@@ -50,12 +50,12 @@ export default function App() {
                 key={t.id}
                 onClick={() => setTab(t.id)}
                 style={{
-                  padding:'0 16px', height:52, border:'none', cursor:'pointer',
+                  padding:'0 10px', height:52, border:'none', cursor:'pointer',
                   background:'transparent', color: active ? C.accent : C.t2,
-                  fontFamily:FONT_UI, fontSize:11, fontWeight: active ? 700 : 400,
+                  fontFamily:FONT_UI, fontSize:10, fontWeight: active ? 700 : 400,
                   borderBottom: active ? `2px solid ${C.accent}` : '2px solid transparent',
                   transition:'all 0.15s ease',
-                  letterSpacing:'1px', whiteSpace:'nowrap', textTransform:'uppercase',
+                  letterSpacing:'0.5px', whiteSpace:'nowrap', textTransform:'uppercase',
                 }}
                 onMouseEnter={e=>{ if(!active) e.currentTarget.style.color=C.t1; }}
                 onMouseLeave={e=>{ if(!active) e.currentTarget.style.color=C.t2; }}
