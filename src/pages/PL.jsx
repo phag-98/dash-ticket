@@ -43,18 +43,21 @@ function FilterBtn({ label, active, onClick, color, logo }) {
 }
 
 // ── Custom X-axis tick with team logo + championship logo below ──────────────
-function makeLogoTick(chartData) {
+function makeLogoTick(chartData, selectedMatch, filtered) {
   return function LogoTick({ x, y, payload, index }) {
     const name = payload?.value;
     const logo = LOGO_MAP[name];
-    const campeonato = chartData[index]?.campeonato;
+    const entry = chartData[index];
+    const campeonato = entry?.campeonato;
     const compLogo = campeonato ? COMP_LOGOS[campeonato] : null;
+    const isSel = selectedMatch && entry?.idPartida === selectedMatch;
     const TEAM_SIZE = 20;
     const COMP_SIZE = 14;
     const GAP = 3;
 
     return (
       <g transform={`translate(${x},${y + 4})`}>
+        {isSel && <circle cx={0} cy={TEAM_SIZE / 2} r={13} fill={C.accent} opacity={0.18} />}
         {logo
           ? <image href={`/logos/${logo}`} x={-TEAM_SIZE / 2} y={0} width={TEAM_SIZE} height={TEAM_SIZE} />
           : <text x={0} y={0} dy={12} textAnchor="middle" fill={C.t3} fontSize={8}>
@@ -150,6 +153,7 @@ export default function PL() {
   const [yearFilter, setYearFilter]         = useState('ALL');
   const [collapsed, setCollapsed]           = useState(new Set());
   const [detailExpanded, setDetailExpanded] = useState(new Set());
+  const [selectedMatch, setSelectedMatch]   = useState(null); // idPartida | null
 
   const toggleCollapse = (id) =>
     setCollapsed(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
@@ -173,6 +177,7 @@ export default function PL() {
   const chartData = useMemo(() => filtered.map(d => ({
     name:       d.time,
     campeonato: d.campeonato,
+    idPartida:  d.idPartida,
     revenues:   d.totalRevenues,
     costs:      Math.abs(d.totalOperatingExpenses + d.totalLogistics + d.totalFederations),
   })), [filtered]);
@@ -181,6 +186,11 @@ export default function PL() {
   const visibleRows = useMemo(() =>
     PL_ROWS.filter(r => !(r.type === 'item' && r.cat && collapsed.has(r.cat)))
   , [collapsed]);
+
+  // Table columns: all filtered, or just the selected match
+  const tableRows = useMemo(() =>
+    selectedMatch ? filtered.filter(d => d.idPartida === selectedMatch) : filtered
+  , [filtered, selectedMatch]);
 
   return (
     <div style={{ fontFamily: FONT_UI, color: C.t1 }}>
@@ -237,21 +247,52 @@ export default function PL() {
           ))}
         </div>
         <ResponsiveContainer width="100%" height={260}>
-          <LineChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 54 }}>
+          <LineChart
+            data={chartData}
+            margin={{ top: 4, right: 16, left: 0, bottom: 54 }}
+            style={{ cursor: 'pointer' }}
+            onClick={(e) => {
+              const id = e?.activePayload?.[0]?.payload?.idPartida;
+              if (!id) return;
+              setSelectedMatch(prev => prev === id ? null : id);
+            }}
+          >
             <CartesianGrid strokeDasharray="3 3" stroke={C.border} />
             <XAxis
               dataKey="name"
-              tick={makeLogoTick(chartData)}
+              tick={makeLogoTick(chartData, selectedMatch, filtered)}
               interval={0}
               height={54}
             />
             <YAxis tick={{ fontSize: 9, fill: C.t3 }} tickFormatter={fmtAxis} width={52} />
             <RTooltip content={<ChartTip />} />
-            <Line type="monotone" dataKey="revenues" stroke="#6b4fa0" strokeWidth={2} dot={{ r: 3, fill: '#6b4fa0' }} activeDot={{ r: 5 }} />
-            <Line type="monotone" dataKey="costs"    stroke={C.accent} strokeWidth={2} dot={{ r: 3, fill: C.accent }} activeDot={{ r: 5 }} />
+            <Line type="monotone" dataKey="revenues" stroke="#6b4fa0" strokeWidth={2}
+              dot={(props) => {
+                const { cx, cy, payload } = props;
+                const sel = payload.idPartida === selectedMatch;
+                return <circle key={cx} cx={cx} cy={cy} r={sel ? 5 : 3} fill="#6b4fa0" stroke={sel ? '#fff' : 'none'} strokeWidth={2} />;
+              }}
+              activeDot={{ r: 6, stroke: '#6b4fa0', strokeWidth: 2, fill: '#fff' }}
+            />
+            <Line type="monotone" dataKey="costs" stroke={C.accent} strokeWidth={2}
+              dot={(props) => {
+                const { cx, cy, payload } = props;
+                const sel = payload.idPartida === selectedMatch;
+                return <circle key={cx} cx={cx} cy={cy} r={sel ? 5 : 3} fill={C.accent} stroke={sel ? '#fff' : 'none'} strokeWidth={2} />;
+              }}
+              activeDot={{ r: 6, stroke: C.accent, strokeWidth: 2, fill: '#fff' }}
+            />
           </LineChart>
         </ResponsiveContainer>
-        <div style={{ fontSize: 9, color: C.t3, textAlign: 'center', letterSpacing: '0.5px', textTransform: 'uppercase' }}>TIME</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+          <div style={{ fontSize: 9, color: C.t3, letterSpacing: '0.5px', textTransform: 'uppercase' }}>TIME</div>
+          {selectedMatch && (
+            <button onClick={() => setSelectedMatch(null)} style={{
+              fontSize: 9, padding: '2px 8px', borderRadius: 10, background: C.accent,
+              color: '#000', border: 'none', cursor: 'pointer', fontWeight: 700,
+            }}>✕ limpar filtro</button>
+          )}
+        </div>
       </div>
 
       {/* ── P&L Table (full width, below) ── */}
@@ -262,7 +303,7 @@ export default function PL() {
         <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: 520 }}>
           <table style={{
             borderCollapse: 'collapse', fontSize: 10,
-            minWidth: LABEL_W + filtered.length * COL_W,
+            minWidth: LABEL_W + tableRows.length * COL_W,
             tableLayout: 'fixed',
           }}>
 
@@ -277,7 +318,7 @@ export default function PL() {
                   <th style={{ ...thLabel, background: hdr.bg, color: '#bbb', position: 'sticky', left: 0, zIndex: 12 }}>
                     {hdr.label}
                   </th>
-                  {filtered.map(d => (
+                  {tableRows.map(d => (
                     <th key={d.idPartida} style={{ ...thVal, background: hdr.bg, color: hdr.color(d), fontSize: hdr.fs }}>
                       {hdr.fn(d)}
                     </th>
@@ -322,7 +363,7 @@ export default function PL() {
                       )}
                       {row.label}
                     </td>
-                    {filtered.map(d => {
+                    {tableRows.map(d => {
                       const v   = d[row.key] ?? 0;
                       const abs = Math.abs(v);
                       const s   = abs.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -346,7 +387,7 @@ export default function PL() {
                     <td style={{ ...tdLabel, paddingLeft: 32, color: C.t3, fontSize: 9, background: '#fafafa', fontStyle: 'italic' }}>
                       {desc}
                     </td>
-                    {filtered.map(d => {
+                    {tableRows.map(d => {
                       const v   = DETAIL_MAP[row.catFin2]?.[d.idPartida]?.[desc] ?? 0;
                       const abs = Math.abs(v);
                       const s   = abs.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
