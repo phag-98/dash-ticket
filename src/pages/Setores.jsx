@@ -7,11 +7,14 @@ import { C, SHADOW, CAMP_COLORS as TOKEN_CAMP_COLORS } from '../tokens';
 import { COMP_LOGOS, LOGO_MAP, TEAM_COLORS } from '../teamLogos.jsx';
 import {
   faturamentoPorSetor, faturamentoPorPartida,
-  faturamentoPorAdversario, partidas, ingressos,
+  faturamentoPorAdversario, partidas, ingressos, torcedores,
 } from '../data/data';
 
 // Setor ID → name map
 const setorNameMap = Object.fromEntries(faturamentoPorSetor.map(s => [s.idSetor, s.setor]));
+
+// Torcedor ID → nome (categoria)
+const torcMap = Object.fromEntries(torcedores.map(t => [t.id, t.nome]));
 
 // Pre-compute per-partida unitário by setor (paying tickets only)
 const unitarioByPartida = (() => {
@@ -27,6 +30,28 @@ const unitarioByPartida = (() => {
   });
   return map;
 })();
+
+// Pre-compute per-partida unitário by categoria (torcedor nome), paying tickets only
+const unitarioPorCategoria = (() => {
+  const map = {};
+  ingressos.forEach(r => {
+    if (!r.idPartida || !r.unitario || r.unitario <= 0) return;
+    const cat = torcMap[r.idTorcedor];
+    if (!cat) return;
+    if (!map[r.idPartida]) map[r.idPartida] = {};
+    if (!map[r.idPartida][cat]) map[r.idPartida][cat] = { total: 0, count: 0 };
+    map[r.idPartida][cat].total += r.unitario * (r.publico || 0);
+    map[r.idPartida][cat].count += (r.publico || 0);
+  });
+  return map;
+})();
+
+const ALL_CATS = [...new Set(torcedores.map(t => t.nome))].sort();
+const CAT_PALETTE = [
+  '#C9A84C','#6b4fa0','#00bcd4','#e74c3c','#2ecc71','#e67e22','#3498db',
+  '#9b59b6','#1abc9c','#f39c12','#e91e63','#ff5722','#607d8b','#795548',
+];
+const getCatColor = nome => CAT_PALETTE[ALL_CATS.indexOf(nome) % CAT_PALETTE.length] || '#888';
 
 const fmtM = v => {
   if (!v && v !== 0) return '—';
@@ -172,21 +197,21 @@ export default function Setores() {
       })
       .sort((a, b) => (a.data || '').split('/').reverse().join('-').localeCompare((b.data || '').split('/').reverse().join('-')))
       .map(p => {
-        const setorData = unitarioByPartida[p.id] || {};
+        const catData = unitarioPorCategoria[p.id] || {};
         const row = { time: p.time, label: `${p.time}|${p.rodada}` };
-        Object.entries(setorData).forEach(([setor, { total, count }]) => {
-          row[setor] = count > 0 ? Math.round(total / count * 100) / 100 : null;
+        Object.entries(catData).forEach(([cat, { total, count }]) => {
+          row[cat] = count > 0 ? Math.round(total / count * 100) / 100 : null;
         });
         return row;
       });
   }, [campeonato, ano]);
 
-  const setorKeysUnit = useMemo(() => {
+  const catKeysUnit = useMemo(() => {
     const keys = new Set();
     filteredUnitario.forEach(row => Object.keys(row).forEach(k => {
       if (k !== 'time' && k !== 'label' && row[k] != null) keys.add(k);
     }));
-    return [...keys];
+    return [...keys].sort();
   }, [filteredUnitario]);
 
   return (
@@ -293,13 +318,13 @@ export default function Setores() {
         </div>
       </div>
 
-      {/* Unitário por time e setor */}
-      <Card title="Soma de UNITÁRIO por TIME e SETOR">
+      {/* Unitário por time e categoria */}
+      <Card title="Preço Médio por TIME e CATEGORIA">
         <div style={{ padding: '8px 16px 0', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          {setorKeysUnit.map(s => (
-            <span key={s} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: C.t2 }}>
-              <span style={{ width: 16, height: 2, background: getSetorColor(s), display: 'inline-block' }} />
-              {s}
+          {catKeysUnit.map(c => (
+            <span key={c} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: C.t2 }}>
+              <span style={{ width: 16, height: 2, background: getCatColor(c), display: 'inline-block' }} />
+              {c}
             </span>
           ))}
         </div>
@@ -307,10 +332,10 @@ export default function Setores() {
           <LineChart data={filteredUnitario} margin={{ top: 8, right: 16, bottom: 36, left: 10 }}>
             <CartesianGrid stroke={C.border} strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="label" tick={<TeamXTick />} axisLine={false} tickLine={false} height={30} interval={0} />
-            <YAxis tick={{ fill: C.t3, fontSize: 9 }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fill: C.t3, fontSize: 9 }} axisLine={false} tickLine={false} tickFormatter={v => `R$${v}`} />
             <RTooltip content={<DarkTooltip />} />
-            {setorKeysUnit.map(s => (
-              <Line key={s} type="monotone" dataKey={s} stroke={getSetorColor(s)} strokeWidth={1.5} dot={{ r: 2, fill: getSetorColor(s) }} connectNulls />
+            {catKeysUnit.map(c => (
+              <Line key={c} type="monotone" dataKey={c} stroke={getCatColor(c)} strokeWidth={1.5} dot={{ r: 2, fill: getCatColor(c) }} connectNulls />
             ))}
           </LineChart>
         </ResponsiveContainer>
