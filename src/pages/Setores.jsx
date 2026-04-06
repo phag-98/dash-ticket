@@ -31,27 +31,21 @@ const unitarioByPartida = (() => {
   return map;
 })();
 
-// Pre-compute per-partida unitário by categoria (torcedor nome), paying tickets only
-const unitarioPorCategoria = (() => {
+// Pre-compute per-partida unitário for "Inteira" category, broken down by setor
+const inteiraByPartida = (() => {
   const map = {};
   ingressos.forEach(r => {
     if (!r.idPartida || !r.unitario || r.unitario <= 0) return;
-    const cat = torcMap[r.idTorcedor];
-    if (!cat) return;
+    if (torcMap[r.idTorcedor] !== 'Inteira') return;
+    const setor = setorNameMap[r.idSetor];
+    if (!setor) return;
     if (!map[r.idPartida]) map[r.idPartida] = {};
-    if (!map[r.idPartida][cat]) map[r.idPartida][cat] = { total: 0, count: 0 };
-    map[r.idPartida][cat].total += r.unitario * (r.publico || 0);
-    map[r.idPartida][cat].count += (r.publico || 0);
+    if (!map[r.idPartida][setor]) map[r.idPartida][setor] = { total: 0, count: 0 };
+    map[r.idPartida][setor].total += r.unitario * (r.publico || 0);
+    map[r.idPartida][setor].count += (r.publico || 0);
   });
   return map;
 })();
-
-const ALL_CATS = [...new Set(torcedores.map(t => t.nome))].sort();
-const CAT_PALETTE = [
-  '#C9A84C','#6b4fa0','#00bcd4','#e74c3c','#2ecc71','#e67e22','#3498db',
-  '#9b59b6','#1abc9c','#f39c12','#e91e63','#ff5722','#607d8b','#795548',
-];
-const getCatColor = nome => CAT_PALETTE[ALL_CATS.indexOf(nome) % CAT_PALETTE.length] || '#888';
 
 const fmtM = v => {
   if (!v && v !== 0) return '—';
@@ -197,10 +191,10 @@ export default function Setores() {
       })
       .sort((a, b) => (a.data || '').split('/').reverse().join('-').localeCompare((b.data || '').split('/').reverse().join('-')))
       .map(p => {
-        const catData = unitarioPorCategoria[p.id] || {};
+        const setorData = inteiraByPartida[p.id] || {};
         const row = { time: p.time, label: `${p.time}|${p.rodada}` };
-        Object.entries(catData).forEach(([cat, { total, count }]) => {
-          row[cat] = count > 0 ? Math.round(total / count * 100) / 100 : null;
+        Object.entries(setorData).forEach(([setor, { total, count }]) => {
+          row[setor] = count > 0 ? Math.round(total / count * 100) / 100 : null;
         });
         return row;
       });
@@ -318,13 +312,13 @@ export default function Setores() {
         </div>
       </div>
 
-      {/* Unitário por time e categoria */}
-      <Card title="Preço Médio por TIME e CATEGORIA">
+      {/* Preço Inteira por time e setor */}
+      <Card title="Preço Inteira por TIME e SETOR">
         <div style={{ padding: '8px 16px 0', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          {catKeysUnit.map(c => (
-            <span key={c} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: C.t2 }}>
-              <span style={{ width: 16, height: 2, background: getCatColor(c), display: 'inline-block' }} />
-              {c}
+          {catKeysUnit.map(s => (
+            <span key={s} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: C.t2 }}>
+              <span style={{ width: 16, height: 2, background: getSetorColor(s), display: 'inline-block' }} />
+              {s}
             </span>
           ))}
         </div>
@@ -334,8 +328,8 @@ export default function Setores() {
             <XAxis dataKey="label" tick={<TeamXTick />} axisLine={false} tickLine={false} height={30} interval={0} />
             <YAxis tick={{ fill: C.t3, fontSize: 9 }} axisLine={false} tickLine={false} tickFormatter={v => `R$${v}`} />
             <RTooltip content={<DarkTooltip />} />
-            {catKeysUnit.map(c => (
-              <Line key={c} type="monotone" dataKey={c} stroke={getCatColor(c)} strokeWidth={1.5} dot={{ r: 2, fill: getCatColor(c) }} connectNulls />
+            {catKeysUnit.map(s => (
+              <Line key={s} type="monotone" dataKey={s} stroke={getSetorColor(s)} strokeWidth={1.5} dot={{ r: 2, fill: getSetorColor(s) }} connectNulls />
             ))}
           </LineChart>
         </ResponsiveContainer>
