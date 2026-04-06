@@ -32,6 +32,7 @@ const unitarioByPartida = (() => {
 })();
 
 // Pre-compute per-partida unitário for "Inteira" category, broken down by setor
+// Price is fixed per partida+setor, so just take the first non-zero value found
 const inteiraByPartida = (() => {
   const map = {};
   ingressos.forEach(r => {
@@ -40,9 +41,7 @@ const inteiraByPartida = (() => {
     const setor = setorNameMap[r.idSetor];
     if (!setor) return;
     if (!map[r.idPartida]) map[r.idPartida] = {};
-    if (!map[r.idPartida][setor]) map[r.idPartida][setor] = { total: 0, count: 0 };
-    map[r.idPartida][setor].total += r.unitario * (r.publico || 0);
-    map[r.idPartida][setor].count += (r.publico || 0);
+    if (!map[r.idPartida][setor]) map[r.idPartida][setor] = r.unitario;
   });
   return map;
 })();
@@ -193,8 +192,8 @@ export default function Setores() {
       .map(p => {
         const setorData = inteiraByPartida[p.id] || {};
         const row = { time: p.time, label: `${p.time}|${p.rodada}` };
-        Object.entries(setorData).forEach(([setor, { total, count }]) => {
-          row[setor] = count > 0 ? Math.round(total / count * 100) / 100 : null;
+        Object.entries(setorData).forEach(([setor, preco]) => {
+          row[setor] = preco;
         });
         return row;
       });
