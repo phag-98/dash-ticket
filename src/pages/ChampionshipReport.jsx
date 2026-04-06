@@ -15,21 +15,27 @@ const SOCIO_NOMES = new Set(torcedores.filter(t => t.socio === 'Sim').map(t => t
 const partidaById = Object.fromEntries(partidas.map(p => [p.id, p]));
 
 function CustomXTick({ x, y, payload }) {
-  const [timeName, rodada] = payload.value.split('|');
+  const [timeName, rodada, campeonatoName] = payload.value.split('|');
   const logoFile = LOGO_MAP[timeName];
+  const compLogo = campeonatoName ? COMP_LOGOS[campeonatoName] : null;
   const initials = timeName.split(' ').filter(w => w.length > 2).slice(0, 2).map(w => w[0]).join('').toUpperCase() || timeName.slice(0,2).toUpperCase();
   const bg = TEAM_COLORS[timeName] || '#888';
+  const TEAM_SIZE = 20;
+  const COMP_SIZE = 14;
 
   return (
     <g transform={`translate(${x},${y})`}>
       {logoFile ? (
-        <image href={`/logos/${logoFile}`} x={-10} y={4} width={20} height={20} style={{objectFit:'contain'}} />
+        <image href={`/logos/${logoFile}`} x={-TEAM_SIZE / 2} y={4} width={TEAM_SIZE} height={TEAM_SIZE} />
       ) : (
-        <foreignObject x={-10} y={4} width={20} height={20}>
-          <div style={{width:20,height:20,borderRadius:'50%',background:bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:7,fontWeight:800,color:'#fff'}}>{initials}</div>
+        <foreignObject x={-TEAM_SIZE / 2} y={4} width={TEAM_SIZE} height={TEAM_SIZE}>
+          <div style={{width:TEAM_SIZE,height:TEAM_SIZE,borderRadius:'50%',background:bg,display:'flex',alignItems:'center',justifyContent:'center',fontSize:7,fontWeight:800,color:'#fff'}}>{initials}</div>
         </foreignObject>
       )}
-      <text x={0} y={30} textAnchor="middle" fill={C.t3} fontSize={7}>{rodada}</text>
+      {compLogo && (
+        <image href={`/logos/${compLogo}`} x={-COMP_SIZE / 2} y={4 + TEAM_SIZE + 3} width={COMP_SIZE} height={COMP_SIZE} />
+      )}
+      <text x={0} y={4 + TEAM_SIZE + COMP_SIZE + 10} textAnchor="middle" fill={C.t3} fontSize={7}>{rodada}</text>
     </g>
   );
 }
@@ -270,7 +276,7 @@ export default function ChampionshipReport() {
       })
       .sort((a, b) => (a.data || '').split('/').reverse().join('-').localeCompare((b.data || '').split('/').reverse().join('-')))
       .map(p => ({
-        label: `${p.time}|${p.rodada}`,
+        label: `${p.time}|${p.rodada}|${p.campeonato || ''}`,
         socio: byPartida[p.id]?.socio || 0,
         naoSocio: byPartida[p.id]?.naoSocio || 0,
         ticketMedio: fatMap[p.id] ?? 0,
@@ -441,9 +447,9 @@ export default function ChampionshipReport() {
               </div>
             </div>
             <ResponsiveContainer width="100%" height={260}>
-              <ComposedChart data={comboSocioData} margin={{ top: 8, right: 60, bottom: 60, left: 10 }}>
+              <ComposedChart data={comboSocioData} margin={{ top: 8, right: 60, bottom: 70, left: 10 }}>
                 <CartesianGrid stroke={C.border} strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="label" tick={<CustomXTick />} axisLine={false} tickLine={false} height={50} interval={0} />
+                <XAxis dataKey="label" tick={<CustomXTick />} axisLine={false} tickLine={false} height={65} interval={0} />
                 <YAxis yAxisId="pub" orientation="left" tick={{ fill: C.t3, fontSize: 9 }} axisLine={false} tickLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
                 <YAxis yAxisId="tkt" orientation="right" tick={{ fill: C.t3, fontSize: 9 }} axisLine={false} tickLine={false} />
                 <RTooltip content={<DarkTooltip />} />
