@@ -628,6 +628,27 @@ for _, r in pl_base.iterrows():
         "total":                  sf(r["total"]),
     })
 
+# ── 10b. plDetalhe — expense breakdown by DESC_DESPESA per partida ───────────
+desp_detail = fDesp.merge(
+    dDescDesp[["ID_DESC_DESPESA", "DESC_DESPESA", "ID_CAT_FIN_2"]],
+    on="ID_DESC_DESPESA", how="left"
+)
+desp_detail = desp_detail.groupby(
+    ["ID_PARTIDA", "ID_CAT_FIN_2", "DESC_DESPESA"], as_index=False
+)["VALOR"].sum()
+
+plDetalhe = []
+for _, r in desp_detail.iterrows():
+    v = sf(r["VALOR"])
+    if v == 0:
+        continue
+    plDetalhe.append({
+        "idPartida":  str(r["ID_PARTIDA"]),
+        "catFin2":    str(r["ID_CAT_FIN_2"]) if pd.notna(r["ID_CAT_FIN_2"]) else "",
+        "desc":       str(r["DESC_DESPESA"]) if pd.notna(r["DESC_DESPESA"]) else "",
+        "valor":      v,
+    })
+
 # ── 11. Write JS file ────────────────────────────────────────────────────────
 def to_js(obj):
     """Convert to compact JS-compatible JSON (no trailing commas)."""
@@ -664,6 +685,7 @@ lines = [
     f"export const torcedorCols = {to_js(torcedorCols)};",
     f"export const allSetorNames = {to_js(all_setor_names)};",
     f"export const plPorPartida = {to_js(plPorPartida)};",
+    f"export const plDetalhe = {to_js(plDetalhe)};",
     "",
     "// Convenience: unique campeonato names",
     f"export const CAMPEONATOS = {to_js(sorted(set(p['campeonato'] for p in partidas if p['campeonato'])))};",

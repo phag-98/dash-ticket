@@ -5,7 +5,7 @@ import {
 } from 'recharts';
 import { C, FONT_UI, SHADOW, CAMP_COLORS } from '../tokens';
 import { COMP_LOGOS, LOGO_MAP } from '../teamLogos.jsx';
-import { plPorPartida, faturamentoPorPartida } from '../data/data';
+import { plPorPartida, faturamentoPorPartida, plDetalhe } from '../data/data';
 
 // ── Formatters ───────────────────────────────────────────────────────────────
 const fmtBR = (v) => {
@@ -100,25 +100,39 @@ const PL_ROWS = [
   { id: 'arenaKids',         label: 'arena kids',                type: 'item',  key: 'arenaKids',              cat: 'revenues' },
   { id: 'aeb',               label: 'a&b',                       type: 'item',  key: 'aeb',                    cat: 'revenues' },
   { id: 'opex',              label: 'operating expenses',        type: 'cat',   key: 'totalOperatingExpenses', cat: 'opex' },
-  { id: 'services',          label: 'services',                  type: 'item',  key: 'services',               cat: 'opex' },
-  { id: 'security',          label: 'security',                  type: 'item',  key: 'security',               cat: 'opex' },
-  { id: 'rentals',           label: 'rentals',                   type: 'item',  key: 'rentals',                cat: 'opex' },
-  { id: 'operatingExpenses', label: 'operating expenses',        type: 'item',  key: 'operatingExpenses',      cat: 'opex' },
-  { id: 'feesAndTaxes',      label: 'fees and taxes',            type: 'item',  key: 'feesAndTaxes',           cat: 'opex' },
+  { id: 'services',          label: 'services',                  type: 'item',  key: 'services',               cat: 'opex',         catFin2: 'ser-10' },
+  { id: 'security',          label: 'security',                  type: 'item',  key: 'security',               cat: 'opex',         catFin2: 'sec-9'  },
+  { id: 'rentals',           label: 'rentals',                   type: 'item',  key: 'rentals',                cat: 'opex',         catFin2: 'ren-11' },
+  { id: 'operatingExpenses', label: 'operating expenses',        type: 'item',  key: 'operatingExpenses',      cat: 'opex',         catFin2: 'ope-12' },
+  { id: 'feesAndTaxes',      label: 'fees and taxes',            type: 'item',  key: 'feesAndTaxes',           cat: 'opex',         catFin2: 'fee-13' },
   { id: 'facialRecognition', label: 'facial recognition system', type: 'item',  key: 'facialRecognition',      cat: 'opex' },
-  { id: 'entertainment',     label: 'entertainment',             type: 'item',  key: 'entertainment',          cat: 'opex' },
+  { id: 'entertainment',     label: 'entertainment',             type: 'item',  key: 'entertainment',          cat: 'opex',         catFin2: 'ent-14' },
   { id: 'margin',            label: 'margin',                    type: 'cat',   key: 'margin',                 cat: 'margin' },
   { id: 'marginItem',        label: 'margin',                    type: 'item',  key: 'margin',                 cat: 'margin' },
   { id: 'logistics',         label: 'logistics',                 type: 'cat',   key: 'totalLogistics',         cat: 'logistics' },
-  { id: 'accommodation',     label: 'accommodation',             type: 'item',  key: 'accommodation',          cat: 'logistics' },
+  { id: 'accommodation',     label: 'accommodation',             type: 'item',  key: 'accommodation',          cat: 'logistics',    catFin2: 'acc-21' },
   { id: 'federations',       label: 'federations',               type: 'cat',   key: 'totalFederations',       cat: 'federations' },
-  { id: 'taxes',             label: 'taxes',                     type: 'item',  key: 'taxes',                  cat: 'federations' },
-  { id: 'personnelExpenses', label: 'personnel expenses',        type: 'item',  key: 'personnelExpenses',      cat: 'federations' },
-  { id: 'meal',              label: 'meal',                      type: 'item',  key: 'meal',                   cat: 'federations' },
-  { id: 'arbitration',       label: 'arbitration',               type: 'item',  key: 'arbitration',            cat: 'federations' },
+  { id: 'taxes',             label: 'taxes',                     type: 'item',  key: 'taxes',                  cat: 'federations',  catFin2: 'tax-17' },
+  { id: 'personnelExpenses', label: 'personnel expenses',        type: 'item',  key: 'personnelExpenses',      cat: 'federations',  catFin2: 'per-19' },
+  { id: 'meal',              label: 'meal',                      type: 'item',  key: 'meal',                   cat: 'federations',  catFin2: 'mea-20' },
+  { id: 'arbitration',       label: 'arbitration',               type: 'item',  key: 'arbitration',            cat: 'federations',  catFin2: 'arb-18' },
   { id: 'total',             label: 'Total',                     type: 'total', key: 'total',                  cat: null },
 ];
 const COLLAPSIBLE = new Set(['revenues', 'opex', 'margin', 'logistics', 'federations']);
+
+// Pre-build detail lookup: catFin2 -> idPartida -> [{ desc, valor }]
+const DETAIL_MAP = {};
+plDetalhe.forEach(({ catFin2, idPartida, desc, valor }) => {
+  if (!DETAIL_MAP[catFin2]) DETAIL_MAP[catFin2] = {};
+  if (!DETAIL_MAP[catFin2][idPartida]) DETAIL_MAP[catFin2][idPartida] = {};
+  DETAIL_MAP[catFin2][idPartida][desc] = (DETAIL_MAP[catFin2][idPartida][desc] || 0) + valor;
+});
+// Unique desc labels per catFin2
+const DETAIL_DESCS = {};
+plDetalhe.forEach(({ catFin2, desc }) => {
+  if (!DETAIL_DESCS[catFin2]) DETAIL_DESCS[catFin2] = new Set();
+  DETAIL_DESCS[catFin2].add(desc);
+});
 
 // ── Static lists ─────────────────────────────────────────────────────────────
 const CAMP_NAMES = [...new Set(plPorPartida.map(d => d.campeonato).filter(Boolean))].sort();
@@ -132,12 +146,16 @@ const HEAD_H  = 26;
 
 // ── Component ────────────────────────────────────────────────────────────────
 export default function PL() {
-  const [campFilter, setCampFilter] = useState('ALL');
-  const [yearFilter, setYearFilter] = useState('ALL');
-  const [collapsed, setCollapsed]   = useState(new Set());
+  const [campFilter, setCampFilter]         = useState('ALL');
+  const [yearFilter, setYearFilter]         = useState('ALL');
+  const [collapsed, setCollapsed]           = useState(new Set());
+  const [detailExpanded, setDetailExpanded] = useState(new Set());
 
   const toggleCollapse = (id) =>
     setCollapsed(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+
+  const toggleDetail = (id) =>
+    setDetailExpanded(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
 
   // plPorPartida is already sorted by date from generate_data.py
   const filtered = useMemo(() => plPorPartida.filter(d =>
@@ -270,25 +288,36 @@ export default function PL() {
 
             {/* Body */}
             <tbody>
-              {visibleRows.map((row, i) => {
-                const isCat   = row.type === 'cat';
-                const isTotal = row.type === 'total';
-                const rowBg   = isTotal ? '#1a1a1a' : isCat ? '#2e2e2e' : i % 2 === 0 ? C.card : '#f9f9f9';
-                return (
+              {visibleRows.flatMap((row, i) => {
+                const isCat      = row.type === 'cat';
+                const isTotal    = row.type === 'total';
+                const hasDetail  = !!row.catFin2 && !!DETAIL_DESCS[row.catFin2];
+                const isExpanded = hasDetail && detailExpanded.has(row.id);
+                const rowBg      = isTotal ? '#1a1a1a' : isCat ? '#2e2e2e' : i % 2 === 0 ? C.card : '#f9f9f9';
+
+                const mainRow = (
                   <tr key={row.id} style={{ background: rowBg }}>
                     <td
-                      onClick={() => isCat && COLLAPSIBLE.has(row.id) && toggleCollapse(row.id)}
+                      onClick={() => {
+                        if (isCat && COLLAPSIBLE.has(row.id)) toggleCollapse(row.id);
+                        else if (hasDetail) toggleDetail(row.id);
+                      }}
                       style={{
                         ...tdLabel, background: rowBg,
                         fontWeight: (isCat || isTotal) ? 700 : 400,
                         color: isTotal ? '#fff' : isCat ? '#e0e0e0' : C.t1,
                         paddingLeft: isCat || isTotal ? 8 : 20,
-                        cursor: (isCat && COLLAPSIBLE.has(row.id)) ? 'pointer' : 'default',
+                        cursor: (isCat && COLLAPSIBLE.has(row.id)) || hasDetail ? 'pointer' : 'default',
                       }}
                     >
                       {isCat && COLLAPSIBLE.has(row.id) && (
                         <span style={{ marginRight: 5, fontSize: 9, color: '#999' }}>
                           {collapsed.has(row.id) ? '▶' : '▼'}
+                        </span>
+                      )}
+                      {hasDetail && (
+                        <span style={{ marginRight: 5, fontSize: 9, color: '#aaa' }}>
+                          {isExpanded ? '▾' : '▸'}
                         </span>
                       )}
                       {row.label}
@@ -308,6 +337,29 @@ export default function PL() {
                     })}
                   </tr>
                 );
+
+                if (!isExpanded) return [mainRow];
+
+                const descs = [...DETAIL_DESCS[row.catFin2]].sort();
+                const subRows = descs.map(desc => (
+                  <tr key={`${row.id}__${desc}`} style={{ background: '#fafafa' }}>
+                    <td style={{ ...tdLabel, paddingLeft: 32, color: C.t3, fontSize: 9, background: '#fafafa', fontStyle: 'italic' }}>
+                      {desc}
+                    </td>
+                    {filtered.map(d => {
+                      const v   = DETAIL_MAP[row.catFin2]?.[d.idPartida]?.[desc] ?? 0;
+                      const abs = Math.abs(v);
+                      const s   = abs.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                      return (
+                        <td key={d.idPartida} style={{ ...tdVal, background: '#fafafa', fontSize: 9, color: v < 0 ? '#c0392b' : v > 0 ? '#27ae60' : '#ccc' }}>
+                          {v === 0 ? <span style={{ color: '#ddd' }}>—</span> : (v < 0 ? `-${s}` : s)}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ));
+
+                return [mainRow, ...subRows];
               })}
             </tbody>
           </table>
