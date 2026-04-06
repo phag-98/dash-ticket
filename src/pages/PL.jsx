@@ -42,24 +42,37 @@ function FilterBtn({ label, active, onClick, color, logo }) {
   );
 }
 
-// ── Custom X-axis tick with team logo ────────────────────────────────────────
-function LogoTick({ x, y, payload }) {
-  const name = payload?.value;
-  const logo = LOGO_MAP[name];
-  const SIZE = 20;
-  if (logo) {
+// ── Custom X-axis tick with team logo + championship logo below ──────────────
+function makeLogoTick(chartData) {
+  return function LogoTick({ x, y, payload, index }) {
+    const name = payload?.value;
+    const logo = LOGO_MAP[name];
+    const campeonato = chartData[index]?.campeonato;
+    const compLogo = campeonato ? COMP_LOGOS[campeonato] : null;
+    const TEAM_SIZE = 20;
+    const COMP_SIZE = 14;
+    const GAP = 3;
+
     return (
       <g transform={`translate(${x},${y + 4})`}>
-        <image href={`/logos/${logo}`} x={-SIZE / 2} y={0} width={SIZE} height={SIZE} />
+        {logo
+          ? <image href={`/logos/${logo}`} x={-TEAM_SIZE / 2} y={0} width={TEAM_SIZE} height={TEAM_SIZE} />
+          : <text x={0} y={0} dy={12} textAnchor="middle" fill={C.t3} fontSize={8}>
+              {(name || '').split(' ').slice(-1)[0].slice(0, 6)}
+            </text>
+        }
+        {compLogo && (
+          <image
+            href={`/logos/${compLogo}`}
+            x={-COMP_SIZE / 2}
+            y={TEAM_SIZE + GAP}
+            width={COMP_SIZE}
+            height={COMP_SIZE}
+          />
+        )}
       </g>
     );
-  }
-  const short = (name || '').split(' ').slice(-1)[0].slice(0, 6);
-  return (
-    <g transform={`translate(${x},${y + 4})`}>
-      <text x={0} y={0} dy={12} textAnchor="middle" fill={C.t3} fontSize={8}>{short}</text>
-    </g>
-  );
+  };
 }
 
 // ── Custom chart tooltip ─────────────────────────────────────────────────────
@@ -140,9 +153,10 @@ export default function PL() {
 
   // Chart data — already ordered by date
   const chartData = useMemo(() => filtered.map(d => ({
-    name:     d.time,
-    revenues: d.totalRevenues,
-    costs:    Math.abs(d.totalOperatingExpenses + d.totalLogistics + d.totalFederations),
+    name:       d.time,
+    campeonato: d.campeonato,
+    revenues:   d.totalRevenues,
+    costs:      Math.abs(d.totalOperatingExpenses + d.totalLogistics + d.totalFederations),
   })), [filtered]);
 
   // Visible table rows
@@ -205,13 +219,13 @@ export default function PL() {
           ))}
         </div>
         <ResponsiveContainer width="100%" height={260}>
-          <LineChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 36 }}>
+          <LineChart data={chartData} margin={{ top: 4, right: 16, left: 0, bottom: 54 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={C.border} />
             <XAxis
               dataKey="name"
-              tick={<LogoTick />}
+              tick={makeLogoTick(chartData)}
               interval={0}
-              height={36}
+              height={54}
             />
             <YAxis tick={{ fontSize: 9, fill: C.t3 }} tickFormatter={fmtAxis} width={52} />
             <RTooltip content={<ChartTip />} />
