@@ -16,7 +16,7 @@ export default function KPICard({ icon: Icon, label, real, budget, ly, type = 'b
   const isNeutral = Math.abs(d) < 0.5;
 
   const color = isNeutral ? C.t2 : isPos ? C.green : C.red;
-  const bg    = isNeutral ? C.surfaceContainerHigh : isPos ? C.greenBg : C.redBg;
+  const bg    = isNeutral ? C.surfaceContainer : isPos ? C.greenBg : C.redBg;
   const Icon2 = isNeutral ? Minus : isPos ? TrendingUp : TrendingDown;
 
   return (
@@ -28,13 +28,12 @@ export default function KPICard({ icon: Icon, label, real, budget, ly, type = 'b
       padding: '20px 22px',
       display: 'flex', flexDirection: 'column', gap: 12,
       flex: 1, minWidth: 200,
-      transition: 'border-color 0.2s',
     }}>
-      {/* Icon + trend badge */}
+      {/* Icon + trend */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{
           width: 40, height: 40, borderRadius: 10,
-          background: iconBg || 'rgba(255,255,255,0.06)',
+          background: iconBg || C.surfaceContainer,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
           <Icon size={18} color={C.primaryContainer} />
@@ -54,8 +53,7 @@ export default function KPICard({ icon: Icon, label, real, budget, ly, type = 'b
       <div>
         <div style={{
           fontFamily: FONT_UI, fontSize: 10, fontWeight: 600,
-          color: 'rgba(255,255,255,0.3)',
-          textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4,
+          color: C.t3, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4,
         }}>
           {label}
         </div>
@@ -68,23 +66,15 @@ export default function KPICard({ icon: Icon, label, real, budget, ly, type = 'b
         </div>
       </div>
 
-      {/* Budget / LY — spacing instead of border */}
+      {/* Budget / LY */}
       <div style={{ display: 'flex', gap: 20, paddingTop: 4 }}>
         <div>
-          <div style={{ fontFamily: FONT_UI, fontSize: 9, color: C.t3, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-            Budget
-          </div>
-          <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 600, color: C.t2, fontVariantNumeric: 'tabular-nums' }}>
-            {fmt(budget, type)}
-          </div>
+          <div style={{ fontFamily: FONT_UI, fontSize: 9, color: C.t3, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px' }}>Budget</div>
+          <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 600, color: C.t2, fontVariantNumeric: 'tabular-nums' }}>{fmt(budget, type)}</div>
         </div>
         <div>
-          <div style={{ fontFamily: FONT_UI, fontSize: 9, color: C.t3, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-            LY
-          </div>
-          <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 600, color: C.t2, fontVariantNumeric: 'tabular-nums' }}>
-            {fmt(ly, type)}
-          </div>
+          <div style={{ fontFamily: FONT_UI, fontSize: 9, color: C.t3, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px' }}>LY</div>
+          <div style={{ fontFamily: FONT_UI, fontSize: 12, fontWeight: 600, color: C.t2, fontVariantNumeric: 'tabular-nums' }}>{fmt(ly, type)}</div>
         </div>
       </div>
     </div>

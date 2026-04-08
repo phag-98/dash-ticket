@@ -359,8 +359,8 @@ export default function ChampionshipReport() {
                   const isTop = i === 0;
                   const isSelected = selectedPartida === p.idPartida;
                   const rowBg = isSelected
-                    ? `${C.accent}22`
-                    : i % 2 !== 0 ? '#161616' : '#0F0F0F';
+                    ? `${C.accent}18`
+                    : i % 2 !== 0 ? '#F8FAFC' : '#ffffff';
                   return (
                     <tr
                       key={p.idPartida}
@@ -430,7 +430,7 @@ export default function ChampionshipReport() {
                     Sócio
                   </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: C.t2 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: 2, background: 'rgba(255,255,255,0.3)', display: 'inline-block' }} />
+                    <span style={{ width: 8, height: 8, borderRadius: 2, background: '#64748b', display: 'inline-block' }} />
                     Não Sócio
                   </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: C.t2 }}>
@@ -448,7 +448,7 @@ export default function ChampionshipReport() {
                 <YAxis yAxisId="tkt" orientation="right" tick={{ fill: C.t3, fontSize: 9 }} axisLine={false} tickLine={false} />
                 <RTooltip content={<DarkTooltip />} />
                 <Bar yAxisId="pub" dataKey="socio" name="Sócio" stackId="pub" fill={C.accent} barSize={14} />
-                <Bar yAxisId="pub" dataKey="naoSocio" name="Não Sócio" stackId="pub" fill="rgba(255,255,255,0.3)" barSize={14} radius={[3, 3, 0, 0]} />
+                <Bar yAxisId="pub" dataKey="naoSocio" name="Não Sócio" stackId="pub" fill="#64748b" barSize={14} radius={[3, 3, 0, 0]} />
                 <Line yAxisId="tkt" type="monotone" dataKey="ticketMedio" name="Ticket Médio" stroke={C.accentDim} strokeWidth={2} dot={false} strokeDasharray="4 2" />
               </ComposedChart>
             </ResponsiveContainer>
@@ -470,7 +470,7 @@ export default function ChampionshipReport() {
                         Sócio {total > 0 ? `· ${((totalSocio / total) * 100).toFixed(0)}%` : ''}
                       </span>
                       <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 9, color: C.t2 }}>
-                        <span style={{ width: 10, height: 10, borderRadius: 2, background: 'rgba(255,255,255,0.3)', display: 'inline-block' }} />
+                        <span style={{ width: 10, height: 10, borderRadius: 2, background: '#64748b', display: 'inline-block' }} />
                         Não Sócio {total > 0 ? `· ${((totalNao / total) * 100).toFixed(0)}%` : ''}
                       </span>
                     </>
@@ -490,14 +490,14 @@ export default function ChampionshipReport() {
                   return (
                     <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', fontSize: 11, boxShadow: SHADOW.md }}>
                       <p style={{ fontWeight: 700, color: C.t1, marginBottom: 3 }}>{d.torcedor}</p>
-                      <p style={{ color: isSocio ? C.accent : 'rgba(255,255,255,0.3)', fontSize: 10, marginBottom: 2 }}>{isSocio ? 'Sócio' : 'Não Sócio'}</p>
+                      <p style={{ color: isSocio ? C.accent : '#64748b', fontSize: 10, marginBottom: 2 }}>{isSocio ? 'Sócio' : 'Não Sócio'}</p>
                       <p style={{ color: C.t2 }}>Público: <strong>{d.publico.toLocaleString('pt-BR')}</strong></p>
                     </div>
                   );
                 }} />
                 <Bar dataKey="publico" name="Público" radius={[3, 3, 0, 0]} barSize={26}>
                   {sortedPublicoPorTorcedor.map((d, i) => (
-                    <Cell key={i} fill={SOCIO_NOMES.has(d.torcedor) ? C.accent : 'rgba(255,255,255,0.3)'} />
+                    <Cell key={i} fill={SOCIO_NOMES.has(d.torcedor) ? C.accent : '#64748b'} />
                   ))}
                   <LabelList dataKey="publico" position="top" formatter={fmtK} style={{ fontSize: 8, fill: C.t2, fontWeight: 600 }} />
                 </Bar>

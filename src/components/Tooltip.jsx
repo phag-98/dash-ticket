@@ -13,8 +13,8 @@ export function ChartTooltip({ active, payload, label, formatter }) {
   if (!active || !payload?.length) return null;
   return (
     <div style={{
-      background: C.surfaceContainer,
-      border: `1px solid rgba(255,255,255,0.1)`,
+      background: C.surfaceContainerLowest,
+      border: `1px solid ${C.border}`,
       borderRadius: 12,
       padding: '10px 14px',
       fontSize: 11,

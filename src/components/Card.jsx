@@ -9,7 +9,6 @@ export default function Card({ title, subtitle, children, style, noPad }) {
       boxShadow: SHADOW.card,
       padding: noPad ? 0 : '20px 24px',
       overflow: 'hidden',
-      transition: 'border-color 0.2s',
       ...style,
     }}>
       {(title || subtitle) && (
@@ -18,7 +17,7 @@ export default function Card({ title, subtitle, children, style, noPad }) {
             <div style={{
               fontFamily: FONT_DISPLAY,
               fontSize: 11, fontWeight: 700,
-              color: C.onSurfaceVariant,
+              color: C.t2,
               textTransform: 'uppercase', letterSpacing: '1px',
             }}>{title}</div>
           )}

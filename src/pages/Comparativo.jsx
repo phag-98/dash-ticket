@@ -159,7 +159,7 @@ export default function Comparativo() {
               <XAxis type="number" tick={{ fill: C.t3, fontSize: 8 }} axisLine={false} tickLine={false} tickFormatter={fmtM} />
               <YAxis type="category" dataKey="campeonato" tick={<CompYTick />} axisLine={false} tickLine={false} width={110} />
               <RTooltip content={<DarkTooltip />} />
-              <Bar dataKey="2024" name="2024" fill="rgba(255,255,255,0.3)" radius={[0, 3, 3, 0]} barSize={9}>
+              <Bar dataKey="2024" name="2024" fill="#94a3b8" radius={[0, 3, 3, 0]} barSize={9}>
                 <LabelList dataKey="2024" position="right" formatter={fmtM} style={{ fontSize: 7, fill: C.t3 }} />
               </Bar>
               <Bar dataKey="2025" name="2025" fill={C.accent} radius={[0, 3, 3, 0]} barSize={9}>
@@ -177,7 +177,7 @@ export default function Comparativo() {
               <XAxis dataKey="campeonato" tick={<CompXTick />} axisLine={false} tickLine={false} height={36} interval={0} />
               <YAxis tick={{ fill: C.t3, fontSize: 8 }} axisLine={false} tickLine={false} tickFormatter={fmtM} />
               <RTooltip content={<DarkTooltip />} />
-              <Bar dataKey="2024" name="2024" fill="rgba(255,255,255,0.3)" barSize={14} radius={[3, 3, 0, 0]}>
+              <Bar dataKey="2024" name="2024" fill="#94a3b8" barSize={14} radius={[3, 3, 0, 0]}>
                 <LabelList dataKey="2024" position="top" formatter={fmtM} style={{ fontSize: 7, fill: C.t3 }} />
               </Bar>
               <Bar dataKey="2025" name="2025" fill={C.accent} barSize={14} radius={[3, 3, 0, 0]}>
@@ -197,7 +197,7 @@ export default function Comparativo() {
               <RTooltip content={<DarkTooltip />} />
               <Bar dataKey="valor" name="Faturamento" radius={[4, 4, 0, 0]} barSize={60}>
                 <LabelList dataKey="valor" position="top" formatter={fmtM} style={{ fontSize: 9, fontWeight: 700, fill: C.t1 }} />
-                <Cell fill="rgba(255,255,255,0.25)" />
+                <Cell fill="#94a3b8" />
                 <Cell fill={C.accent} />
               </Bar>
             </BarChart>
@@ -212,7 +212,7 @@ export default function Comparativo() {
               <XAxis dataKey="campeonato" tick={<CompXTick />} axisLine={false} tickLine={false} height={36} interval={0} />
               <YAxis tick={{ fill: C.t3, fontSize: 8 }} axisLine={false} tickLine={false} />
               <RTooltip content={<DarkTooltip />} />
-              <Bar dataKey="2024" name="2024" fill="rgba(255,255,255,0.3)" barSize={14} radius={[3, 3, 0, 0]}>
+              <Bar dataKey="2024" name="2024" fill="#94a3b8" barSize={14} radius={[3, 3, 0, 0]}>
                 <LabelList dataKey="2024" position="top" style={{ fontSize: 7, fill: C.t3 }} />
               </Bar>
               <Bar dataKey="2025" name="2025" fill={C.accent} barSize={14} radius={[3, 3, 0, 0]}>
@@ -230,7 +230,7 @@ export default function Comparativo() {
               <XAxis dataKey="campeonato" tick={<CompXTick />} axisLine={false} tickLine={false} height={36} interval={0} />
               <YAxis tick={{ fill: C.t3, fontSize: 8 }} axisLine={false} tickLine={false} tickFormatter={fmtK} />
               <RTooltip content={<DarkTooltip />} />
-              <Bar dataKey="2024" name="2024" fill="rgba(255,255,255,0.3)" barSize={14} radius={[3, 3, 0, 0]}>
+              <Bar dataKey="2024" name="2024" fill="#94a3b8" barSize={14} radius={[3, 3, 0, 0]}>
                 <LabelList dataKey="2024" position="top" formatter={fmtK} style={{ fontSize: 7, fill: C.t3 }} />
               </Bar>
               <Bar dataKey="2025" name="2025" fill={C.accent} barSize={14} radius={[3, 3, 0, 0]}>
@@ -247,7 +247,7 @@ export default function Comparativo() {
             <thead>
               <tr style={{ background: C.bgAlt }}>
                 <th style={{ padding: '6px 12px', textAlign: 'left', fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase' }}>Campeonato</th>
-                <th style={{ padding: '6px 8px', textAlign: 'center', fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.3)' }}>2024</th>
+                <th style={{ padding: '6px 8px', textAlign: 'center', fontSize: 9, fontWeight: 700, color: '#94a3b8' }}>2024</th>
                 <th style={{ padding: '6px 8px', textAlign: 'center', fontSize: 9, fontWeight: 700, color: C.accent }}>2025</th>
                 <th style={{ padding: '6px 8px', textAlign: 'center', fontSize: 9, fontWeight: 700, color: C.t2 }}>Total</th>
               </tr>
@@ -264,14 +264,14 @@ export default function Comparativo() {
                       {r.campeonato}
                     </span>
                   </td>
-                  <td style={{ padding: '6px 8px', textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>{r['2024'] || '—'}</td>
+                  <td style={{ padding: '6px 8px', textAlign: 'center', color: '#64748b', fontWeight: 600 }}>{r['2024'] || '—'}</td>
                   <td style={{ padding: '6px 8px', textAlign: 'center', color: C.accent, fontWeight: 600 }}>{r['2025'] || '—'}</td>
                   <td style={{ padding: '6px 8px', textAlign: 'center', color: C.t1, fontWeight: 700 }}>{r.total}</td>
                 </tr>
               ))}
               <tr style={{ borderTop: `2px solid ${C.border}`, background: C.bgAlt }}>
                 <td style={{ padding: '6px 12px', fontWeight: 700, color: C.t1, fontSize: 10 }}>Total</td>
-                <td style={{ padding: '6px 8px', textAlign: 'center', color: 'rgba(255,255,255,0.4)', fontWeight: 700 }}>{totalJogos['2024']}</td>
+                <td style={{ padding: '6px 8px', textAlign: 'center', color: '#64748b', fontWeight: 700 }}>{totalJogos['2024']}</td>
                 <td style={{ padding: '6px 8px', textAlign: 'center', color: C.accent, fontWeight: 700 }}>{totalJogos['2025']}</td>
                 <td style={{ padding: '6px 8px', textAlign: 'center', color: C.t1, fontWeight: 800 }}>{totalJogos.total}</td>
               </tr>
