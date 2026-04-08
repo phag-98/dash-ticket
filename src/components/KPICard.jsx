@@ -22,23 +22,22 @@ export default function KPICard({ icon: Icon, label, real, budget, ly, type = 'b
   return (
     <div style={{
       background: C.surfaceContainerLowest,
-      borderRadius: 12,
+      border: `1px solid ${C.border}`,
+      borderRadius: 24,
       boxShadow: SHADOW.card,
       padding: '20px 22px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 12,
-      flex: 1,
-      minWidth: 200,
+      display: 'flex', flexDirection: 'column', gap: 12,
+      flex: 1, minWidth: 200,
+      transition: 'border-color 0.2s',
     }}>
       {/* Icon + trend badge */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div style={{
-          width: 40, height: 40, borderRadius: 8,
-          background: iconBg || C.primaryFixed,
+          width: 40, height: 40, borderRadius: 10,
+          background: iconBg || 'rgba(255,255,255,0.06)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
         }}>
-          <Icon size={18} color={C.primary} />
+          <Icon size={18} color={C.primaryContainer} />
         </div>
         <div style={{
           display: 'flex', alignItems: 'center', gap: 4,
@@ -51,28 +50,25 @@ export default function KPICard({ icon: Icon, label, real, budget, ly, type = 'b
         </div>
       </div>
 
-      {/* Label + metric (editorial scale) */}
+      {/* Label + metric */}
       <div>
         <div style={{
-          fontFamily: FONT_UI,
-          fontSize: 10, fontWeight: 600,
-          color: C.secondary,
-          textTransform: 'uppercase', letterSpacing: '1px',
-          marginBottom: 4,
+          fontFamily: FONT_UI, fontSize: 10, fontWeight: 600,
+          color: 'rgba(255,255,255,0.3)',
+          textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 4,
         }}>
           {label}
         </div>
         <div style={{
-          fontFamily: FONT_DISPLAY,
-          fontSize: 30, fontWeight: 700,
+          fontFamily: FONT_DISPLAY, fontSize: 30, fontWeight: 700,
           color: C.onSurface, letterSpacing: '-0.5px',
-          fontVariantNumeric: 'tabular-nums',
+          fontVariantNumeric: 'tabular-nums', fontStyle: 'italic',
         }}>
           {fmt(real, type)}
         </div>
       </div>
 
-      {/* Budget / LY — separated by spacing, not a line */}
+      {/* Budget / LY — spacing instead of border */}
       <div style={{ display: 'flex', gap: 20, paddingTop: 4 }}>
         <div>
           <div style={{ fontFamily: FONT_UI, fontSize: 9, color: C.t3, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px' }}>

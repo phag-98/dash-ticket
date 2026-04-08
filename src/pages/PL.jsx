@@ -66,7 +66,7 @@ function LogoTick({ x, y, payload }) {
 function ChartTip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background: '#fff', border: `1px solid ${C.border}`, borderRadius: 6, padding: '8px 12px', fontSize: 10, fontFamily: FONT_UI }}>
+    <div style={{ background: C.surfaceContainer, border: `1px solid rgba(255,255,255,0.1)`, borderRadius: 6, padding: '8px 12px', fontSize: 10, fontFamily: FONT_UI }}>
       <div style={{ fontWeight: 700, marginBottom: 4, color: C.t1 }}>{label}</div>
       {payload.map(p => (
         <div key={p.dataKey} style={{ color: p.stroke, marginBottom: 2 }}>
@@ -259,7 +259,7 @@ export default function PL() {
               {visibleRows.map((row, i) => {
                 const isCat   = row.type === 'cat';
                 const isTotal = row.type === 'total';
-                const rowBg   = isTotal ? '#1a1a1a' : isCat ? '#2e2e2e' : i % 2 === 0 ? C.card : '#f9f9f9';
+                const rowBg   = isTotal ? '#111111' : isCat ? '#1c1c1c' : i % 2 === 0 ? C.card : '#161616';
                 return (
                   <tr key={row.id} style={{ background: rowBg }}>
                     <td
@@ -312,13 +312,13 @@ const thLabel = {
 };
 const thVal = {
   padding: '4px 6px', textAlign: 'center', fontWeight: 500,
-  borderRight: '1px solid #444', borderBottom: '1px solid #444',
+  borderRight: '1px solid rgba(255,255,255,0.08)', borderBottom: '1px solid rgba(255,255,255,0.08)',
   width: COL_W, minWidth: COL_W, height: HEAD_H, whiteSpace: 'nowrap',
   overflow: 'hidden', textOverflow: 'ellipsis',
 };
 const tdLabel = {
   padding: '3px 8px', fontSize: 10, whiteSpace: 'nowrap',
-  borderBottom: `1px solid ${C.border}`, borderRight: '1px solid #ddd',
+  borderBottom: `1px solid ${C.border}`, borderRight: `1px solid ${C.border}`,
   width: LABEL_W, minWidth: LABEL_W, overflow: 'hidden', textOverflow: 'ellipsis', height: 22,
 };
 const tdVal = {

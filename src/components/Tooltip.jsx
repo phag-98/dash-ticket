@@ -13,9 +13,9 @@ export function ChartTooltip({ active, payload, label, formatter }) {
   if (!active || !payload?.length) return null;
   return (
     <div style={{
-      background: C.surfaceContainerLowest,
-      border: `1px solid rgba(208,197,178,0.15)`,
-      borderRadius: 10,
+      background: C.surfaceContainer,
+      border: `1px solid rgba(255,255,255,0.1)`,
+      borderRadius: 12,
       padding: '10px 14px',
       fontSize: 11,
       boxShadow: SHADOW.md,

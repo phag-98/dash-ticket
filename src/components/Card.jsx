@@ -1,13 +1,15 @@
-import { C, SHADOW, FONT_DISPLAY } from '../tokens';
+import { C, SHADOW, FONT_DISPLAY, FONT_UI } from '../tokens';
 
 export default function Card({ title, subtitle, children, style, noPad }) {
   return (
     <div style={{
       background: C.surfaceContainerLowest,
-      borderRadius: 12,
+      border: `1px solid ${C.border}`,
+      borderRadius: 24,
       boxShadow: SHADOW.card,
       padding: noPad ? 0 : '20px 24px',
       overflow: 'hidden',
+      transition: 'border-color 0.2s',
       ...style,
     }}>
       {(title || subtitle) && (
@@ -15,15 +17,13 @@ export default function Card({ title, subtitle, children, style, noPad }) {
           {title && (
             <div style={{
               fontFamily: FONT_DISPLAY,
-              fontSize: 11,
-              fontWeight: 700,
+              fontSize: 11, fontWeight: 700,
               color: C.onSurfaceVariant,
-              textTransform: 'uppercase',
-              letterSpacing: '1px',
+              textTransform: 'uppercase', letterSpacing: '1px',
             }}>{title}</div>
           )}
           {subtitle && (
-            <div style={{ fontSize: 11, color: C.t3, marginTop: 3 }}>{subtitle}</div>
+            <div style={{ fontFamily: FONT_UI, fontSize: 11, color: C.t3, marginTop: 3 }}>{subtitle}</div>
           )}
         </div>
       )}

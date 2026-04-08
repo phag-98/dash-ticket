@@ -10,22 +10,23 @@
     <style>
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
       html, body, #root { height: 100%; }
-      body { background: #fcf9f8; font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif; }
+      body { background: #050505; font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif; color: #ffffff; }
       button { font-family: inherit; }
       select {
         font-family: inherit;
-        background: #f6f3f2;
-        color: #1c1b1b;
-        border: none;
-        border-radius: 6px;
+        background: #141414;
+        color: #ffffff;
+        border: 1px solid rgba(255,255,255,0.08);
+        border-radius: 8px;
         padding: 4px 8px;
         outline: none;
       }
-      select:focus { box-shadow: 0 0 0 2px #c5a14d; }
+      select:focus { border-color: #C5A059; }
+      select option { background: #141414; color: #ffffff; }
       ::-webkit-scrollbar { width: 6px; height: 6px; }
-      ::-webkit-scrollbar-track { background: #f6f3f2; }
-      ::-webkit-scrollbar-thumb { background: #c5a14d; border-radius: 3px; }
-      ::-webkit-scrollbar-thumb:hover { background: #775a08; }
+      ::-webkit-scrollbar-track { background: #0A0A0A; }
+      ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+      ::-webkit-scrollbar-thumb:hover { background: #C5A059; }
     </style>
   </head>
   <body>

@@ -1,77 +1,80 @@
 // ═══════════════════════════════════════
 // DESIGN TOKENS — The Prestige Athletic Standard
-// "The Elite Performance Journal"
-// Monolithic Authority × Gilded Precision
+// Dark Theme: Monolithic Authority × Gilded Precision
 // ═══════════════════════════════════════
 
 export const C = {
-  // ── Surface Hierarchy (no borders — use tonal shifts) ──
-  surface:                 '#fcf9f8',   // Level 0 — Base page background
-  surfaceContainerLow:     '#f6f3f2',   // Level 1 — Sections / page regions
-  surfaceContainerLowest:  '#ffffff',   // Level 2 — Cards / data containers
-  surfaceContainer:        '#ede9e7',   // Mid-level containers
-  surfaceContainerHigh:    '#e7e3e1',   // Secondary button backgrounds
-  surfaceContainerHighest: '#e1dddb',   // Unselected chips
-  surfaceVariant:          '#eae5e3',   // Hover backgrounds for tertiary elements
-  inverseSurface:          '#313030',   // Header, overlays, dark elements
+  // ── Surfaces (dark, layered) ──
+  surface:                 '#050505',   // Base page background
+  surfaceContainerLow:     '#0A0A0A',   // Sidebar
+  surfaceContainerLowest:  '#0F0F0F',   // Cards
+  surfaceContainer:        '#141414',   // Mid-level containers
+  surfaceContainerHigh:    '#1A1A1A',   // Secondary button backgrounds
+  surfaceContainerHighest: '#222222',   // Unselected chips
+  surfaceVariant:          '#ffffff0d', // Hover backgrounds (white/5)
+  inverseSurface:          '#F5F2EF',   // Light element on dark
 
   // ── On-Surface Text ──
-  onSurface:        '#1c1b1b',   // Primary text
-  onSurfaceVariant: '#4f4b47',   // Secondary text / labels
+  onSurface:        '#ffffff',             // Primary text
+  onSurfaceVariant: 'rgba(255,255,255,0.55)', // Secondary text
 
   // ── Primary — Gilded Gold ──
-  primary:          '#775a08',
-  primaryContainer: '#c5a14d',
-  onPrimary:        '#ffffff',
-  primaryFixed:     '#ffdf9b',   // Selected chip backgrounds
-  onPrimaryFixed:   '#251a00',   // Text on selected chips
-  primaryGradient:  'linear-gradient(135deg, #775a08, #c5a14d)',
+  primary:          '#8E6D2F',
+  primaryContainer: '#C5A059',
+  onPrimary:        '#000000',
+  primaryFixed:     '#C5A059',            // Active chip / icon bg
+  onPrimaryFixed:   '#000000',
+  primaryGradient:  'linear-gradient(135deg, #C5A059 0%, #8E6D2F 100%)',
 
-  // ── Secondary — Technical Grayscale ──
-  secondary:        '#5e5e5e',
-  outlineVariant:   '#d0c5b2',   // Ghost borders at 15% opacity only
+  // ── Secondary / Neutral ──
+  secondary:        'rgba(255,255,255,0.35)',
+  outlineVariant:   'rgba(255,255,255,0.08)',
 
-  // ── Legacy aliases (pages reference these) ──
-  bg:        '#fcf9f8',
-  bgAlt:     '#f6f3f2',
-  card:      '#ffffff',
-  cardHover: '#f6f3f2',
-  border:    'rgba(208,197,178,0.15)',  // Ghost border — felt, not seen
-  borderMid: '#d0c5b2',
-  header:    '#313030',
-  accent:    '#c5a14d',
-  accentDim: '#775a08',
-  accentBg:  'rgba(119,90,8,0.08)',
+  // ── Legacy aliases (pages reference these directly) ──
+  bg:        '#050505',
+  bgAlt:     '#0A0A0A',
+  card:      '#0F0F0F',
+  cardHover: '#141414',
+  border:    'rgba(255,255,255,0.06)',
+  borderMid: 'rgba(255,255,255,0.12)',
+  header:    '#0A0A0A',
+  accent:    '#C5A059',
+  accentDim: '#8E6D2F',
+  accentBg:  'rgba(197,160,89,0.12)',
 
   // ── Text aliases ──
-  t1: '#1c1b1b',   // Primary — near black
-  t2: '#4f4b47',   // Secondary — warm gray
-  t3: '#5e5e5e',   // Tertiary — muted
+  t1: '#ffffff',
+  t2: 'rgba(255,255,255,0.55)',
+  t3: 'rgba(255,255,255,0.3)',
 
   // ── Campeonatos ──
-  bra: '#7db87d',   // Brasileirão — verde médio
-  car: '#c97b7b',   // Carioca — vermelho médio
-  cob: '#7da8c9',   // Copa do Brasil — azul médio
-  lib: '#9e8fba',   // Libertadores — roxo médio
-  rec: '#c9a07a',   // Recopa — laranja médio
+  bra: '#86efac',   // Brasileirão — verde
+  car: '#fca5a5',   // Carioca — vermelho
+  cob: '#93c5fd',   // Copa do Brasil — azul
+  lib: '#c4b5fd',   // Libertadores — roxo
+  rec: '#fdba74',   // Recopa — laranja
 
   // ── Setores ──
-  lesteInf:   '#c5a14d',   // Leste Inferior — dourado
-  lesteSup:   '#8a9aa8',   // Leste Superior — cinza azulado
-  maracana:   '#5b9eac',   // Maracanã Mais — teal suave
-  norte:      '#7ab0c4',   // Norte — azul claro
-  oesteInf:   '#555555',   // Oeste Inferior — cinza escuro
-  oesteSup:   '#9a9a9a',   // Oeste Superior — cinza médio
-  sul:        '#4a5f8a',   // Sul — azul escuro suave
-  ticketLine: '#c5a14d',   // Linha Ticket Médio — dourado
+  lesteInf:   '#C5A059',
+  lesteSup:   '#94a3b8',
+  maracana:   '#67e8f9',
+  norte:      '#7dd3fc',
+  oesteInf:   '#9ca3af',
+  oesteSup:   '#6b7280',
+  sul:        '#818cf8',
+  ticketLine: '#C5A059',
+
+  // ── Data series: year comparison ──
+  year2024: '#7c7c94',   // Muted purple-gray (2024 bars)
+  year2025: '#C5A059',   // Gold (2025 bars = current)
 
   // ── Semântico ──
-  green:   '#2d7d32',
-  greenBg: 'rgba(45,125,50,0.08)',
-  red:     '#c0392b',
-  redBg:   'rgba(192,57,43,0.08)',
-  amber:   '#c5a14d',
-  amberBg: 'rgba(197,161,77,0.08)',
+  green:   '#4ade80',
+  greenBg: 'rgba(74,222,128,0.1)',
+  red:     '#f87171',
+  redBg:   'rgba(248,113,113,0.1)',
+  amber:   '#C5A059',
+  amberBg: 'rgba(197,160,89,0.1)',
 };
 
 // Typography — Space Grotesk (editorial) × Inter (technical)
@@ -79,12 +82,12 @@ export const FONT_DISPLAY = "'Space Grotesk', 'Inter', sans-serif";
 export const FONT_UI      = "'Inter', 'Segoe UI', -apple-system, sans-serif";
 export const FONT         = "'Space Grotesk', 'Georgia', serif"; // legacy alias
 
-// Elevation — Ambient only (no dirty black shadows)
+// Elevation — Ambient (dark-tinted, no pure black)
 export const SHADOW = {
-  card:    '0 2px 24px rgba(28,27,27,0.05)',
-  md:      '0 4px 32px rgba(28,27,27,0.06)',
-  lg:      '0 8px 40px rgba(28,27,27,0.06)',
-  ambient: '0 4px 24px rgba(28,27,27,0.04)',
+  card:    '0 2px 24px rgba(0,0,0,0.4)',
+  md:      '0 4px 32px rgba(0,0,0,0.5)',
+  lg:      '0 8px 40px rgba(0,0,0,0.6)',
+  ambient: '0 4px 24px rgba(0,0,0,0.35)',
 };
 
 export const SETOR_COLORS = {
