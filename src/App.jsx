@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { C, FONT, FONT_UI } from './tokens';
+import { C, FONT_UI, FONT_DISPLAY } from './tokens';
 import ChampionshipReport from './pages/ChampionshipReport';
 import Comparativo        from './pages/Comparativo';
 import Setores            from './pages/Setores';
@@ -22,17 +22,16 @@ export default function App() {
   const [tab, setTab] = useState('championship');
 
   return (
-    <div style={{ minHeight:'100vh', background:C.bg, fontFamily:FONT_UI, color:C.t1 }}>
+    <div style={{ minHeight: '100vh', background: C.surface, fontFamily: FONT_UI, color: C.onSurface }}>
 
-      {/* ── Header (2 rows, sticky) ── */}
-      <header style={{ position:'sticky', top:0, zIndex:100 }}>
+      {/* ── Header (sticky, 2 rows) ── */}
+      <header style={{ position: 'sticky', top: 0, zIndex: 100 }}>
 
-        {/* Row 1 — Branding strip with stars */}
+        {/* Row 1 — Branding strip */}
         <div style={{
-          background:'#111111',
-          borderBottom:'1px solid #2a2a2a',
-          display:'flex', alignItems:'center', justifyContent:'center',
-          height:30, position:'relative', overflow:'hidden',
+          background: C.inverseSurface,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          height: 30, position: 'relative', overflow: 'hidden',
         }}>
           {/* Scattered stars */}
           {[
@@ -41,34 +40,45 @@ export default function App() {
             [64,8],[68,45],[72,82],[76,30],[80,68],[84,18],[88,52],[92,85],[96,42],
           ].map(([x, y], i) => {
             const size = [3,4,5,3,4,3,5,4,3,4,5,3,4,3,5,4,3,4,5,3,4,3,5,4,3][i];
-            const op   = [0.5,0.7,0.4,0.8,0.5,0.6,0.9,0.4,0.7,0.5,0.6,0.8,0.4,0.7,0.5,0.6,0.9,0.4,0.7,0.5,0.6,0.8,0.4,0.7,0.6][i];
+            const op   = [0.3,0.5,0.25,0.6,0.35,0.4,0.65,0.3,0.5,0.35,0.45,0.6,0.3,0.5,0.35,0.45,0.65,0.3,0.5,0.35,0.4,0.6,0.3,0.5,0.4][i];
             return (
               <svg key={i} width={size} height={size} viewBox="0 0 24 24"
-                style={{ position:'absolute', left:`${x}%`, top:`${y}%`, transform:'translate(-50%,-50%)', opacity:op }}>
-                <polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9" fill="#ffffff"/>
+                style={{ position: 'absolute', left: `${x}%`, top: `${y}%`, transform: 'translate(-50%,-50%)', opacity: op }}>
+                <polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9" fill={C.primaryContainer} />
               </svg>
             );
           })}
-          {/* Text centered */}
-          <span style={{ fontSize:9, color:'#888', letterSpacing:'3px', textTransform:'uppercase', position:'relative', zIndex:1 }}>
+          <span style={{
+            fontFamily: FONT_DISPLAY,
+            fontSize: 9, color: C.outlineVariant,
+            letterSpacing: '3px', textTransform: 'uppercase',
+            position: 'relative', zIndex: 1,
+          }}>
             SAF &nbsp;·&nbsp; Dashboard
           </span>
         </div>
 
-        {/* Row 2 — Navigation */}
+        {/* Row 2 — Navigation (glassmorphism) */}
         <div style={{
-          background:'#4a4a4a',
-          borderBottom:`2px solid #3a3a3a`,
-          display:'flex', alignItems:'center',
-          padding:'0 24px', height:48,
+          background: 'rgba(49,48,48,0.94)',
+          backdropFilter: 'blur(16px)',
+          WebkitBackdropFilter: 'blur(16px)',
+          display: 'flex', alignItems: 'center',
+          padding: '0 24px', height: 48,
         }}>
           {/* Logo mark */}
-          <div style={{ display:'flex', alignItems:'center', marginRight:28, flexShrink:0, borderRight:'1px solid #555', paddingRight:28 }}>
-            <img src="/logos/Botafogo.png" alt="Botafogo" style={{ height:36, width:'auto', objectFit:'contain' }} />
+          <div style={{
+            display: 'flex', alignItems: 'center',
+            marginRight: 28, flexShrink: 0,
+            borderRight: `1px solid rgba(208,197,178,0.15)`,
+            paddingRight: 28,
+          }}>
+            <img src="/logos/Botafogo.png" alt="Botafogo"
+              style={{ height: 36, width: 'auto', objectFit: 'contain' }} />
           </div>
 
           {/* Tabs */}
-          <nav style={{ display:'flex', gap:0, flex:1, overflowX:'auto', scrollbarWidth:'none' }}>
+          <nav style={{ display: 'flex', gap: 0, flex: 1, overflowX: 'auto', scrollbarWidth: 'none' }}>
             {TABS.map(t => {
               const active = tab === t.id;
               return (
@@ -76,17 +86,32 @@ export default function App() {
                   key={t.id}
                   onClick={() => setTab(t.id)}
                   style={{
-                    padding:'0 10px', height:48, border:'none', cursor:'pointer',
-                    background:'transparent',
-                    color: active ? '#ffffff' : '#888',
-                    fontFamily:FONT_UI, fontSize:10, fontWeight: active ? 700 : 400,
-                    borderBottom: active ? `3px solid ${C.accent}` : '3px solid transparent',
-                    borderTop: '3px solid transparent',
-                    transition:'all 0.15s ease',
-                    letterSpacing:'0.5px', whiteSpace:'nowrap', textTransform:'uppercase',
+                    padding: '0 12px', height: 48,
+                    border: 'none', cursor: 'pointer',
+                    background: 'transparent',
+                    color: active ? '#ffffff' : 'rgba(255,255,255,0.45)',
+                    fontFamily: FONT_UI,
+                    fontSize: 10,
+                    fontWeight: active ? 700 : 400,
+                    borderBottom: active ? `2px solid ${C.primaryContainer}` : '2px solid transparent',
+                    borderTop: '2px solid transparent',
+                    transition: 'all 0.15s ease',
+                    letterSpacing: '0.6px',
+                    whiteSpace: 'nowrap',
+                    textTransform: 'uppercase',
                   }}
-                  onMouseEnter={e=>{ if(!active){ e.currentTarget.style.color='#ccc'; e.currentTarget.style.borderBottomColor='#444'; }}}
-                  onMouseLeave={e=>{ if(!active){ e.currentTarget.style.color='#888'; e.currentTarget.style.borderBottomColor='transparent'; }}}
+                  onMouseEnter={e => {
+                    if (!active) {
+                      e.currentTarget.style.color = 'rgba(255,255,255,0.75)';
+                      e.currentTarget.style.borderBottomColor = 'rgba(197,161,77,0.3)';
+                    }
+                  }}
+                  onMouseLeave={e => {
+                    if (!active) {
+                      e.currentTarget.style.color = 'rgba(255,255,255,0.45)';
+                      e.currentTarget.style.borderBottomColor = 'transparent';
+                    }
+                  }}
                 >
                   {t.label}
                 </button>
@@ -97,7 +122,7 @@ export default function App() {
       </header>
 
       {/* ── Page content ── */}
-      <main style={{ padding:'20px 24px' }}>
+      <main style={{ padding: '24px 24px' }}>
         {tab === 'championship' && <ChampionshipReport />}
         {tab === 'comparativo'  && <Comparativo />}
         {tab === 'setores'      && <Setores />}
