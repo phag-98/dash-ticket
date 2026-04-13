@@ -5,6 +5,7 @@ import {
 } from 'recharts';
 import { C, SHADOW, CAMP_COLORS } from '../tokens';
 import { LOGO_MAP, TEAM_COLORS, TeamBadge, COMP_LOGOS } from '../teamLogos.jsx';
+import CalendarioResultados from './CalendarioResultados';
 import {
   kpis, faturamentoPorPartida, publicoPorTorcedor, publicoPorSetorPartida,
   partidas, faturamentoPorCampeonatoAno, ingressos, torcedores,
@@ -516,6 +517,12 @@ export default function ChampionshipReport() {
 
         </div>
       </div>
+
+      {/* ── Row 3: Calendário e Resultados ── */}
+      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
+        <CalendarioResultados />
+      </div>
+
     </div>
   );
 }
