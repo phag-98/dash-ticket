@@ -366,7 +366,7 @@ export default function ChampionshipReport() {
                   const isSelected = selectedPartida === p.idPartida;
                   const rowBg = isSelected
                     ? `${C.accent}22`
-                    : i % 2 !== 0 ? '#e8e8e8' : '#ffffff';
+                    : i % 2 !== 0 ? '#F8FAFC' : '#ffffff';
                   return (
                     <tr
                       key={p.idPartida}
@@ -379,20 +379,20 @@ export default function ChampionshipReport() {
                         transition: 'background 0.15s',
                       }}
                     >
-                      <td style={{ padding: '8px 10px', color: '#333', fontWeight: 700, fontSize: 10, whiteSpace: 'nowrap', fontFamily: "'Courier New', monospace" }}>{p.rodada}</td>
-                      <td style={{ padding: '8px 10px', color: '#111', fontSize: 11, fontWeight: 500, maxWidth: 140 }}>
+                      <td style={{ padding: '8px 10px', color: C.t2, fontWeight: 700, fontSize: 10, whiteSpace: 'nowrap', fontFamily: "'Courier New', monospace" }}>{p.rodada}</td>
+                      <td style={{ padding: '8px 10px', color: C.t1, fontSize: 11, fontWeight: 500, maxWidth: 140 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                           <TeamBadge name={p.time} size={22} />
                           <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.time}</span>
                         </div>
                       </td>
-                      <td style={{ padding: '8px 6px', textAlign: 'center', fontSize: 10, color: '#666', fontFamily: "'Courier New', monospace" }}>{p.ano}</td>
+                      <td style={{ padding: '8px 6px', textAlign: 'center', fontSize: 10, color: C.t3, fontFamily: "'Courier New', monospace" }}>{p.ano}</td>
                       <td style={{ padding: '8px 10px', background: isSelected ? `${C.accent}18` : `${C.accent}08` }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end' }}>
-                          <div style={{ flex: 1, height: 5, borderRadius: 2, background: '#ddd', overflow: 'hidden', minWidth: 40 }}>
+                          <div style={{ flex: 1, height: 5, borderRadius: 2, background: 'rgba(0,0,0,0.08)', overflow: 'hidden', minWidth: 40 }}>
                             <div style={{ width: `${pct}%`, height: '100%', background: isTop ? C.accent : `${C.accent}99`, borderRadius: 2 }} />
                           </div>
-                          <span style={{ fontWeight: 700, color: isTop ? C.accent : '#222', fontSize: 10, whiteSpace: 'nowrap', fontFamily: "'Courier New', monospace" }}>
+                          <span style={{ fontWeight: 700, color: isTop ? C.accent : C.t2, fontSize: 10, whiteSpace: 'nowrap', fontFamily: "'Courier New', monospace" }}>
                             {fmtR(p.faturamento)}
                           </span>
                         </div>
@@ -436,7 +436,7 @@ export default function ChampionshipReport() {
                     Sócio
                   </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: C.t2 }}>
-                    <span style={{ width: 8, height: 8, borderRadius: 2, background: '#4a5568', display: 'inline-block' }} />
+                    <span style={{ width: 8, height: 8, borderRadius: 2, background: '#64748b', display: 'inline-block' }} />
                     Não Sócio
                   </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: C.t2 }}>
@@ -476,7 +476,7 @@ export default function ChampionshipReport() {
                         Sócio {total > 0 ? `· ${((totalSocio / total) * 100).toFixed(0)}%` : ''}
                       </span>
                       <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 9, color: C.t2 }}>
-                        <span style={{ width: 10, height: 10, borderRadius: 2, background: '#4a5568', display: 'inline-block' }} />
+                        <span style={{ width: 10, height: 10, borderRadius: 2, background: '#64748b', display: 'inline-block' }} />
                         Não Sócio {total > 0 ? `· ${((totalNao / total) * 100).toFixed(0)}%` : ''}
                       </span>
                     </>
@@ -496,14 +496,14 @@ export default function ChampionshipReport() {
                   return (
                     <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: '8px 12px', fontSize: 11, boxShadow: SHADOW.md }}>
                       <p style={{ fontWeight: 700, color: C.t1, marginBottom: 3 }}>{d.torcedor}</p>
-                      <p style={{ color: isSocio ? C.accent : '#4a5568', fontSize: 10, marginBottom: 2 }}>{isSocio ? 'Sócio' : 'Não Sócio'}</p>
+                      <p style={{ color: isSocio ? C.accent : '#64748b', fontSize: 10, marginBottom: 2 }}>{isSocio ? 'Sócio' : 'Não Sócio'}</p>
                       <p style={{ color: C.t2 }}>Público: <strong>{d.publico.toLocaleString('pt-BR')}</strong></p>
                     </div>
                   );
                 }} />
                 <Bar dataKey="publico" name="Público" radius={[3, 3, 0, 0]} barSize={26}>
                   {sortedPublicoPorTorcedor.map((d, i) => (
-                    <Cell key={i} fill={SOCIO_NOMES.has(d.torcedor) ? C.accent : '#4a5568'} />
+                    <Cell key={i} fill={SOCIO_NOMES.has(d.torcedor) ? C.accent : '#64748b'} />
                   ))}
                   <LabelList dataKey="publico" position="top" formatter={fmtK} style={{ fontSize: 8, fill: C.t2, fontWeight: 600 }} />
                 </Bar>

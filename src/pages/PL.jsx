@@ -82,7 +82,7 @@ function makeLogoTick(chartData, selectedMatch, filtered) {
 function ChartTip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
-    <div style={{ background: '#fff', border: `1px solid ${C.border}`, borderRadius: 6, padding: '8px 12px', fontSize: 10, fontFamily: FONT_UI }}>
+    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 6, padding: '8px 12px', fontSize: 10, fontFamily: FONT_UI }}>
       <div style={{ fontWeight: 700, marginBottom: 4, color: C.t1 }}>{label}</div>
       {payload.map(p => (
         <div key={p.dataKey} style={{ color: p.stroke, marginBottom: 2 }}>
@@ -334,7 +334,7 @@ export default function PL() {
                 const isTotal    = row.type === 'total';
                 const hasDetail  = !!row.catFin2 && !!DETAIL_DESCS[row.catFin2];
                 const isExpanded = hasDetail && detailExpanded.has(row.id);
-                const rowBg      = isTotal ? '#1a1a1a' : isCat ? '#2e2e2e' : i % 2 === 0 ? C.card : '#f9f9f9';
+                const rowBg      = isTotal ? '#0F172A' : isCat ? '#F1F5F9' : i % 2 === 0 ? '#ffffff' : '#F8FAFC';
 
                 const mainRow = (
                   <tr key={row.id} style={{ background: rowBg }}>
@@ -346,18 +346,18 @@ export default function PL() {
                       style={{
                         ...tdLabel, background: rowBg,
                         fontWeight: (isCat || isTotal) ? 700 : 400,
-                        color: isTotal ? '#fff' : isCat ? '#e0e0e0' : C.t1,
+                        color: isTotal ? '#ffffff' : isCat ? C.t1 : C.t1,
                         paddingLeft: isCat || isTotal ? 8 : 20,
                         cursor: (isCat && COLLAPSIBLE.has(row.id)) || hasDetail ? 'pointer' : 'default',
                       }}
                     >
                       {isCat && COLLAPSIBLE.has(row.id) && (
-                        <span style={{ marginRight: 5, fontSize: 9, color: '#999' }}>
+                        <span style={{ marginRight: 5, fontSize: 9, color: C.t3 }}>
                           {collapsed.has(row.id) ? '▶' : '▼'}
                         </span>
                       )}
                       {hasDetail && (
-                        <span style={{ marginRight: 5, fontSize: 9, color: '#aaa' }}>
+                        <span style={{ marginRight: 5, fontSize: 9, color: C.t3 }}>
                           {isExpanded ? '▾' : '▸'}
                         </span>
                       )}
@@ -368,11 +368,11 @@ export default function PL() {
                       const abs = Math.abs(v);
                       const s   = abs.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                       const tc  = isTotal ? '#fff'
-                        : isCat  ? (v < 0 ? '#ff9a9a' : v > 0 ? '#88cc88' : '#888')
+                        : isCat  ? (v < 0 ? C.red : v > 0 ? C.green : C.t3)
                         : C.t1;
                       return (
                         <td key={d.idPartida} style={{ ...tdVal, background: rowBg, fontWeight: (isCat || isTotal) ? 700 : 400, color: tc }}>
-                          {v === 0 ? <span style={{ color: '#aaa' }}>0,00</span> : (v < 0 ? `-${s}` : s)}
+                          {v === 0 ? <span style={{ color: C.t3 }}>0,00</span> : (v < 0 ? `-${s}` : s)}
                         </td>
                       );
                     })}
@@ -413,19 +413,19 @@ export default function PL() {
 // ── Cell styles ───────────────────────────────────────────────────────────────
 const thLabel = {
   padding: '4px 8px', textAlign: 'left', fontSize: 9, fontWeight: 600,
-  letterSpacing: '0.5px', borderRight: '1px solid #444', borderBottom: '1px solid #444',
+  letterSpacing: '0.5px', borderRight: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`,
   width: LABEL_W, minWidth: LABEL_W, height: HEAD_H, whiteSpace: 'nowrap',
   overflow: 'hidden', textOverflow: 'ellipsis',
 };
 const thVal = {
   padding: '4px 6px', textAlign: 'center', fontWeight: 500,
-  borderRight: '1px solid #444', borderBottom: '1px solid #444',
+  borderRight: `1px solid ${C.border}`, borderBottom: `1px solid ${C.border}`,
   width: COL_W, minWidth: COL_W, height: HEAD_H, whiteSpace: 'nowrap',
   overflow: 'hidden', textOverflow: 'ellipsis',
 };
 const tdLabel = {
   padding: '3px 8px', fontSize: 10, whiteSpace: 'nowrap',
-  borderBottom: `1px solid ${C.border}`, borderRight: '1px solid #ddd',
+  borderBottom: `1px solid ${C.border}`, borderRight: `1px solid ${C.border}`,
   width: LABEL_W, minWidth: LABEL_W, overflow: 'hidden', textOverflow: 'ellipsis', height: 22,
 };
 const tdVal = {
