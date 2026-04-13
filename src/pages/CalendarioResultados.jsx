@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { C, SHADOW, CAMP_COLORS } from '../tokens';
-import { COMP_LOGOS, LOGO_MAP } from '../teamLogos.jsx';
+import { getCompLogo, LOGO_MAP } from '../teamLogos.jsx';
 import { placares } from '../data/placares';
 
 function parseDate(s) {
@@ -126,7 +126,6 @@ export default function CalendarioResultados({ campeonato = 'Todos', ano = 'Todo
           </div>
         )}
         {grouped.map(({ camp, games }, gi) => {
-          const logo = COMP_LOGOS[camp];
           return (
             <div key={camp + gi}>
               {/* Competition header */}
@@ -136,10 +135,10 @@ export default function CalendarioResultados({ campeonato = 'Todos', ano = 'Todo
                 background: C.bgAlt,
                 borderTop: gi > 0 ? `1px solid ${C.border}` : undefined,
               }}>
-                {logo
+                {(() => { const logo = getCompLogo(camp); return logo
                   ? <img src={`/logos/${logo}`} style={{ width: 20, height: 20, objectFit: 'contain' }} />
-                  : <div style={{ width: 20, height: 20, borderRadius: 4, background: CAMP_COLORS[camp] || C.accent, opacity: 0.7 }} />
-                }
+                  : <div style={{ width: 20, height: 20, borderRadius: 4, background: CAMP_COLORS[camp] || C.accent, opacity: 0.7 }} />;
+                })()}
                 <span style={{ fontSize: 11, fontWeight: 700, color: C.t2 }}>{camp}</span>
               </div>
 

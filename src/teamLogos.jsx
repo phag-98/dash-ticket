@@ -6,8 +6,19 @@ export const COMP_LOGOS = {
   'Copa do Brasil': 'CopaDoBrasil.png',
   'Libertadores':   'Libertadores.png',
   'Sulamericana':   'sulamericana.png',
+  'Sul-Americana':  'sulamericana.png',
   'Recopa':         'Recopa.png',
 };
+
+// Partial match: "Brasileirão 2026" → 'brasileirão_.png'
+export function getCompLogo(campeonato) {
+  if (!campeonato) return null;
+  if (COMP_LOGOS[campeonato]) return COMP_LOGOS[campeonato];
+  for (const [key, file] of Object.entries(COMP_LOGOS)) {
+    if (campeonato.includes(key)) return file;
+  }
+  return null;
+}
 
 // XAxis tick for vertical bar charts with campeonato on X (shows logo + short name)
 export function CompXTick({ x, y, payload }) {
@@ -79,10 +90,23 @@ export const LOGO_MAP = {
   'Universidad de Chile':  'Universidad de Chile.png',
   'Coritiba':                'Coritiba.png',
   'Caracas':                 'CaracasFC.png',
+  'Caracas FC':              'CaracasFC.png',
   'Nacional de Potosí':      'Nacional_Potosi.png',
+  'Nacional Potosí':         'Nacional_Potosi.png',
   'Santos':                  'Santos.png',
   'Sport':                   'Sport.png',
   'Barcelona de Guayaquil':  'Barcelona.png',
+  'Barcelona SC':            'Barcelona.png',
+  'Vasco':                   'Vasco.png',
+  'Athletico Paranaense':    'Athletico.png',
+  'Atlético Mineiro':        'Atletico mineiro.png',
+  'Atlético Goianiense':     'Atlético Goianiense.png',
+  'Boavista-RJ':             'Boavista.png',
+  'Capital CF':              'Capital.png',
+  'Junior Barranquilla':     'Junior Barranquilla.png',
+  'Racing Club':             'Racing.png',
+  'Sampaio Corrêa-RJ':       'Sampaio Corrêa.png',
+  'Portuguesa-RJ':           'Portuguesa.png',
 };
 
 export const TEAM_COLORS = {
