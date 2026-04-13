@@ -46,8 +46,10 @@ export default function App() {
 
           {/* Row 1 — Branding strip with stars */}
           <div style={{
-            background: 'linear-gradient(90deg, #111 0%, #1a1a1a 50%, #111 100%)',
-            borderBottom: '1px solid #2a2a2a',
+            backgroundColor: '#0e0f12',
+            backgroundImage: 'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
+            backgroundSize: '28px 28px',
+            borderBottom: '1px solid #1e1e24',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             height: 30, position: 'relative', overflow: 'hidden',
           }}>
@@ -72,7 +74,9 @@ export default function App() {
 
           {/* Row 2 — Navigation tabs */}
           <div style={{
-            background: 'linear-gradient(180deg, #383838 0%, #2e2e2e 100%)',
+            backgroundColor: '#363a42',
+            backgroundImage: 'linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px)',
+            backgroundSize: '28px 28px',
             borderBottom: `3px solid ${C.accent}`,
             display: 'flex', alignItems: 'stretch',
             height: 56,
