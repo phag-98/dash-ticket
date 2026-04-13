@@ -77,6 +77,9 @@ export const LOGO_MAP = {
   'Racing':                'Racing.png',
   'Sampaio Corrêa':        'Sampaio Corrêa.png',
   'Universidad de Chile':  'Universidad de Chile.png',
+  'Coritiba':              'Coritiba.png',
+  'Caracas':               'CaracasFC.png',
+  'Nacional de Potosí':    'Nacional_Potosi.png',
 };
 
 export const TEAM_COLORS = {

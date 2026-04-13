@@ -150,7 +150,7 @@ export default function NoShow() {
           <div>
             <div style={sectionTitle}>Ano</div>
             <div style={{ display: 'flex', gap: 4 }}>
-              {[null, 2024, 2025, 2026].map(a => (
+              {[null, 2024, 2025, 2026].map(a => ( // years
                 <FilterBtn key={a ?? 'todos'} label={a ?? 'Todos'} active={anoFilter === a} onClick={() => setAnoFilter(anoFilter === a ? null : a)} />
               ))}
             </div>

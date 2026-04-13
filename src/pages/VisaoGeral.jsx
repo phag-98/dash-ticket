@@ -200,7 +200,7 @@ export default function VisaoGeral() {
         ))}
         <div style={{ width: 1, height: 18, background: C.border, margin: '0 4px' }} />
         <span style={sectionTitle}>Ano</span>
-        {[null, 2024, 2025, 2026].map(a => (
+        {[null, 2024, 2025, 2026].map(a => ( // years
           <FilterBtn
             key={a ?? 'todos'}
             label={a ?? 'Todos'}
