@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { C, SHADOW, CAMP_COLORS, FONT_UI } from '../tokens';
+import { C, SHADOW, CAMP_COLORS } from '../tokens';
 import { COMP_LOGOS, LOGO_MAP } from '../teamLogos.jsx';
 import { placares } from '../data/placares';
 
@@ -59,7 +59,6 @@ function ResultBadge({ gm, gv, isBotHome }) {
 
 // Props: campeonato, ano — synced with parent filters
 export default function CalendarioResultados({ campeonato = 'Todos', ano = 'Todos' }) {
-  const [view, setView] = useState('finished');
   const [page, setPage] = useState(0);
   const PER_PAGE = 15;
 
@@ -69,19 +68,15 @@ export default function CalendarioResultados({ campeonato = 'Todos', ano = 'Todo
         if (campeonato !== 'Todos' && p.campeonato !== campeonato) return false;
         if (ano !== 'Todos') {
           const gameYear = p.data ? p.data.split('/')[2] : '';
-          if (gameYear !== ano && gameYear !== ano.slice(-2)) return false;
+          if (gameYear !== ano) return false;
         }
-        return view === 'finished' ? p.status === 'FT' : p.status === 'upcoming';
+        return true;
       })
-      .sort((a, b) => {
-        // Finished: most recent first; Upcoming: soonest first
-        const cmp = parseDate(a.data).localeCompare(parseDate(b.data));
-        return view === 'finished' ? -cmp : cmp;
-      });
-  }, [campeonato, ano, view]);
+      .sort((a, b) => parseDate(b.data).localeCompare(parseDate(a.data)));
+  }, [campeonato, ano]);
 
   // Reset page when filters change
-  useMemo(() => { setPage(0); }, [campeonato, ano, view]);
+  useMemo(() => { setPage(0); }, [campeonato, ano]);
 
   // Group by competition
   const grouped = useMemo(() => {
@@ -115,28 +110,8 @@ export default function CalendarioResultados({ campeonato = 'Todos', ano = 'Todo
           Calendário e Resultados
         </span>
 
-        {/* Toggle + arrows */}
+        {/* Pagination arrows */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <div style={{
-            display: 'flex', borderRadius: 8, overflow: 'hidden',
-            border: `1px solid ${C.border}`,
-          }}>
-            {[['finished','Encerrados'], ['upcoming','Próximos']].map(([v, label]) => {
-              const active = view === v;
-              return (
-                <button key={v} onClick={() => setView(v)} style={{
-                  padding: '6px 14px', border: 'none', cursor: 'pointer',
-                  background: active ? '#1a1a2e' : 'transparent',
-                  color: active ? '#fff' : C.t2,
-                  fontSize: 10, fontWeight: active ? 700 : 500,
-                  fontFamily: FONT_UI, letterSpacing: '0.3px',
-                  transition: 'all 0.12s',
-                }}>
-                  {label}
-                </button>
-              );
-            })}
-          </div>
           <button
             onClick={() => setPage(p => Math.max(0, p - 1))}
             disabled={page === 0}
