@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { C, FONT_UI, FONT_DISPLAY } from './tokens';
+import { C, FONT, FONT_UI } from './tokens';
 import ChampionshipReport from './pages/ChampionshipReport';
 import Comparativo        from './pages/Comparativo';
 import Setores            from './pages/Setores';
@@ -9,113 +9,66 @@ import Precos             from './pages/Precos';
 import PL                from './pages/PL';
 
 const TABS = [
-  { id: 'visaogeral',   label: 'Dashboard Principal',  pageTitle: 'Performance Financeira',    subtitle: 'Visão geral de receita, público e tendências' },
-  { id: 'championship', label: 'Championship Report',  pageTitle: 'Championship Report',        subtitle: 'Desempenho detalhado por campeonato e partida' },
-  { id: 'comparativo',  label: 'Comparativo',          pageTitle: 'Análise Comparativa',        subtitle: 'Temporadas 2024 × 2025' },
-  { id: 'setores',      label: 'Setores e Preços',     pageTitle: 'Setores de Arena',           subtitle: 'Ocupação, receita e preços por setor' },
-  { id: 'noshow',       label: 'No Show',              pageTitle: 'Análise de No Show',         subtitle: 'Ausentismo por partida e perfil de torcedor' },
-  { id: 'precos',       label: 'Matriz de Preços',     pageTitle: 'Matriz de Preços',           subtitle: 'Preços cruzados por adversário e tipo de torcedor' },
-  { id: 'pl',           label: 'P&L',                  pageTitle: 'Profit & Loss',              subtitle: 'Receitas, custos e margem por partida' },
+  { id: 'championship', label: 'Championship Report' },
+  { id: 'comparativo',  label: 'Comparativo' },
+  { id: 'setores',      label: 'Setores' },
+  { id: 'noshow',       label: 'No Show' },
+  { id: 'visaogeral',   label: 'Visão Geral' },
+  { id: 'precos',       label: 'Preços' },
+  { id: 'pl',           label: 'P&L' },
 ];
 
-const Icons = {
-  grid: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-      <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-    </svg>
-  ),
-  trophy: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/>
-      <path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
-      <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
-      <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>
-    </svg>
-  ),
-  barChart: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
-      <line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/>
-    </svg>
-  ),
-  map: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/>
-      <line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/>
-    </svg>
-  ),
-  users: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-      <circle cx="9" cy="7" r="4"/>
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-    </svg>
-  ),
-  tag: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
-      <line x1="7" y1="7" x2="7.01" y2="7"/>
-    </svg>
-  ),
-  dollar: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="12" y1="1" x2="12" y2="23"/>
-      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-    </svg>
-  ),
-};
-
-const TAB_ICONS = {
-  visaogeral: Icons.grid, championship: Icons.trophy, comparativo: Icons.barChart,
-  setores: Icons.map, noshow: Icons.users, precos: Icons.tag, pl: Icons.dollar,
-};
-
 export default function App() {
-  const [tab, setTab] = useState('visaogeral');
-  const current = TABS.find(t => t.id === tab);
+  const [tab, setTab] = useState('championship');
 
   return (
-    <div style={{
-      display: 'flex', height: '100vh', overflow: 'hidden',
-      background: C.surface, fontFamily: FONT_UI, color: C.onSurface,
-    }}>
+    <div style={{ minHeight:'100vh', background:C.bg, fontFamily:FONT_UI, color:C.t1 }}>
 
-      {/* ── Sidebar ── */}
-      <aside style={{
-        width: 272, flexShrink: 0,
-        background: C.surfaceContainerLow,
-        borderRight: `1px solid ${C.border}`,
-        display: 'flex', flexDirection: 'column',
-        overflowY: 'auto',
-      }}>
-        {/* Brand */}
-        <div style={{ padding: '32px 24px 24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 36 }}>
-            <div style={{
-              width: 40, height: 40, background: '#000000', borderRadius: 10,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-            }}>
-              <img src="/logos/Botafogo.png" alt="Botafogo"
-                style={{ width: 36, height: 36, objectFit: 'contain' }} />
-            </div>
-            <h2 style={{
-              fontFamily: FONT_DISPLAY, fontWeight: 700,
-              letterSpacing: '-0.5px', fontSize: 17, lineHeight: 1.1,
-              color: C.onSurface,
-            }}>
-              ARENA<span style={{ color: C.t3 }}>BOTAFOGO</span>
-            </h2>
+      {/* ── Header (2 rows, sticky) ── */}
+      <header style={{ position:'sticky', top:0, zIndex:100 }}>
+
+        {/* Row 1 — Branding strip with stars */}
+        <div style={{
+          background:'#111111',
+          borderBottom:'1px solid #2a2a2a',
+          display:'flex', alignItems:'center', justifyContent:'center',
+          height:30, position:'relative', overflow:'hidden',
+        }}>
+          {/* Scattered stars */}
+          {[
+            [4,40],[8,75],[12,20],[15,88],[18,55],[22,10],[25,65],[28,33],
+            [32,80],[36,48],[40,15],[44,70],[48,38],[52,90],[56,25],[60,60],
+            [64,8],[68,45],[72,82],[76,30],[80,68],[84,18],[88,52],[92,85],[96,42],
+          ].map(([x, y], i) => {
+            const size = [3,4,5,3,4,3,5,4,3,4,5,3,4,3,5,4,3,4,5,3,4,3,5,4,3][i];
+            const op   = [0.5,0.7,0.4,0.8,0.5,0.6,0.9,0.4,0.7,0.5,0.6,0.8,0.4,0.7,0.5,0.6,0.9,0.4,0.7,0.5,0.6,0.8,0.4,0.7,0.6][i];
+            return (
+              <svg key={i} width={size} height={size} viewBox="0 0 24 24"
+                style={{ position:'absolute', left:`${x}%`, top:`${y}%`, transform:'translate(-50%,-50%)', opacity:op }}>
+                <polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9" fill="#ffffff"/>
+              </svg>
+            );
+          })}
+          {/* Text centered */}
+          <span style={{ fontSize:9, color:'#888', letterSpacing:'3px', textTransform:'uppercase', position:'relative', zIndex:1 }}>
+            SAF &nbsp;·&nbsp; Dashboard
+          </span>
+        </div>
+
+        {/* Row 2 — Navigation */}
+        <div style={{
+          background:'#4a4a4a',
+          borderBottom:`2px solid #3a3a3a`,
+          display:'flex', alignItems:'center',
+          padding:'0 24px', height:48,
+        }}>
+          {/* Logo mark */}
+          <div style={{ display:'flex', alignItems:'center', marginRight:28, flexShrink:0, borderRight:'1px solid #555', paddingRight:28 }}>
+            <img src="/logos/Botafogo.png" alt="Botafogo" style={{ height:36, width:'auto', objectFit:'contain' }} />
           </div>
 
-          {/* Navigation */}
-          <nav>
-            <p style={{
-              fontSize: 10, textTransform: 'uppercase', letterSpacing: '2px',
-              color: C.t3, fontWeight: 700, marginBottom: 12, paddingLeft: 16,
-            }}>
-              Menu Principal
-            </p>
+          {/* Tabs */}
+          <nav style={{ display:'flex', gap:0, flex:1, overflowX:'auto', scrollbarWidth:'none' }}>
             {TABS.map(t => {
               const active = tab === t.id;
               return (
@@ -123,131 +76,36 @@ export default function App() {
                   key={t.id}
                   onClick={() => setTab(t.id)}
                   style={{
-                    display: 'flex', alignItems: 'center', gap: 12,
-                    padding: '11px 16px', borderRadius: 12, width: '100%',
-                    background: active ? C.surfaceContainer : 'transparent',
-                    border: active ? `1px solid ${C.border}` : '1px solid transparent',
-                    color: active ? C.onSurface : C.t3,
-                    cursor: 'pointer', textAlign: 'left',
-                    marginBottom: 2, transition: 'all 0.15s ease',
-                    fontFamily: FONT_UI, fontSize: 13,
-                    fontWeight: active ? 600 : 400,
+                    padding:'0 10px', height:48, border:'none', cursor:'pointer',
+                    background:'transparent',
+                    color: active ? '#ffffff' : '#888',
+                    fontFamily:FONT_UI, fontSize:10, fontWeight: active ? 700 : 400,
+                    borderBottom: active ? `3px solid ${C.accent}` : '3px solid transparent',
+                    borderTop: '3px solid transparent',
+                    transition:'all 0.15s ease',
+                    letterSpacing:'0.5px', whiteSpace:'nowrap', textTransform:'uppercase',
                   }}
-                  onMouseEnter={e => { if (!active) { e.currentTarget.style.color = C.t2; e.currentTarget.style.background = C.surfaceContainer; }}}
-                  onMouseLeave={e => { if (!active) { e.currentTarget.style.color = C.t3; e.currentTarget.style.background = 'transparent'; }}}
+                  onMouseEnter={e=>{ if(!active){ e.currentTarget.style.color='#ccc'; e.currentTarget.style.borderBottomColor='#444'; }}}
+                  onMouseLeave={e=>{ if(!active){ e.currentTarget.style.color='#888'; e.currentTarget.style.borderBottomColor='transparent'; }}}
                 >
-                  <span style={{
-                    width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
-                    background: active ? C.primaryContainer : 'transparent',
-                    transition: 'all 0.15s',
-                  }} />
-                  <span style={{ color: active ? C.primaryContainer : 'inherit', flexShrink: 0 }}>
-                    {TAB_ICONS[t.id]}
-                  </span>
                   {t.label}
                 </button>
               );
             })}
           </nav>
         </div>
+      </header>
 
-        {/* Bottom widgets */}
-        <div style={{ marginTop: 'auto', padding: '16px 24px 24px' }}>
-          {/* Progress widget */}
-          <div style={{
-            background: C.surfaceContainer,
-            borderRadius: 16, padding: '14px 16px',
-            border: `1px solid ${C.border}`, marginBottom: 16,
-          }}>
-            <p style={{ fontSize: 11, color: C.t3, marginBottom: 8 }}>Meta de Público</p>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 6 }}>
-              <span style={{ fontFamily: FONT_DISPLAY, fontSize: 20, fontWeight: 700, color: C.onSurface }}>82%</span>
-              <span style={{ fontSize: 10, color: C.primaryContainer }}>Faltam 4k p/ jogo</span>
-            </div>
-            <div style={{ width: '100%', background: C.border, height: 4, borderRadius: 9999, overflow: 'hidden' }}>
-              <div style={{ width: '82%', height: '100%', background: C.primaryContainer, borderRadius: 9999 }} />
-            </div>
-          </div>
-
-          {/* User */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingLeft: 4 }}>
-            <div style={{
-              width: 32, height: 32, borderRadius: '50%',
-              background: C.surfaceContainer, border: `1px solid ${C.border}`, flexShrink: 0,
-            }} />
-            <div>
-              <p style={{ fontSize: 12, fontWeight: 700, color: C.onSurface }}>Admin Saf</p>
-              <p style={{ fontSize: 10, color: C.t3 }}>Gestor Financeiro</p>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      {/* ── Main area ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-
-        {/* Header (glassmorphism on scroll) */}
-        <header style={{
-          padding: '20px 32px',
-          borderBottom: `1px solid ${C.border}`,
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-          background: 'rgba(255,255,255,0.85)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          flexShrink: 0, zIndex: 10,
-        }}>
-          <div>
-            <h1 style={{
-              fontFamily: FONT_DISPLAY, fontSize: 22, fontWeight: 700,
-              letterSpacing: '-0.5px', lineHeight: 1.2, color: C.onSurface,
-            }}>
-              {current.pageTitle}
-            </h1>
-            <p style={{ color: C.t2, fontSize: 12, fontStyle: 'italic', marginTop: 2 }}>
-              {current.subtitle}
-            </p>
-          </div>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button style={{
-              padding: '9px 18px',
-              background: C.surfaceContainer,
-              border: `1px solid ${C.border}`,
-              borderRadius: 12, color: C.t2,
-              fontSize: 12, fontWeight: 500, cursor: 'pointer',
-              fontFamily: FONT_UI, transition: 'all 0.15s',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.background = C.surfaceContainerHigh; }}
-              onMouseLeave={e => { e.currentTarget.style.background = C.surfaceContainer; }}
-            >
-              Comparar Temporadas
-            </button>
-            <button style={{
-              padding: '9px 18px', borderRadius: 12, border: 'none',
-              background: C.primaryGradient,
-              color: '#ffffff', fontSize: 12, fontWeight: 700,
-              fontFamily: FONT_UI, cursor: 'pointer',
-              boxShadow: `0 4px 14px rgba(197,160,89,0.3)`,
-              transition: 'transform 0.1s, box-shadow 0.1s',
-            }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.02)'; e.currentTarget.style.boxShadow = '0 6px 18px rgba(197,160,89,0.4)'; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 4px 14px rgba(197,160,89,0.3)'; }}
-            >
-              Exportar Dados
-            </button>
-          </div>
-        </header>
-
-        {/* Scrollable content */}
-        <main style={{ flex: 1, overflowY: 'auto', padding: '28px 32px' }}>
-          {tab === 'championship' && <ChampionshipReport />}
-          {tab === 'comparativo'  && <Comparativo />}
-          {tab === 'setores'      && <Setores />}
-          {tab === 'noshow'       && <NoShow />}
-          {tab === 'visaogeral'   && <VisaoGeral />}
-          {tab === 'precos'       && <Precos />}
-          {tab === 'pl'           && <PL />}
-        </main>
-      </div>
+      {/* ── Page content ── */}
+      <main style={{ padding:'20px 24px' }}>
+        {tab === 'championship' && <ChampionshipReport />}
+        {tab === 'comparativo'  && <Comparativo />}
+        {tab === 'setores'      && <Setores />}
+        {tab === 'noshow'       && <NoShow />}
+        {tab === 'visaogeral'   && <VisaoGeral />}
+        {tab === 'precos'       && <Precos />}
+        {tab === 'pl'           && <PL />}
+      </main>
     </div>
   );
 }
