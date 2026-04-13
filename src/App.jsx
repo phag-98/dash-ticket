@@ -22,7 +22,13 @@ export default function App() {
   const [tab, setTab] = useState('championship');
 
   return (
-    <div style={{ minHeight:'100vh', background:C.bg, fontFamily:FONT_UI, color:C.t1 }}>
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#e8e4de',
+      backgroundImage: 'linear-gradient(rgba(0,0,0,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.07) 1px, transparent 1px)',
+      backgroundSize: '36px 36px',
+      fontFamily: FONT_UI, color: C.t1,
+    }}>
 
       {/* ── Header (sticky, logo spans both rows) ── */}
       <header style={{ position:'sticky', top:0, zIndex:100, display:'flex', background:'#000' }}>
