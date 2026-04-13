@@ -25,7 +25,7 @@ export default function App() {
     <div style={{ minHeight:'100vh', background:C.bg, fontFamily:FONT_UI, color:C.t1 }}>
 
       {/* ── Header (sticky, logo spans both rows) ── */}
-      <header style={{ position:'sticky', top:0, zIndex:100, display:'flex' }}>
+      <header style={{ position:'sticky', top:0, zIndex:100, display:'flex', background:'#000' }}>
 
         {/* Logo panel — spans full header height with diagonal right edge */}
         <div style={{
@@ -65,8 +65,8 @@ export default function App() {
                 </svg>
               );
             })}
-            <span style={{ fontSize:9, color:'#777', letterSpacing:'3px', textTransform:'uppercase', position:'relative', zIndex:1 }}>
-              SAF &nbsp;·&nbsp; Dashboard
+            <span style={{ fontSize:9, color:'#ffffff', letterSpacing:'3px', textTransform:'uppercase', position:'relative', zIndex:1 }}>
+              SAF &nbsp;·&nbsp; Botafogo
             </span>
           </div>
 
