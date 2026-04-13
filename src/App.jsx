@@ -57,18 +57,24 @@ export default function App() {
 
         {/* Row 2 — Navigation */}
         <div style={{
-          background:'#4a4a4a',
-          borderBottom:`2px solid #3a3a3a`,
-          display:'flex', alignItems:'center',
-          padding:'0 24px', height:48,
+          background: '#3d3d3d',
+          borderBottom: `3px solid ${C.accent}`,
+          display: 'flex', alignItems: 'stretch',
+          height: 56,
         }}>
-          {/* Logo mark */}
-          <div style={{ display:'flex', alignItems:'center', marginRight:28, flexShrink:0, borderRight:'1px solid #555', paddingRight:28 }}>
-            <img src="/logos/Botafogo.png" alt="Botafogo" style={{ height:36, width:'auto', objectFit:'contain' }} />
+          {/* Logo — dark panel like CBF */}
+          <div style={{
+            background: '#1a1a1a',
+            display: 'flex', alignItems: 'center',
+            padding: '0 28px',
+            borderRight: `1px solid #555`,
+            flexShrink: 0,
+          }}>
+            <img src="/logos/Botafogo.png" alt="Botafogo" style={{ height: 40, width: 'auto', objectFit: 'contain' }} />
           </div>
 
           {/* Tabs */}
-          <nav style={{ display:'flex', gap:0, flex:1, overflowX:'auto', scrollbarWidth:'none' }}>
+          <nav style={{ display: 'flex', gap: 0, flex: 1, overflowX: 'auto', scrollbarWidth: 'none', padding: '0 8px' }}>
             {TABS.map(t => {
               const active = tab === t.id;
               return (
@@ -76,17 +82,17 @@ export default function App() {
                   key={t.id}
                   onClick={() => setTab(t.id)}
                   style={{
-                    padding:'0 10px', height:48, border:'none', cursor:'pointer',
-                    background:'transparent',
-                    color: active ? '#ffffff' : '#888',
-                    fontFamily:FONT_UI, fontSize:10, fontWeight: active ? 700 : 400,
+                    padding: '0 16px', height: 56, border: 'none', cursor: 'pointer',
+                    background: 'transparent',
+                    color: active ? C.accent : '#aaaaaa',
+                    fontFamily: FONT_UI, fontSize: 11, fontWeight: active ? 800 : 500,
                     borderBottom: active ? `3px solid ${C.accent}` : '3px solid transparent',
                     borderTop: '3px solid transparent',
-                    transition:'all 0.15s ease',
-                    letterSpacing:'0.5px', whiteSpace:'nowrap', textTransform:'uppercase',
+                    transition: 'all 0.15s ease',
+                    letterSpacing: '1px', whiteSpace: 'nowrap', textTransform: 'uppercase',
                   }}
-                  onMouseEnter={e=>{ if(!active){ e.currentTarget.style.color='#ccc'; e.currentTarget.style.borderBottomColor='#444'; }}}
-                  onMouseLeave={e=>{ if(!active){ e.currentTarget.style.color='#888'; e.currentTarget.style.borderBottomColor='transparent'; }}}
+                  onMouseEnter={e => { if (!active) { e.currentTarget.style.color = '#dddddd'; e.currentTarget.style.borderBottomColor = '#666'; } }}
+                  onMouseLeave={e => { if (!active) { e.currentTarget.style.color = '#aaaaaa'; e.currentTarget.style.borderBottomColor = 'transparent'; } }}
                 >
                   {t.label}
                 </button>
