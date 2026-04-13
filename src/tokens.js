@@ -66,7 +66,8 @@ export const C = {
 
   // ── Data series: year comparison ──
   year2024: '#94a3b8',   // slate-400 (muted, 2024)
-  year2025: '#C5A059',   // gold (2025 = current)
+  year2025: '#C5A059',   // gold (2025)
+  year2026: '#0284c7',   // sky-600 (2026 = current)
 
   // ── Semântico ──
   green:   '#16a34a',
