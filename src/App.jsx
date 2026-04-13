@@ -29,7 +29,9 @@ export default function App() {
 
         {/* Logo panel — spans full header height with diagonal right edge */}
         <div style={{
-          background: '#0d0d0d',
+          backgroundColor: '#0d0d0d',
+          backgroundImage: 'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
+          backgroundSize: '28px 28px',
           width: 86,
           flexShrink: 0,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
