@@ -79,5 +79,10 @@ export const placares = [
   {"id":"2026.03.14-CAMBR2-6","data":"14/03/2026","campeonato":"Brasileirão","mandante":"Botafogo","visitante":"Flamengo","golsMandante":1,"golsVisitante":1,"status":"FT","rodada":"6"},
   {"id":"2026.04.01-CAMBR2-9","data":"01/04/2026","campeonato":"Brasileirão","mandante":"Botafogo","visitante":"Mirassol","golsMandante":2,"golsVisitante":1,"status":"FT","rodada":"9"},
   {"id":"2026.04.09-CAMSU6-FG","data":"09/04/2026","campeonato":"Sulamericana","mandante":"Botafogo","visitante":"Caracas","golsMandante":1,"golsVisitante":1,"status":"FT","rodada":"FG"},
-  {"id":"2026.04.12-CAMBR2-11","data":"12/04/2026","campeonato":"Brasileirão","mandante":"Botafogo","visitante":"Coritiba","golsMandante":2,"golsVisitante":2,"status":"FT","rodada":"11"}
+  {"id":"2026.04.12-CAMBR2-11","data":"12/04/2026","campeonato":"Brasileirão","mandante":"Botafogo","visitante":"Coritiba","golsMandante":2,"golsVisitante":2,"status":"FT","rodada":"11"},
+  {"id":"2026.04.17-CAMBR2-12","data":"17/04/2026","campeonato":"Brasileirão","mandante":"Ceará","visitante":"Botafogo","golsMandante":null,"golsVisitante":null,"status":"upcoming","rodada":"12","horario":"20:00"},
+  {"id":"2026.04.23-CAMSU6-FG2","data":"23/04/2026","campeonato":"Sulamericana","mandante":"Caracas","visitante":"Botafogo","golsMandante":null,"golsVisitante":null,"status":"upcoming","rodada":"FG2","horario":"19:00"},
+  {"id":"2026.04.27-CAMBR2-13","data":"27/04/2026","campeonato":"Brasileirão","mandante":"Botafogo","visitante":"Atlético-GO","golsMandante":null,"golsVisitante":null,"status":"upcoming","rodada":"13","horario":"18:30"},
+  {"id":"2026.05.03-CAMLI5-OF","data":"03/05/2026","campeonato":"Libertadores","mandante":"Botafogo","visitante":"Peñarol","golsMandante":null,"golsVisitante":null,"status":"upcoming","rodada":"OF","horario":"21:30"},
+  {"id":"2026.05.07-CAMBR2-15","data":"07/05/2026","campeonato":"Brasileirão","mandante":"São Paulo","visitante":"Botafogo","golsMandante":null,"golsVisitante":null,"status":"upcoming","rodada":"15","horario":"21:00"}
 ];

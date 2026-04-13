@@ -519,9 +519,7 @@ export default function ChampionshipReport() {
       </div>
 
       {/* ── Row 3: Calendário e Resultados ── */}
-      <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-        <CalendarioResultados />
-      </div>
+      <CalendarioResultados campeonato={campeonato} ano={ano} />
 
     </div>
   );
