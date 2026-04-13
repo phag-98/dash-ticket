@@ -5,20 +5,14 @@ import { placares } from '../data/placares';
 
 function parseDate(s) {
   if (!s) return '';
-  const p = s.split('/');
-  if (p.length === 3) {
-    const y = p[2].length === 2 ? `20${p[2]}` : p[2];
-    return `${y}-${p[1]}-${p[0]}`;
-  }
-  return s;
+  const [d, m, y] = s.split('/');
+  return `${y}-${m}-${d}`;
 }
 
 function formatDate(s) {
   if (!s) return '';
-  const p = s.split('/');
-  if (p.length !== 3) return s;
-  const y = p[2].length === 4 ? p[2].slice(2) : p[2];
-  return `${p[0]}/${p[1]}/${y}`;
+  const [d, m, y] = s.split('/');
+  return `${d}/${m}/${y?.slice(-2)}`;
 }
 
 function TeamLogo({ name, size = 26 }) {
@@ -30,8 +24,7 @@ function TeamLogo({ name, size = 26 }) {
         onError={e => { e.target.style.display = 'none'; }} />
     );
   }
-  const initials = name.split(' ').filter(w => w.length > 2).slice(0, 2).map(w => w[0]).join('').toUpperCase()
-    || name.slice(0, 2).toUpperCase();
+  const initials = name.split(' ').filter(w => w.length > 2).slice(0, 2).map(w => w[0]).join('').toUpperCase() || name.slice(0, 2).toUpperCase();
   return (
     <div style={{
       width: size, height: size, borderRadius: '50%', background: '#888',
@@ -41,23 +34,21 @@ function TeamLogo({ name, size = 26 }) {
   );
 }
 
-function ResultBadge({ gm, gv, isBotHome }) {
-  const bot = isBotHome ? gm : gv;
-  const adv = isBotHome ? gv : gm;
-  const win = bot > adv, lose = bot < adv;
+function ResultBadge({ resultado }) {
+  if (!resultado) return <div style={{ width: 28 }} />;
+  const colors = { V: '#16a34a', D: '#dc2626', E: '#6b7280' };
   return (
     <div style={{
       width: 28, height: 28, borderRadius: '50%',
-      background: win ? '#16a34a' : lose ? '#dc2626' : '#6b7280',
+      background: colors[resultado] || '#6b7280',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
       fontSize: 10, fontWeight: 800, color: '#fff', flexShrink: 0,
     }}>
-      {win ? 'V' : lose ? 'D' : 'E'}
+      {resultado}
     </div>
   );
 }
 
-// Props: campeonato, ano — synced with parent filters
 export default function CalendarioResultados({ campeonato = 'Todos', ano = 'Todos' }) {
   const [page, setPage] = useState(0);
   const PER_PAGE = 15;
@@ -67,20 +58,21 @@ export default function CalendarioResultados({ campeonato = 'Todos', ano = 'Todo
       .filter(p => {
         if (campeonato !== 'Todos' && p.campeonato !== campeonato) return false;
         if (ano !== 'Todos') {
-          const gameYear = p.data ? p.data.split('/')[2] : '';
-          if (gameYear !== ano) return false;
+          const y = p.data ? p.data.split('/')[2] : '';
+          if (y !== ano) return false;
         }
         return true;
       })
       .sort((a, b) => parseDate(b.data).localeCompare(parseDate(a.data)));
   }, [campeonato, ano]);
 
-  // Reset page when filters change
   useMemo(() => { setPage(0); }, [campeonato, ano]);
+
+  const totalPages = Math.ceil(filtered.length / PER_PAGE);
+  const slice = filtered.slice(page * PER_PAGE, (page + 1) * PER_PAGE);
 
   // Group by competition
   const grouped = useMemo(() => {
-    const slice = filtered.slice(page * PER_PAGE, (page + 1) * PER_PAGE);
     const groups = [];
     let cur = null;
     for (const p of slice) {
@@ -91,185 +83,128 @@ export default function CalendarioResultados({ campeonato = 'Todos', ano = 'Todo
       cur.games.push(p);
     }
     return groups;
-  }, [filtered, page]);
-
-  const totalPages = Math.ceil(filtered.length / PER_PAGE);
+  }, [slice]);
 
   return (
     <div style={{
       background: C.card, borderRadius: 12, border: `1px solid ${C.border}`,
       boxShadow: SHADOW.card, overflow: 'hidden', width: '100%',
     }}>
-      {/* ── Header row ── */}
+      {/* Header */}
       <div style={{
-        padding: '12px 16px 10px',
+        padding: '12px 20px',
         borderBottom: `1px solid ${C.border}`,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
-        <span style={{ fontSize: 13, fontWeight: 800, color: C.t1, letterSpacing: '-0.2px' }}>
+        <span style={{ fontSize: 13, fontWeight: 800, color: C.t1 }}>
           Calendário e Resultados
         </span>
-
-        {/* Pagination arrows */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-          <button
-            onClick={() => setPage(p => Math.max(0, p - 1))}
-            disabled={page === 0}
+        <div style={{ display: 'flex', gap: 6 }}>
+          <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0}
             style={{
               width: 28, height: 28, borderRadius: 6, border: `1px solid ${C.border}`,
-              background: page === 0 ? C.bgAlt : C.card,
-              cursor: page === 0 ? 'default' : 'pointer',
-              color: page === 0 ? C.t3 : C.t1,
-              fontSize: 16, fontWeight: 700,
+              background: page === 0 ? C.bgAlt : C.card, cursor: page === 0 ? 'default' : 'pointer',
+              color: page === 0 ? C.t3 : C.t1, fontSize: 16, fontWeight: 700,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              lineHeight: 1,
-            }}
-          >‹</button>
-          <button
-            onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
-            disabled={page >= totalPages - 1}
+            }}>‹</button>
+          <button onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1}
             style={{
               width: 28, height: 28, borderRadius: 6, border: `1px solid ${C.border}`,
               background: page >= totalPages - 1 ? C.bgAlt : C.card,
               cursor: page >= totalPages - 1 ? 'default' : 'pointer',
-              color: page >= totalPages - 1 ? C.t3 : C.t1,
-              fontSize: 16, fontWeight: 700,
+              color: page >= totalPages - 1 ? C.t3 : C.t1, fontSize: 16, fontWeight: 700,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              lineHeight: 1,
-            }}
-          >›</button>
+            }}>›</button>
         </div>
       </div>
 
-      {/* ── Game list ── */}
+      {/* Games */}
       <div>
         {grouped.length === 0 && (
-          <div style={{ padding: '32px 0', textAlign: 'center', color: C.t3, fontSize: 12 }}>
+          <div style={{ padding: 32, textAlign: 'center', color: C.t3, fontSize: 12 }}>
             Nenhuma partida encontrada
           </div>
         )}
         {grouped.map(({ camp, games }, gi) => {
           const logo = COMP_LOGOS[camp];
           return (
-            <div key={camp}>
+            <div key={camp + gi}>
               {/* Competition header */}
               <div style={{
-                padding: '10px 20px 7px',
+                padding: '8px 20px 6px',
                 display: 'flex', alignItems: 'center', gap: 8,
-                borderTop: gi > 0 ? `1px solid ${C.border}` : undefined,
                 background: C.bgAlt,
+                borderTop: gi > 0 ? `1px solid ${C.border}` : undefined,
               }}>
                 {logo
-                  ? <img src={`/logos/${logo}`} style={{ width: 22, height: 22, objectFit: 'contain' }} />
-                  : <div style={{ width: 22, height: 22, borderRadius: 4, background: CAMP_COLORS[camp] || C.accent, opacity: 0.8 }} />
+                  ? <img src={`/logos/${logo}`} style={{ width: 20, height: 20, objectFit: 'contain' }} />
+                  : <div style={{ width: 20, height: 20, borderRadius: 4, background: CAMP_COLORS[camp] || C.accent, opacity: 0.7 }} />
                 }
-                <span style={{ fontSize: 11, fontWeight: 700, color: C.t2, letterSpacing: '0.3px' }}>
-                  {camp}
-                </span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: C.t2 }}>{camp}</span>
               </div>
 
-              {/* Game rows */}
-              {games.map((g, i) => {
-                const isBotHome = g.mandante === 'Botafogo';
-                const isFT = g.status === 'FT';
-
-                return (
-                  <div key={g.id} style={{
-                    padding: '11px 20px',
-                    borderTop: `1px solid ${C.border}`,
-                    background: i % 2 === 0 ? '#fff' : '#fafafa',
-                    display: 'grid',
-                    gridTemplateColumns: '58px 1fr 72px 1fr 34px',
-                    alignItems: 'center',
-                    gap: 6,
-                  }}>
-
-                    {/* Col 1: Date + status */}
-                    <div>
-                      <div style={{ fontSize: 10, fontWeight: 600, color: '#555', lineHeight: 1.5 }}>
-                        {formatDate(g.data)}
-                      </div>
-                      <div style={{
-                        fontSize: 9, fontWeight: 700, letterSpacing: '0.4px',
-                        color: isFT ? '#16a34a' : C.accent,
-                        lineHeight: 1,
-                      }}>
-                        {isFT ? 'FT' : g.horario || '—'}
-                      </div>
-                    </div>
-
-                    {/* Col 2: Home team (name right-aligned, then logo) */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end' }}>
-                      <span style={{
-                        fontSize: 12, lineHeight: 1.2,
-                        fontWeight: g.mandante === 'Botafogo' ? 800 : 500,
-                        color: g.mandante === 'Botafogo' ? C.t1 : C.t2,
-                        textAlign: 'right',
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                        maxWidth: 130,
-                      }}>
-                        {g.mandante}
-                      </span>
-                      <TeamLogo name={g.mandante} size={28} />
-                    </div>
-
-                    {/* Col 3: Score */}
-                    <div style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5,
-                    }}>
-                      {isFT ? (
-                        <>
-                          <span style={{ fontSize: 17, fontWeight: 800, color: C.t1, minWidth: 14, textAlign: 'center', lineHeight: 1 }}>
-                            {g.golsMandante}
-                          </span>
-                          <span style={{ fontSize: 13, color: '#bbb', fontWeight: 300, lineHeight: 1 }}>–</span>
-                          <span style={{ fontSize: 17, fontWeight: 800, color: C.t1, minWidth: 14, textAlign: 'center', lineHeight: 1 }}>
-                            {g.golsVisitante}
-                          </span>
-                        </>
-                      ) : (
-                        <div style={{
-                          background: C.bgAlt, borderRadius: 6, padding: '4px 8px',
-                          fontSize: 11, fontWeight: 700, color: C.t2, whiteSpace: 'nowrap',
-                        }}>
-                          {g.horario || 'Em breve'}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Col 4: Away team (logo then name left-aligned) */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <TeamLogo name={g.visitante} size={28} />
-                      <span style={{
-                        fontSize: 12, lineHeight: 1.2,
-                        fontWeight: g.visitante === 'Botafogo' ? 800 : 500,
-                        color: g.visitante === 'Botafogo' ? C.t1 : C.t2,
-                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                        maxWidth: 130,
-                      }}>
-                        {g.visitante}
-                      </span>
-                    </div>
-
-                    {/* Col 5: Result badge (FT only) */}
-                    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                      {isFT && (
-                        <ResultBadge gm={g.golsMandante} gv={g.golsVisitante} isBotHome={isBotHome} />
-                      )}
-                    </div>
+              {games.map((g, i) => (
+                <div key={g.data + g.adversario + i} style={{
+                  padding: '10px 20px',
+                  borderTop: `1px solid ${C.border}`,
+                  background: i % 2 === 0 ? '#fff' : '#fafafa',
+                  display: 'grid',
+                  gridTemplateColumns: '52px 1fr 64px 1fr 32px',
+                  alignItems: 'center',
+                  gap: 8,
+                }}>
+                  {/* Data */}
+                  <div style={{ fontSize: 10, fontWeight: 600, color: '#666', lineHeight: 1.4 }}>
+                    {formatDate(g.data)}
                   </div>
-                );
-              })}
+
+                  {/* Botafogo (sempre à esquerda) */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7, justifyContent: 'flex-end' }}>
+                    <span style={{ fontSize: 12, fontWeight: 800, color: C.t1, textAlign: 'right',
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120 }}>
+                      Botafogo
+                    </span>
+                    <TeamLogo name="Botafogo" size={26} />
+                  </div>
+
+                  {/* Placar */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
+                    {g.golsBot !== null && g.golsAdv !== null ? (
+                      <>
+                        <span style={{ fontSize: 17, fontWeight: 800, color: C.t1, minWidth: 14, textAlign: 'center' }}>{g.golsBot}</span>
+                        <span style={{ fontSize: 12, color: '#bbb' }}>–</span>
+                        <span style={{ fontSize: 17, fontWeight: 800, color: C.t1, minWidth: 14, textAlign: 'center' }}>{g.golsAdv}</span>
+                      </>
+                    ) : (
+                      <span style={{ fontSize: 11, color: C.t3 }}>–</span>
+                    )}
+                  </div>
+
+                  {/* Adversário */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                    <TeamLogo name={g.adversario} size={26} />
+                    <span style={{ fontSize: 12, fontWeight: 500, color: C.t2,
+                      overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120 }}>
+                      {g.adversario}
+                    </span>
+                  </div>
+
+                  {/* Badge */}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <ResultBadge resultado={g.resultado} />
+                  </div>
+                </div>
+              ))}
             </div>
           );
         })}
       </div>
 
-      {/* ── Pagination dots ── */}
+      {/* Dots pagination */}
       {totalPages > 1 && (
         <div style={{
           padding: '8px 16px', borderTop: `1px solid ${C.border}`,
-          display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 5,
+          display: 'flex', justifyContent: 'center', gap: 5,
         }}>
           {Array.from({ length: totalPages }, (_, i) => (
             <div key={i} onClick={() => setPage(i)} style={{

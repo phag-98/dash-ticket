@@ -702,78 +702,47 @@ OUT.write_text("\n".join(lines), encoding="utf-8")
 print(f"\n✓ Written {OUT}")
 
 # ── Generate placares.js from dPlacares.xlsx ────────────────────────────────
-# dPlacares colunas: ID_PARTIDA, ID_CAMPEONATO, ID_TIME, DATA, RESULTADO
-# RESULTADO formato "X-Y" onde X = gols Botafogo, Y = gols adversário
+# dPlacares colunas reais:
+#   Data, Competição, ID_CAMPEONATO, Adversário, ID_TIME,
+#   Placar Adversário, Placar Botafogo, Resultado (V/D/E)
 PLAC_OUT = BASE / "src/data/placares.js"
 
 if dPlac is not None:
-    # Joins: competition name + adversário name
-    dPlac["CAMPEONATO"] = dPlac["ID_CAMPEONATO"].map(camp_map)
-    dPlac["ADVERSARIO"] = dPlac["ID_TIME"].map(time_map)
+    dPlac.columns = [str(c).strip() for c in dPlac.columns]
 
-    # DATA normalizada
-    dPlac["DATA_FMT"] = pd.to_datetime(dPlac["DATA"], dayfirst=True, errors="coerce").dt.strftime("%d/%m/%Y")
-    dPlac["ANO"]      = pd.to_datetime(dPlac["DATA"], dayfirst=True, errors="coerce").dt.year
-
-    # HOME/AWAY: partidas em dPartidas = casa; demais = fora
-    home_ids = set(dPart["ID_PARTIDA"])
-
-    # Horário vem de dPartidas (só jogos em casa)
-    horario_map = dict(zip(
-        dPart["ID_PARTIDA"],
-        dPart["HORARIO"].apply(lambda x: str(x)[:5] if pd.notna(x) else "")
-    ))
-    rodada_map = dict(zip(dPart["ID_PARTIDA"], dPart["RODADA"].astype(str)))
-
-    def parse_resultado(val):
-        s = str(val).strip()
-        if "-" in s:
-            parts = s.split("-")
-            try: return int(parts[0]), int(parts[1])
-            except: pass
-        return None, None
+    # Normaliza DATA
+    dPlac["_data"] = pd.to_datetime(dPlac["Data"], dayfirst=True, errors="coerce")
+    dPlac["_data_fmt"] = dPlac["_data"].dt.strftime("%d/%m/%Y")
 
     plac_rows = []
-    for _, row in dPlac.sort_values("DATA_FMT").iterrows():
-        pid   = row["ID_PARTIDA"]
-        gbot, gadv = parse_resultado(row.get("RESULTADO", ""))
-        is_home = pid in home_ids
-        camp  = row.get("CAMPEONATO", "") or ""
-        adv   = row.get("ADVERSARIO", "") or str(row.get("ID_TIME", ""))
-        data  = row.get("DATA_FMT", "") or ""
-        status = "FT" if gbot is not None else "upcoming"
+    for _, row in dPlac.sort_values("_data", ascending=False).iterrows():
+        camp    = str(row.get("Competição", "") or "").strip()
+        adv     = str(row.get("Adversário", "") or "").strip()
+        gbot    = row.get("Placar Botafogo")
+        gadv    = row.get("Placar Adversário")
+        res     = str(row.get("Resultado", "") or "").strip()
+        data    = row.get("_data_fmt", "") or ""
+        tem_res = res in ("V", "D", "E") or (pd.notna(gbot) and pd.notna(gadv))
 
-        # Mandante/visitante conforme jogo em casa ou fora
-        if is_home:
-            mandante, visitante = "Botafogo", adv
-            gm = gbot if gbot is not None else "null"
-            gv = gadv if gadv is not None else "null"
-        else:
-            mandante, visitante = adv, "Botafogo"
-            gm = gadv if gadv is not None else "null"  # gols mandante = gols adversário
-            gv = gbot if gbot is not None else "null"  # gols visitante = gols Botafogo
+        gbot_s = int(gbot) if pd.notna(gbot) else "null"
+        gadv_s = int(gadv) if pd.notna(gadv) else "null"
 
         plac_rows.append({
-            "id":           pid,
-            "data":         data,
-            "campeonato":   camp,
-            "mandante":     mandante,
-            "visitante":    visitante,
-            "golsMandante": gm,
-            "golsVisitante":gv,
-            "status":       status,
-            "rodada":       rodada_map.get(pid, str(row.get("RODADA", ""))),
-            "horario":      horario_map.get(pid, ""),
+            "data":       data,
+            "campeonato": camp,
+            "adversario": adv,
+            "golsBot":    gbot_s,
+            "golsAdv":    gadv_s,
+            "resultado":  res if tem_res else "",
         })
 
     def row_to_js(r):
-        gm = r["golsMandante"]
-        gv = r["golsVisitante"]
+        res_s = f'"{r["resultado"]}"' if r["resultado"] else '""'
         return (
-            f'  {{"id":"{r["id"]}","data":"{r["data"]}","campeonato":"{r["campeonato"]}",'
-            f'"mandante":"{r["mandante"]}","visitante":"{r["visitante"]}",'
-            f'"golsMandante":{gm},"golsVisitante":{gv},'
-            f'"status":"{r["status"]}","rodada":"{r["rodada"]}","horario":"{r["horario"]}"}}'
+            f'  {{"data":"{r["data"]}","campeonato":"{r["campeonato"]}",'
+            f'"adversario":"{r["adversario"]}",'
+            f'"golsBot":{r["golsBot"]},"golsAdv":{r["golsAdv"]},'
+            f'"resultado":{res_s}}}'
         )
 
     plac_lines = ["export const placares = ["]
@@ -782,7 +751,7 @@ if dPlac is not None:
         plac_lines.append(row_to_js(r) + sep)
     plac_lines.append("];")
     PLAC_OUT.write_text("\n".join(plac_lines), encoding="utf-8")
-    filled = sum(1 for r in plac_rows if r["status"] == "FT")
+    filled = sum(1 for r in plac_rows if r["resultado"])
     print(f"✓ Written {PLAC_OUT} ({filled}/{len(plac_rows)} com resultado)")
 print(f"  campeonatos: {len(campeonatos)}")
 print(f"  estadios: {len(estadios)}")
