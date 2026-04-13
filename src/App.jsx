@@ -52,7 +52,8 @@ export default function App() {
             backgroundImage: 'linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)',
             backgroundSize: '28px 28px',
             borderBottom: '1px solid #1e1e24',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            display: 'flex', alignItems: 'center', justifyContent: 'flex-end',
+            paddingRight: 16,
             height: 30, position: 'relative', overflow: 'hidden',
           }}>
             {[
@@ -76,8 +77,8 @@ export default function App() {
 
           {/* Row 2 — Navigation tabs */}
           <div style={{
-            backgroundColor: '#363a42',
-            backgroundImage: 'linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px)',
+            backgroundColor: '#0e0f12',
+            backgroundImage: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)',
             backgroundSize: '28px 28px',
             borderBottom: `3px solid ${C.accent}`,
             display: 'flex', alignItems: 'stretch',
@@ -93,15 +94,15 @@ export default function App() {
                     style={{
                       padding: '0 16px', height: 56, border: 'none', cursor: 'pointer',
                       background: active ? `linear-gradient(180deg, transparent 60%, ${C.accent}18 100%)` : 'transparent',
-                      color: active ? C.accent : '#999',
-                      fontFamily: FONT_UI, fontSize: 11, fontWeight: active ? 800 : 500,
+                      color: active ? C.accent : '#ffffff',
+                      fontFamily: FONT_UI, fontSize: 11, fontWeight: active ? 800 : 400,
                       borderBottom: active ? `3px solid ${C.accent}` : '3px solid transparent',
                       borderTop: '3px solid transparent',
                       transition: 'all 0.15s ease',
                       letterSpacing: '1px', whiteSpace: 'nowrap', textTransform: 'uppercase',
                     }}
-                    onMouseEnter={e => { if (!active) { e.currentTarget.style.color='#ddd'; e.currentTarget.style.borderBottomColor='#666'; e.currentTarget.style.background=`${C.accent}0a`; }}}
-                    onMouseLeave={e => { if (!active) { e.currentTarget.style.color='#999'; e.currentTarget.style.borderBottomColor='transparent'; e.currentTarget.style.background='transparent'; }}}
+                    onMouseEnter={e => { if (!active) { e.currentTarget.style.color='#fff'; e.currentTarget.style.borderBottomColor='#666'; e.currentTarget.style.background=`${C.accent}0a`; }}}
+                    onMouseLeave={e => { if (!active) { e.currentTarget.style.color='#ffffff'; e.currentTarget.style.borderBottomColor='transparent'; e.currentTarget.style.background='transparent'; }}}
                   >
                     {t.label}
                   </button>
