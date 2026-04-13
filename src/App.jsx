@@ -24,9 +24,7 @@ export default function App() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#e8e4de',
-      backgroundImage: 'linear-gradient(rgba(0,0,0,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.07) 1px, transparent 1px)',
-      backgroundSize: '36px 36px',
+      backgroundColor: '#e8e9ed',
       fontFamily: FONT_UI, color: C.t1,
     }}>
 
