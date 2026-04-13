@@ -4,6 +4,10 @@ import {
   ResponsiveContainer, LabelList, Cell,
 } from 'recharts';
 import { C, FONT, SHADOW, CAMP_COLORS as TOKEN_CAMP_COLORS } from '../tokens';
+
+const Y24 = '#555566';
+const Y25 = '#C9A84C';
+const Y26 = '#0284c7';
 import { COMP_LOGOS, CompXTick, CompYTick, TeamBadge } from '../teamLogos.jsx';
 import { faturamentoPorCampeonatoAno, faturamentoPorPartida, partidas } from '../data/data';
 
@@ -94,7 +98,8 @@ function buildData(field, campFilter) {
   return camps.map(camp => {
     const d24 = filtered.find(d => d.campeonato === camp && d.ano === 2024);
     const d25 = filtered.find(d => d.campeonato === camp && d.ano === 2025);
-    return { campeonato: camp, '2024': d24?.[field] ?? 0, '2025': d25?.[field] ?? 0 };
+    const d26 = filtered.find(d => d.campeonato === camp && d.ano === 2026);
+    return { campeonato: camp, '2024': d24?.[field] ?? 0, '2025': d25?.[field] ?? 0, '2026': d26?.[field] ?? 0 };
   });
 }
 
@@ -109,6 +114,7 @@ export default function Comparativo() {
   // Total faturamento by year
   const fat2024 = faturamentoPorCampeonatoAno.filter(d => d.ano === 2024).reduce((s, d) => s + d.faturamento, 0);
   const fat2025 = faturamentoPorCampeonatoAno.filter(d => d.ano === 2025).reduce((s, d) => s + d.faturamento, 0);
+  const fat2026 = faturamentoPorCampeonatoAno.filter(d => d.ano === 2026).reduce((s, d) => s + d.faturamento, 0);
 
   // Jogos count
   const jogosTable = useMemo(() => {
@@ -116,12 +122,14 @@ export default function Comparativo() {
     return camps.map(c => {
       const n24 = partidas.filter(p => p.campeonato === c && p.ano === 2024).length;
       const n25 = partidas.filter(p => p.campeonato === c && p.ano === 2025).length;
-      return { campeonato: c, '2024': n24, '2025': n25, total: n24 + n25 };
+      const n26 = partidas.filter(p => p.campeonato === c && p.ano === 2026).length;
+      return { campeonato: c, '2024': n24, '2025': n25, '2026': n26, total: n24 + n25 + n26 };
     }).filter(r => r.total > 0);
   }, []);
   const totalJogos = {
     '2024': partidas.filter(p => p.ano === 2024).length,
     '2025': partidas.filter(p => p.ano === 2025).length,
+    '2026': partidas.filter(p => p.ano === 2026).length,
     total: partidas.length,
   };
 
@@ -152,18 +160,21 @@ export default function Comparativo() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
 
         {/* Faturamento total por camp + ano (horizontal) */}
-        <Card title="Faturamento por Campeonato e Ano" subtitle="● 2024  ● 2025">
+        <Card title="Faturamento por Campeonato e Ano" subtitle="● 2024  ● 2025  ● 2026">
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={fatData} layout="vertical" margin={{ top: 8, right: 60, bottom: 4, left: 110 }}>
               <CartesianGrid stroke={C.border} strokeDasharray="3 3" horizontal={false} />
               <XAxis type="number" tick={{ fill: C.t3, fontSize: 8 }} axisLine={false} tickLine={false} tickFormatter={fmtM} />
               <YAxis type="category" dataKey="campeonato" tick={<CompYTick />} axisLine={false} tickLine={false} width={110} />
               <RTooltip content={<DarkTooltip />} />
-              <Bar dataKey="2024" name="2024" fill="#555566" radius={[0, 3, 3, 0]} barSize={9}>
+              <Bar dataKey="2024" name="2024" fill={Y24} radius={[0, 3, 3, 0]} barSize={7}>
                 <LabelList dataKey="2024" position="right" formatter={fmtM} style={{ fontSize: 7, fill: C.t3 }} />
               </Bar>
-              <Bar dataKey="2025" name="2025" fill={C.accent} radius={[0, 3, 3, 0]} barSize={9}>
-                <LabelList dataKey="2025" position="right" formatter={fmtM} style={{ fontSize: 7, fill: C.accent }} />
+              <Bar dataKey="2025" name="2025" fill={Y25} radius={[0, 3, 3, 0]} barSize={7}>
+                <LabelList dataKey="2025" position="right" formatter={fmtM} style={{ fontSize: 7, fill: Y25 }} />
+              </Bar>
+              <Bar dataKey="2026" name="2026" fill={Y26} radius={[0, 3, 3, 0]} barSize={7}>
+                <LabelList dataKey="2026" position="right" formatter={fmtM} style={{ fontSize: 7, fill: Y26 }} />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -177,11 +188,14 @@ export default function Comparativo() {
               <XAxis dataKey="campeonato" tick={<CompXTick />} axisLine={false} tickLine={false} height={36} interval={0} />
               <YAxis tick={{ fill: C.t3, fontSize: 8 }} axisLine={false} tickLine={false} tickFormatter={fmtM} />
               <RTooltip content={<DarkTooltip />} />
-              <Bar dataKey="2024" name="2024" fill="#555566" barSize={14} radius={[3, 3, 0, 0]}>
+              <Bar dataKey="2024" name="2024" fill={Y24} barSize={10} radius={[3, 3, 0, 0]}>
                 <LabelList dataKey="2024" position="top" formatter={fmtM} style={{ fontSize: 7, fill: C.t3 }} />
               </Bar>
-              <Bar dataKey="2025" name="2025" fill={C.accent} barSize={14} radius={[3, 3, 0, 0]}>
-                <LabelList dataKey="2025" position="top" formatter={fmtM} style={{ fontSize: 7, fill: C.accent }} />
+              <Bar dataKey="2025" name="2025" fill={Y25} barSize={10} radius={[3, 3, 0, 0]}>
+                <LabelList dataKey="2025" position="top" formatter={fmtM} style={{ fontSize: 7, fill: Y25 }} />
+              </Bar>
+              <Bar dataKey="2026" name="2026" fill={Y26} barSize={10} radius={[3, 3, 0, 0]}>
+                <LabelList dataKey="2026" position="top" formatter={fmtM} style={{ fontSize: 7, fill: Y26 }} />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -190,15 +204,16 @@ export default function Comparativo() {
         {/* Faturamento por Ano */}
         <Card title="Faturamento por ANO">
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={[{ ano: '2024', valor: fat2024 }, { ano: '2025', valor: fat2025 }]} margin={{ top: 8, right: 16, bottom: 8, left: 8 }}>
+            <BarChart data={[{ ano: '2024', valor: fat2024 }, { ano: '2025', valor: fat2025 }, { ano: '2026', valor: fat2026 }]} margin={{ top: 8, right: 16, bottom: 8, left: 8 }}>
               <CartesianGrid stroke={C.border} strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="ano" tick={{ fill: C.t2, fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: C.t3, fontSize: 8 }} axisLine={false} tickLine={false} tickFormatter={fmtM} />
               <RTooltip content={<DarkTooltip />} />
-              <Bar dataKey="valor" name="Faturamento" radius={[4, 4, 0, 0]} barSize={60}>
+              <Bar dataKey="valor" name="Faturamento" radius={[4, 4, 0, 0]} barSize={46}>
                 <LabelList dataKey="valor" position="top" formatter={fmtM} style={{ fontSize: 9, fontWeight: 700, fill: C.t1 }} />
-                <Cell fill="#444455" />
-                <Cell fill={C.accent} />
+                <Cell fill={Y24} />
+                <Cell fill={Y25} />
+                <Cell fill={Y26} />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -212,11 +227,14 @@ export default function Comparativo() {
               <XAxis dataKey="campeonato" tick={<CompXTick />} axisLine={false} tickLine={false} height={36} interval={0} />
               <YAxis tick={{ fill: C.t3, fontSize: 8 }} axisLine={false} tickLine={false} />
               <RTooltip content={<DarkTooltip />} />
-              <Bar dataKey="2024" name="2024" fill="#555566" barSize={14} radius={[3, 3, 0, 0]}>
+              <Bar dataKey="2024" name="2024" fill={Y24} barSize={10} radius={[3, 3, 0, 0]}>
                 <LabelList dataKey="2024" position="top" style={{ fontSize: 7, fill: C.t3 }} />
               </Bar>
-              <Bar dataKey="2025" name="2025" fill={C.accent} barSize={14} radius={[3, 3, 0, 0]}>
-                <LabelList dataKey="2025" position="top" style={{ fontSize: 7, fill: C.accent }} />
+              <Bar dataKey="2025" name="2025" fill={Y25} barSize={10} radius={[3, 3, 0, 0]}>
+                <LabelList dataKey="2025" position="top" style={{ fontSize: 7, fill: Y25 }} />
+              </Bar>
+              <Bar dataKey="2026" name="2026" fill={Y26} barSize={10} radius={[3, 3, 0, 0]}>
+                <LabelList dataKey="2026" position="top" style={{ fontSize: 7, fill: Y26 }} />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -230,11 +248,14 @@ export default function Comparativo() {
               <XAxis dataKey="campeonato" tick={<CompXTick />} axisLine={false} tickLine={false} height={36} interval={0} />
               <YAxis tick={{ fill: C.t3, fontSize: 8 }} axisLine={false} tickLine={false} tickFormatter={fmtK} />
               <RTooltip content={<DarkTooltip />} />
-              <Bar dataKey="2024" name="2024" fill="#555566" barSize={14} radius={[3, 3, 0, 0]}>
+              <Bar dataKey="2024" name="2024" fill={Y24} barSize={10} radius={[3, 3, 0, 0]}>
                 <LabelList dataKey="2024" position="top" formatter={fmtK} style={{ fontSize: 7, fill: C.t3 }} />
               </Bar>
-              <Bar dataKey="2025" name="2025" fill={C.accent} barSize={14} radius={[3, 3, 0, 0]}>
-                <LabelList dataKey="2025" position="top" formatter={fmtK} style={{ fontSize: 7, fill: C.accent }} />
+              <Bar dataKey="2025" name="2025" fill={Y25} barSize={10} radius={[3, 3, 0, 0]}>
+                <LabelList dataKey="2025" position="top" formatter={fmtK} style={{ fontSize: 7, fill: Y25 }} />
+              </Bar>
+              <Bar dataKey="2026" name="2026" fill={Y26} barSize={10} radius={[3, 3, 0, 0]}>
+                <LabelList dataKey="2026" position="top" formatter={fmtK} style={{ fontSize: 7, fill: Y26 }} />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
@@ -247,8 +268,9 @@ export default function Comparativo() {
             <thead>
               <tr style={{ background: C.bgAlt }}>
                 <th style={{ padding: '6px 12px', textAlign: 'left', fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase' }}>Campeonato</th>
-                <th style={{ padding: '6px 8px', textAlign: 'center', fontSize: 9, fontWeight: 700, color: '#555566' }}>2024</th>
-                <th style={{ padding: '6px 8px', textAlign: 'center', fontSize: 9, fontWeight: 700, color: C.accent }}>2025</th>
+                <th style={{ padding: '6px 8px', textAlign: 'center', fontSize: 9, fontWeight: 700, color: Y24 }}>2024</th>
+                <th style={{ padding: '6px 8px', textAlign: 'center', fontSize: 9, fontWeight: 700, color: Y25 }}>2025</th>
+                <th style={{ padding: '6px 8px', textAlign: 'center', fontSize: 9, fontWeight: 700, color: Y26 }}>2026</th>
                 <th style={{ padding: '6px 8px', textAlign: 'center', fontSize: 9, fontWeight: 700, color: C.t2 }}>Total</th>
               </tr>
             </thead>
@@ -264,15 +286,17 @@ export default function Comparativo() {
                       {r.campeonato}
                     </span>
                   </td>
-                  <td style={{ padding: '6px 8px', textAlign: 'center', color: '#5a5a8a', fontWeight: 600 }}>{r['2024'] || '—'}</td>
-                  <td style={{ padding: '6px 8px', textAlign: 'center', color: C.accent, fontWeight: 600 }}>{r['2025'] || '—'}</td>
+                  <td style={{ padding: '6px 8px', textAlign: 'center', color: Y24, fontWeight: 600 }}>{r['2024'] || '—'}</td>
+                  <td style={{ padding: '6px 8px', textAlign: 'center', color: Y25, fontWeight: 600 }}>{r['2025'] || '—'}</td>
+                  <td style={{ padding: '6px 8px', textAlign: 'center', color: Y26, fontWeight: 600 }}>{r['2026'] || '—'}</td>
                   <td style={{ padding: '6px 8px', textAlign: 'center', color: C.t1, fontWeight: 700 }}>{r.total}</td>
                 </tr>
               ))}
               <tr style={{ borderTop: `2px solid ${C.border}`, background: C.bgAlt }}>
                 <td style={{ padding: '6px 12px', fontWeight: 700, color: C.t1, fontSize: 10 }}>Total</td>
-                <td style={{ padding: '6px 8px', textAlign: 'center', color: '#5a5a8a', fontWeight: 700 }}>{totalJogos['2024']}</td>
-                <td style={{ padding: '6px 8px', textAlign: 'center', color: C.accent, fontWeight: 700 }}>{totalJogos['2025']}</td>
+                <td style={{ padding: '6px 8px', textAlign: 'center', color: Y24, fontWeight: 700 }}>{totalJogos['2024']}</td>
+                <td style={{ padding: '6px 8px', textAlign: 'center', color: Y25, fontWeight: 700 }}>{totalJogos['2025']}</td>
+                <td style={{ padding: '6px 8px', textAlign: 'center', color: Y26, fontWeight: 700 }}>{totalJogos['2026']}</td>
                 <td style={{ padding: '6px 8px', textAlign: 'center', color: C.t1, fontWeight: 800 }}>{totalJogos.total}</td>
               </tr>
             </tbody>
