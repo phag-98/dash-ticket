@@ -331,13 +331,14 @@ export default function ChampionshipReport() {
               <FilterBtn key={c} label={c} active={campeonato === c} onClick={() => setCampeonato(c)} color={CAMP_COLORS[c]} />
             ))}
             <div style={{ width: 1, height: 18, background: C.border, flexShrink: 0 }} />
-            {['Todos', '2024', '2025'].map(a => (
+            {['Todos', '2024', '2025', '2026'].map(a => (
               <FilterBtn key={a} label={a} active={ano === a} onClick={() => setAno(a)} />
             ))}
           </div>
         </div>
 
         {/* 4 KPIs */}
+        <KPI label="Jogos" value={filteredFat.length} icon="📅" variation={null} />
         <KPI label="Sócios %" value={fmtPct(filteredKpis.percentualSocios)} icon="/logos/sócio.png" variation={null} />
         <KPI label="Ticket Médio" value={`R$ ${filteredKpis.ticketMedio.toFixed(2).replace('.', ',')}`} icon="🎟" variation={selectedPartida ? null : kpiVariations.ticketMedio} />
         <KPI label="Média de Público" value={fmtK(Math.round(filteredKpis.mediaPublico))} icon="👥" variation={selectedPartida ? null : kpiVariations.mediaPublico} />
@@ -353,6 +354,7 @@ export default function ChampionshipReport() {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
               <thead>
                 <tr style={{ background: C.bgAlt, position: 'sticky', top: 0 }}>
+                  <th style={{ padding: '8px 6px', textAlign: 'center', fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: '1.2px', whiteSpace: 'nowrap' }}>#</th>
                   <th style={{ padding: '8px 10px', textAlign: 'left', fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: '1.2px', whiteSpace: 'nowrap' }}>Rod.</th>
                   <th style={{ padding: '8px 10px', textAlign: 'left', fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: '1.2px' }}>Time</th>
                   <th style={{ padding: '8px 6px', textAlign: 'center', fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: '1.2px' }}>Ano</th>
@@ -379,6 +381,7 @@ export default function ChampionshipReport() {
                         transition: 'background 0.15s',
                       }}
                     >
+                      <td style={{ padding: '8px 6px', textAlign: 'center', fontSize: 10, fontWeight: 700, color: i < 3 ? C.accent : C.t3, fontFamily: "'Courier New', monospace" }}>{i + 1}</td>
                       <td style={{ padding: '8px 10px', color: '#333', fontWeight: 700, fontSize: 10, whiteSpace: 'nowrap', fontFamily: "'Courier New', monospace" }}>{p.rodada}</td>
                       <td style={{ padding: '8px 10px', color: '#111', fontSize: 11, fontWeight: 500, maxWidth: 140 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -403,7 +406,7 @@ export default function ChampionshipReport() {
               </tbody>
               <tfoot>
                 <tr style={{ borderTop: `2px solid ${C.border}`, background: C.bgAlt }}>
-                  <td colSpan={3} style={{ padding: '8px 10px', fontWeight: 700, color: C.t1, fontSize: 11 }}>Total</td>
+                  <td colSpan={4} style={{ padding: '8px 10px', fontWeight: 700, color: C.t1, fontSize: 11 }}>Total</td>
                   <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 800, color: C.accent, fontSize: 12, background: `${C.accent}10`, fontFamily: "'Courier New', monospace" }}>
                     {fmtR(totalFat)}
                   </td>
