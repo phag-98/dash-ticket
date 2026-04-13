@@ -20,8 +20,13 @@ const fmtM = v => {
 };
 const fmtK = v => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : `${v}`;
 
+const MESES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
 // Unique campeonato names
 const CAMP_NAMES = [...new Set(faturamentoPorCampeonatoAno.map(d => d.campeonato).filter(Boolean))].sort();
+
+// Months that actually have data
+const MESES_COM_DADOS = [...new Set(faturamentoPorPartida.map(p => p.mes).filter(Boolean))].sort((a,b) => a-b);
 
 // Camp colors — use design tokens
 const CAMP_COLORS = {
@@ -90,48 +95,86 @@ const DarkTooltip = ({ active, payload, label }) => {
   );
 };
 
-function buildData(field, campFilter) {
-  const filtered = campFilter
-    ? faturamentoPorCampeonatoAno.filter(d => d.campeonato === campFilter)
-    : faturamentoPorCampeonatoAno;
-  const camps = [...new Set(filtered.map(d => d.campeonato))];
+// Aggregate faturamentoPorPartida by campeonato+ano with optional month filter
+function buildData(field, campFilter, mesFilter) {
+  const rows = faturamentoPorPartida.filter(p => {
+    if (campFilter && p.campeonato !== campFilter) return false;
+    if (mesFilter && p.mes !== mesFilter) return false;
+    return true;
+  });
+
+  const camps = [...new Set(rows.map(r => r.campeonato).filter(Boolean))];
   return camps.map(camp => {
-    const d24 = filtered.find(d => d.campeonato === camp && d.ano === 2024);
-    const d25 = filtered.find(d => d.campeonato === camp && d.ano === 2025);
-    const d26 = filtered.find(d => d.campeonato === camp && d.ano === 2026);
-    return { campeonato: camp, '2024': d24?.[field] ?? 0, '2025': d25?.[field] ?? 0, '2026': d26?.[field] ?? 0 };
+    const byYear = (ano) => rows.filter(r => r.campeonato === camp && r.ano === ano);
+    const agg = (rows, f) => {
+      if (!rows.length) return 0;
+      if (f === 'faturamento')  return rows.reduce((s,r) => s + (r.faturamento||0), 0);
+      if (f === 'fatMedio')     return rows.reduce((s,r) => s + (r.faturamento||0), 0) / rows.length;
+      if (f === 'ticketMedio')  { const pub = rows.reduce((s,r)=>s+(r.utilizados||0),0); return pub>0 ? rows.reduce((s,r)=>s+(r.faturamento||0),0)/pub : 0; }
+      if (f === 'mediaPublico') return rows.reduce((s,r)=>s+(r.utilizados||0),0) / rows.length;
+      return 0;
+    };
+    return {
+      campeonato: camp,
+      '2024': agg(byYear(2024), field),
+      '2025': agg(byYear(2025), field),
+      '2026': agg(byYear(2026), field),
+    };
   });
 }
 
 export default function Comparativo() {
   const [campFilter, setCampFilter] = useState(null);
+  const [mesFilter,  setMesFilter]  = useState(null);
 
-  const fatData    = useMemo(() => buildData('faturamento', campFilter), [campFilter]);
-  const fatMedData = useMemo(() => buildData('fatMedio', campFilter), [campFilter]);
-  const tktData    = useMemo(() => buildData('ticketMedio', campFilter), [campFilter]);
-  const pubData    = useMemo(() => buildData('mediaPublico', campFilter), [campFilter]);
+  const fatData    = useMemo(() => buildData('faturamento',  campFilter, mesFilter), [campFilter, mesFilter]);
+  const fatMedData = useMemo(() => buildData('fatMedio',     campFilter, mesFilter), [campFilter, mesFilter]);
+  const tktData    = useMemo(() => buildData('ticketMedio',  campFilter, mesFilter), [campFilter, mesFilter]);
+  const pubData    = useMemo(() => buildData('mediaPublico', campFilter, mesFilter), [campFilter, mesFilter]);
 
-  // Total faturamento by year
-  const fat2024 = faturamentoPorCampeonatoAno.filter(d => d.ano === 2024).reduce((s, d) => s + d.faturamento, 0);
-  const fat2025 = faturamentoPorCampeonatoAno.filter(d => d.ano === 2025).reduce((s, d) => s + d.faturamento, 0);
-  const fat2026 = faturamentoPorCampeonatoAno.filter(d => d.ano === 2026).reduce((s, d) => s + d.faturamento, 0);
+  // Total faturamento by year (with filters)
+  const fatByYear = useMemo(() => {
+    const rows = faturamentoPorPartida.filter(p => {
+      if (campFilter && p.campeonato !== campFilter) return false;
+      if (mesFilter  && p.mes        !== mesFilter)  return false;
+      return true;
+    });
+    return {
+      2024: rows.filter(r => r.ano === 2024).reduce((s,r) => s + r.faturamento, 0),
+      2025: rows.filter(r => r.ano === 2025).reduce((s,r) => s + r.faturamento, 0),
+      2026: rows.filter(r => r.ano === 2026).reduce((s,r) => s + r.faturamento, 0),
+    };
+  }, [campFilter, mesFilter]);
 
-  // Jogos count
+  // Jogos count (with filters)
   const jogosTable = useMemo(() => {
-    const camps = [...new Set(partidas.map(p => p.campeonato).filter(Boolean))].sort();
+    const filtered = partidas.filter(p => {
+      if (campFilter && p.campeonato !== campFilter) return false;
+      if (mesFilter  && p.mes        !== mesFilter)  return false;
+      return true;
+    });
+    const camps = [...new Set(filtered.map(p => p.campeonato).filter(Boolean))].sort();
     return camps.map(c => {
-      const n24 = partidas.filter(p => p.campeonato === c && p.ano === 2024).length;
-      const n25 = partidas.filter(p => p.campeonato === c && p.ano === 2025).length;
-      const n26 = partidas.filter(p => p.campeonato === c && p.ano === 2026).length;
-      return { campeonato: c, '2024': n24, '2025': n25, '2026': n26, total: n24 + n25 + n26 };
+      const n24 = filtered.filter(p => p.campeonato === c && p.ano === 2024).length;
+      const n25 = filtered.filter(p => p.campeonato === c && p.ano === 2025).length;
+      const n26 = filtered.filter(p => p.campeonato === c && p.ano === 2026).length;
+      return { campeonato: c, '2024': n24, '2025': n25, '2026': n26, total: n24+n25+n26 };
     }).filter(r => r.total > 0);
-  }, []);
-  const totalJogos = {
-    '2024': partidas.filter(p => p.ano === 2024).length,
-    '2025': partidas.filter(p => p.ano === 2025).length,
-    '2026': partidas.filter(p => p.ano === 2026).length,
-    total: partidas.length,
-  };
+  }, [campFilter, mesFilter]);
+
+  const totalJogos = useMemo(() => {
+    const filtered = partidas.filter(p => {
+      if (campFilter && p.campeonato !== campFilter) return false;
+      if (mesFilter  && p.mes        !== mesFilter)  return false;
+      return true;
+    });
+    return {
+      '2024': filtered.filter(p => p.ano === 2024).length,
+      '2025': filtered.filter(p => p.ano === 2025).length,
+      '2026': filtered.filter(p => p.ano === 2026).length,
+      total:  filtered.length,
+    };
+  }, [campFilter, mesFilter]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -140,20 +183,40 @@ export default function Comparativo() {
       <div style={{
         background: C.card, border: `1px solid ${C.border}`,
         borderRadius: 10, padding: '10px 16px', boxShadow: SHADOW.card,
-        display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap',
+        display: 'flex', flexDirection: 'column', gap: 10,
       }}>
-        <span style={sectionTitle}>Campeonato</span>
-        <div style={{ width: 1, height: 18, background: C.border, margin: '0 4px' }} />
-        <FilterBtn label="Todos" active={!campFilter} onClick={() => setCampFilter(null)} />
-        {CAMP_NAMES.map(c => (
-          <FilterBtn
-            key={c}
-            label={c}
-            active={campFilter === c}
-            onClick={() => setCampFilter(campFilter === c ? null : c)}
-            color={CAMP_COLORS[c]}
-          />
-        ))}
+        {/* Campeonato row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <span style={sectionTitle}>Campeonato</span>
+          <div style={{ width: 1, height: 18, background: C.border, margin: '0 4px' }} />
+          <FilterBtn label="Todos" active={!campFilter} onClick={() => setCampFilter(null)} />
+          {CAMP_NAMES.map(c => (
+            <FilterBtn
+              key={c}
+              label={c}
+              active={campFilter === c}
+              onClick={() => setCampFilter(campFilter === c ? null : c)}
+              color={CAMP_COLORS[c]}
+            />
+          ))}
+        </div>
+
+        {/* Month row */}
+        {MESES_COM_DADOS.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <span style={sectionTitle}>Mês</span>
+            <div style={{ width: 1, height: 18, background: C.border, margin: '0 4px' }} />
+            <FilterBtn label="Todos" active={!mesFilter} onClick={() => setMesFilter(null)} />
+            {MESES_COM_DADOS.map(m => (
+              <FilterBtn
+                key={m}
+                label={MESES[m - 1]}
+                active={mesFilter === m}
+                onClick={() => setMesFilter(mesFilter === m ? null : m)}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Charts grid */}
@@ -204,7 +267,7 @@ export default function Comparativo() {
         {/* Faturamento por Ano */}
         <Card title="Faturamento por ANO">
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={[{ ano: '2024', valor: fat2024 }, { ano: '2025', valor: fat2025 }, { ano: '2026', valor: fat2026 }]} margin={{ top: 8, right: 16, bottom: 8, left: 8 }}>
+            <BarChart data={[{ ano: '2024', valor: fatByYear[2024] }, { ano: '2025', valor: fatByYear[2025] }, { ano: '2026', valor: fatByYear[2026] }]} margin={{ top: 8, right: 16, bottom: 8, left: 8 }}>
               <CartesianGrid stroke={C.border} strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="ano" tick={{ fill: C.t2, fontSize: 11, fontWeight: 700 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: C.t3, fontSize: 8 }} axisLine={false} tickLine={false} tickFormatter={fmtM} />
@@ -319,11 +382,11 @@ export default function Comparativo() {
               </tr>
             </thead>
             <tbody>
-              {[...partidas].sort((a, b) => {
-                if (campFilter && a.campeonato !== campFilter && b.campeonato === campFilter) return 1;
-                if (campFilter && a.campeonato === campFilter && b.campeonato !== campFilter) return -1;
-                return b.data.localeCompare(a.data);
-              }).filter(p => !campFilter || p.campeonato === campFilter).map((p, i) => (
+              {[...partidas].filter(p => {
+                if (campFilter && p.campeonato !== campFilter) return false;
+                if (mesFilter  && p.mes        !== mesFilter)  return false;
+                return true;
+              }).sort((a, b) => b.data.localeCompare(a.data)).map((p, i) => (
                 <tr key={p.id} style={{ borderBottom: `1px solid ${C.border}`, background: i % 2 === 0 ? 'transparent' : C.bgAlt + '44' }}>
                   <td style={{ padding: '6px 12px', color: C.t1, fontWeight: 500 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
