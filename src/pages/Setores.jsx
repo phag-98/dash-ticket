@@ -153,8 +153,15 @@ function TeamXTick({ x, y, payload }) {
 }
 
 export default function Setores() {
-  const [ano, setAno]         = useState('Todos');
-  const [campeonato, setCamp] = useState('Todos');
+  const [ano, setAno]           = useState('Todos');
+  const [campeonato, setCamp]   = useState('Todos');
+  const [hiddenYears, setHiddenYears] = useState(new Set());
+
+  const toggleYear = y => setHiddenYears(prev => {
+    const next = new Set(prev);
+    next.has(y) ? next.delete(y) : next.add(y);
+    return next;
+  });
 
   const filteredFat = useMemo(() => faturamentoPorPartida.filter(p => {
     if (campeonato !== 'Todos' && p.campeonato !== campeonato) return false;
@@ -162,16 +169,17 @@ export default function Setores() {
     return true;
   }), [campeonato, ano]);
 
-  // Two lines per year
+  // Three lines per year, filtered by campeonato
   const mesData = useMemo(() => {
     const base = faturamentoPorPartida.filter(p => campeonato === 'Todos' || p.campeonato === campeonato);
-    const m24 = {}, m25 = {};
+    const m24 = {}, m25 = {}, m26 = {};
     base.forEach(p => {
       const m = MONTH_NAMES[(p.mes || 1) - 1];
       if (p.ano === 2024) m24[m] = (m24[m] || 0) + p.faturamento;
       if (p.ano === 2025) m25[m] = (m25[m] || 0) + p.faturamento;
+      if (p.ano === 2026) m26[m] = (m26[m] || 0) + p.faturamento;
     });
-    return MONTH_NAMES.map(m => ({ mes: m, '2024': m24[m] || null, '2025': m25[m] || null }));
+    return MONTH_NAMES.map(m => ({ mes: m, '2024': m24[m] || null, '2025': m25[m] || null, '2026': m26[m] || null }));
   }, [campeonato]);
 
   // Bar chart by game sorted by date
@@ -213,7 +221,7 @@ export default function Setores() {
       {/* Filters */}
       <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '10px 16px', boxShadow: SHADOW.card, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <span style={sectionTitle}>Ano</span>
-        {['Todos', '2024', '2025'].map(y => (
+        {['Todos', '2024', '2025', '2026'].map(y => (
           <FilterBtn key={y} label={y} active={ano === y} onClick={() => setAno(y)} />
         ))}
         <div style={{ width: 1, height: 18, background: C.border, margin: '0 4px' }} />
@@ -269,11 +277,28 @@ export default function Setores() {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
-          {/* Faturamento por mês — 2 linhas */}
+          {/* Faturamento por mês — 3 linhas com legenda clicável */}
           <Card title="Soma de FATURAMENTO por Mês">
             <div style={{ padding: '4px 16px 0', display: 'flex', gap: 16 }}>
-              {(ano === 'Todos' || ano === '2024') && <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 9, color: C.t2 }}><span style={{ width: 16, height: 2, background: '#888', display: 'inline-block' }} />2024</span>}
-              {(ano === 'Todos' || ano === '2025') && <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 9, color: C.t2 }}><span style={{ width: 16, height: 2, background: C.accent, display: 'inline-block' }} />2025</span>}
+              {[
+                { key: '2024', color: '#888' },
+                { key: '2025', color: C.accent },
+                { key: '2026', color: '#0284c7' },
+              ].filter(({ key }) => ano === 'Todos' || ano === key).map(({ key, color }) => (
+                <span
+                  key={key}
+                  onClick={() => toggleYear(key)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 5,
+                    fontSize: 9, color: C.t2, cursor: 'pointer',
+                    opacity: hiddenYears.has(key) ? 0.35 : 1,
+                    userSelect: 'none',
+                  }}
+                >
+                  <span style={{ width: 16, height: 2, background: color, display: 'inline-block', borderRadius: 1 }} />
+                  {key}
+                </span>
+              ))}
             </div>
             <ResponsiveContainer width="100%" height={170}>
               <LineChart data={mesData} margin={{ top: 8, right: 16, bottom: 8, left: 10 }}>
@@ -281,8 +306,9 @@ export default function Setores() {
                 <XAxis dataKey="mes" tick={{ fill: C.t3, fontSize: 9 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: C.t3, fontSize: 9 }} axisLine={false} tickLine={false} tickFormatter={v => `R$${(v / 1_000_000).toFixed(1)}M`} />
                 <RTooltip content={<DarkTooltip />} />
-                {(ano === 'Todos' || ano === '2024') && <Line type="monotone" dataKey="2024" name="2024" stroke="#888" strokeWidth={2} dot={{ fill: '#888', r: 2 }} connectNulls />}
-                {(ano === 'Todos' || ano === '2025') && <Line type="monotone" dataKey="2025" name="2025" stroke={C.accent} strokeWidth={2.5} dot={{ fill: C.accent, r: 3 }} connectNulls />}
+                {(ano === 'Todos' || ano === '2024') && !hiddenYears.has('2024') && <Line type="monotone" dataKey="2024" name="2024" stroke="#888" strokeWidth={2} dot={{ fill: '#888', r: 2 }} connectNulls />}
+                {(ano === 'Todos' || ano === '2025') && !hiddenYears.has('2025') && <Line type="monotone" dataKey="2025" name="2025" stroke={C.accent} strokeWidth={2.5} dot={{ fill: C.accent, r: 3 }} connectNulls />}
+                {(ano === 'Todos' || ano === '2026') && !hiddenYears.has('2026') && <Line type="monotone" dataKey="2026" name="2026" stroke="#0284c7" strokeWidth={2.5} dot={{ fill: '#0284c7', r: 3 }} connectNulls />}
               </LineChart>
             </ResponsiveContainer>
           </Card>
