@@ -155,19 +155,42 @@ function TeamXTick({ x, y, payload }) {
 export default function Setores() {
   const [ano, setAno]           = useState('Todos');
   const [campeonato, setCamp]   = useState('Todos');
-  const [hiddenYears, setHiddenYears] = useState(new Set());
+  const [hiddenYears,   setHiddenYears]   = useState(new Set());
+  const [hiddenSetores, setHiddenSetores] = useState(new Set());
 
-  const toggleYear = y => setHiddenYears(prev => {
-    const next = new Set(prev);
-    next.has(y) ? next.delete(y) : next.add(y);
-    return next;
-  });
+  const toggleYear   = y => setHiddenYears(prev => { const n = new Set(prev); n.has(y) ? n.delete(y) : n.add(y); return n; });
+  const toggleSetor  = s => setHiddenSetores(prev => { const n = new Set(prev); n.has(s) ? n.delete(s) : n.add(s); return n; });
 
   const filteredFat = useMemo(() => faturamentoPorPartida.filter(p => {
     if (campeonato !== 'Todos' && p.campeonato !== campeonato) return false;
     if (ano !== 'Todos' && String(p.ano) !== ano) return false;
     return true;
   }), [campeonato, ano]);
+
+  // Setor summary computed from ingressos filtered by year + campeonato
+  const setorSummary = useMemo(() => {
+    const filteredIds = new Set(filteredFat.map(p => p.idPartida));
+    const nPartidas   = filteredIds.size || 1;
+    const bySetor = {};
+    ingressos.forEach(r => {
+      if (!filteredIds.has(r.idPartida)) return;
+      const nome = setorNameMap[r.idSetor];
+      if (!nome) return;
+      if (!bySetor[r.idSetor]) bySetor[r.idSetor] = { idSetor: r.idSetor, setor: nome, faturamento: 0, publico: 0 };
+      bySetor[r.idSetor].faturamento += (r.unitario || 0) * (r.publico || 0);
+      bySetor[r.idSetor].publico     += (r.publico || 0);
+    });
+    return Object.values(bySetor).map(s => {
+      const base  = faturamentoPorSetor.find(x => x.idSetor === s.idSetor);
+      const cap   = base && base.taxaOcupacao > 0 ? (base.mediaPublico / (base.taxaOcupacao / 100)) : null;
+      return {
+        ...s,
+        ticketMedio:   s.publico > 0 ? s.faturamento / s.publico : 0,
+        mediaPublico:  s.publico / nPartidas,
+        taxaOcupacao:  cap ? (s.publico / (nPartidas * cap)) * 100 : null,
+      };
+    }).sort((a, b) => b.faturamento - a.faturamento);
+  }, [filteredFat]);
 
   // Three lines per year, filtered by campeonato
   const mesData = useMemo(() => {
@@ -246,7 +269,7 @@ export default function Setores() {
                 </tr>
               </thead>
               <tbody>
-                {faturamentoPorSetor.map((s, i) => (
+                {setorSummary.map((s, i) => (
                   <tr key={s.idSetor} style={{ borderBottom: `1px solid ${C.border}`, background: i % 2 === 0 ? 'transparent' : C.bgAlt + '44' }}>
                     <td style={{ padding: '6px 8px', color: C.t3, fontSize: 9, fontFamily: 'monospace' }}>{s.idSetor}</td>
                     <td style={{ padding: '6px 8px', color: C.t1, fontWeight: 500 }}>
@@ -260,14 +283,16 @@ export default function Setores() {
                     <td style={{ padding: '6px 8px', textAlign: 'right', color: C.t2, fontSize: 9 }}>{s.ticketMedio > 0 ? `R$ ${s.ticketMedio.toFixed(2)}` : '—'}</td>
                     <td style={{ padding: '6px 8px', textAlign: 'right', color: C.t2, fontSize: 9 }}>{s.mediaPublico > 0 ? s.mediaPublico.toFixed(0) : '—'}</td>
                     <td style={{ padding: '6px 8px', textAlign: 'right', fontSize: 9 }}>
-                      <span style={{ color: s.taxaOcupacao >= 70 ? C.green : s.taxaOcupacao >= 50 ? C.amber : C.red, fontWeight: 700 }}>{s.taxaOcupacao.toFixed(1)}%</span>
+                      {s.taxaOcupacao != null
+                        ? <span style={{ color: s.taxaOcupacao >= 70 ? C.green : s.taxaOcupacao >= 50 ? C.amber : C.red, fontWeight: 700 }}>{s.taxaOcupacao.toFixed(1)}%</span>
+                        : <span style={{ color: C.t3 }}>—</span>}
                     </td>
                   </tr>
                 ))}
                 <tr style={{ borderTop: `2px solid ${C.border}`, background: C.bgAlt }}>
                   <td colSpan={2} style={{ padding: '6px 8px', fontWeight: 700, color: C.t1 }}>Total</td>
-                  <td style={{ padding: '6px 8px', textAlign: 'right', color: C.accent, fontWeight: 800 }}>{fmtM(faturamentoPorSetor.reduce((s, x) => s + x.faturamento, 0))}</td>
-                  <td style={{ padding: '6px 8px', textAlign: 'right', color: C.t1, fontWeight: 700 }}>{faturamentoPorSetor.reduce((s, x) => s + x.publico, 0).toLocaleString('pt-BR')}</td>
+                  <td style={{ padding: '6px 8px', textAlign: 'right', color: C.accent, fontWeight: 800 }}>{fmtM(setorSummary.reduce((s, x) => s + x.faturamento, 0))}</td>
+                  <td style={{ padding: '6px 8px', textAlign: 'right', color: C.t1, fontWeight: 700 }}>{setorSummary.reduce((s, x) => s + x.publico, 0).toLocaleString('pt-BR')}</td>
                   <td colSpan={3} />
                 </tr>
               </tbody>
@@ -341,8 +366,16 @@ export default function Setores() {
       <Card title="Preço Inteira por TIME e SETOR">
         <div style={{ padding: '8px 16px 0', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           {catKeysUnit.map(s => (
-            <span key={s} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 9, color: C.t2 }}>
-              <span style={{ width: 16, height: 2, background: getSetorColor(s), display: 'inline-block' }} />
+            <span
+              key={s}
+              onClick={() => toggleSetor(s)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 4, fontSize: 9,
+                color: C.t2, cursor: 'pointer', userSelect: 'none',
+                opacity: hiddenSetores.has(s) ? 0.3 : 1,
+              }}
+            >
+              <span style={{ width: 16, height: 2, background: getSetorColor(s), display: 'inline-block', borderRadius: 1 }} />
               {s}
             </span>
           ))}
@@ -353,7 +386,7 @@ export default function Setores() {
             <XAxis dataKey="label" tick={<TeamXTick />} axisLine={false} tickLine={false} height={30} interval={0} />
             <YAxis tick={{ fill: C.t3, fontSize: 9 }} axisLine={false} tickLine={false} tickFormatter={v => `R$${v}`} />
             <RTooltip content={<DarkTooltip />} />
-            {catKeysUnit.map(s => (
+            {catKeysUnit.filter(s => !hiddenSetores.has(s)).map(s => (
               <Line key={s} type="monotone" dataKey={s} stroke={getSetorColor(s)} strokeWidth={1.5} dot={{ r: 2, fill: getSetorColor(s) }} connectNulls />
             ))}
           </LineChart>
