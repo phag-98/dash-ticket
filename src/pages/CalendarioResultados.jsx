@@ -157,34 +157,36 @@ export default function CalendarioResultados({ campeonato = 'Todos', ano = 'Todo
                     {formatDate(g.data)}
                   </div>
 
-                  {/* Botafogo (sempre à esquerda) */}
+                  {/* Time mandante (esquerda) */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 7, justifyContent: 'flex-end' }}>
-                    <span style={{ fontSize: 12, fontWeight: 800, color: C.t1, textAlign: 'right',
+                    <span style={{ fontSize: 12, fontWeight: g.mandante === 'Botafogo' ? 800 : 500,
+                      color: g.mandante === 'Botafogo' ? C.t1 : C.t2, textAlign: 'right',
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120 }}>
-                      Botafogo
+                      {g.mandante}
                     </span>
-                    <TeamLogo name="Botafogo" size={26} />
+                    <TeamLogo name={g.mandante} size={26} />
                   </div>
 
                   {/* Placar */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-                    {g.golsBot !== null && g.golsAdv !== null ? (
+                    {g.golsMandante !== null && g.golsVisitante !== null ? (
                       <>
-                        <span style={{ fontSize: 17, fontWeight: 800, color: C.t1, minWidth: 14, textAlign: 'center' }}>{g.golsBot}</span>
+                        <span style={{ fontSize: 17, fontWeight: 800, color: C.t1, minWidth: 14, textAlign: 'center' }}>{g.golsMandante}</span>
                         <span style={{ fontSize: 12, color: '#bbb' }}>–</span>
-                        <span style={{ fontSize: 17, fontWeight: 800, color: C.t1, minWidth: 14, textAlign: 'center' }}>{g.golsAdv}</span>
+                        <span style={{ fontSize: 17, fontWeight: 800, color: C.t1, minWidth: 14, textAlign: 'center' }}>{g.golsVisitante}</span>
                       </>
                     ) : (
                       <span style={{ fontSize: 11, color: C.t3 }}>–</span>
                     )}
                   </div>
 
-                  {/* Adversário */}
+                  {/* Time visitante (direita) */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                    <TeamLogo name={g.adversario} size={26} />
-                    <span style={{ fontSize: 12, fontWeight: 500, color: C.t2,
+                    <TeamLogo name={g.visitante} size={26} />
+                    <span style={{ fontSize: 12, fontWeight: g.visitante === 'Botafogo' ? 800 : 500,
+                      color: g.visitante === 'Botafogo' ? C.t1 : C.t2,
                       overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 120 }}>
-                      {g.adversario}
+                      {g.visitante}
                     </span>
                   </div>
 

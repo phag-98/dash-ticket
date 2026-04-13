@@ -702,46 +702,55 @@ OUT.write_text("\n".join(lines), encoding="utf-8")
 print(f"\n✓ Written {OUT}")
 
 # ── Generate placares.js from dPlacares.xlsx ────────────────────────────────
-# dPlacares colunas reais:
-#   Data, Competição, ID_CAMPEONATO, Adversário, ID_TIME,
-#   Placar Adversário, Placar Botafogo, Resultado (V/D/E)
+# dPlacares colunas: Data, ID_CAMPEONATO, Adversário, Placar Adversário,
+#                    Placar Botafogo, Resultado, Local (C=casa / F=fora)
+# Competição = dCampeonatos.NOME via ID_CAMPEONATO
 PLAC_OUT = BASE / "src/data/placares.js"
 
 if dPlac is not None:
     dPlac.columns = [str(c).strip() for c in dPlac.columns]
-
-    # Normaliza DATA
     dPlac["_data"] = pd.to_datetime(dPlac["Data"], dayfirst=True, errors="coerce")
     dPlac["_data_fmt"] = dPlac["_data"].dt.strftime("%d/%m/%Y")
+    # Nome da competição via dCampeonatos
+    dPlac["_camp"] = dPlac["ID_CAMPEONATO"].map(camp_map).fillna(dPlac.get("Competição", ""))
 
     plac_rows = []
     for _, row in dPlac.sort_values("_data", ascending=False).iterrows():
-        camp    = str(row.get("Competição", "") or "").strip()
-        adv     = str(row.get("Adversário", "") or "").strip()
-        gbot    = row.get("Placar Botafogo")
-        gadv    = row.get("Placar Adversário")
-        res     = str(row.get("Resultado", "") or "").strip()
-        data    = row.get("_data_fmt", "") or ""
-        tem_res = res in ("V", "D", "E") or (pd.notna(gbot) and pd.notna(gadv))
+        camp   = str(row.get("_camp", "") or "").strip()
+        adv    = str(row.get("Adversário", "") or "").strip()
+        gbot   = row.get("Placar Botafogo")
+        gadv   = row.get("Placar Adversário")
+        res    = str(row.get("Resultado", "") or "").strip()
+        local  = str(row.get("Local", "C") or "C").strip().upper()
+        data   = row.get("_data_fmt", "") or ""
 
         gbot_s = int(gbot) if pd.notna(gbot) else "null"
         gadv_s = int(gadv) if pd.notna(gadv) else "null"
 
+        # C = Botafogo mandante (esquerda); F = Botafogo visitante (direita)
+        if local == "C":
+            mandante, visitante = "Botafogo", adv
+            gm, gv = gbot_s, gadv_s
+        else:
+            mandante, visitante = adv, "Botafogo"
+            gm, gv = gadv_s, gbot_s
+
         plac_rows.append({
-            "data":       data,
+            "data":      data,
             "campeonato": camp,
-            "adversario": adv,
-            "golsBot":    gbot_s,
-            "golsAdv":    gadv_s,
-            "resultado":  res if tem_res else "",
+            "mandante":  mandante,
+            "visitante": visitante,
+            "golsMandante": gm,
+            "golsVisitante": gv,
+            "resultado": res,
         })
 
     def row_to_js(r):
         res_s = f'"{r["resultado"]}"' if r["resultado"] else '""'
         return (
             f'  {{"data":"{r["data"]}","campeonato":"{r["campeonato"]}",'
-            f'"adversario":"{r["adversario"]}",'
-            f'"golsBot":{r["golsBot"]},"golsAdv":{r["golsAdv"]},'
+            f'"mandante":"{r["mandante"]}","visitante":"{r["visitante"]}",'
+            f'"golsMandante":{r["golsMandante"]},"golsVisitante":{r["golsVisitante"]},'
             f'"resultado":{res_s}}}'
         )
 
