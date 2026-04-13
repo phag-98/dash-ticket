@@ -19,9 +19,13 @@ dTimes = pd.read_excel(BASE / "dTimes.xlsx")
 dTorc  = pd.read_excel(BASE / "dTorcedores.xlsx")
 fBord  = pd.read_excel(BASE / "fBordero.xlsx")
 fIngr  = pd.read_excel(BASE / "fIngressos.xlsx")
+dPlac_path = BASE / "dPlacares.xlsx"
+dPlac  = pd.read_excel(dPlac_path) if dPlac_path.exists() else None
 
 for df in [dCamp, dEstad, dPart, dSetor, dTimes, dTorc, fBord, fIngr]:
     df.columns = [str(c).strip() for c in df.columns]
+if dPlac is not None:
+    dPlac.columns = [str(c).strip() for c in dPlac.columns]
 
 # ── 2. Lookup maps ──────────────────────────────────────────────────────────
 camp_map   = dict(zip(dCamp["ID_CAMPEONATO"], dCamp["NOME"]))       # id -> nome
@@ -696,6 +700,68 @@ lines = [
 
 OUT.write_text("\n".join(lines), encoding="utf-8")
 print(f"\n✓ Written {OUT}")
+
+# ── Generate placares.js from dPlacares.xlsx ────────────────────────────────
+PLAC_OUT = BASE / "src/data/placares.js"
+
+dPart["DATA_FMT"] = pd.to_datetime(dPart["DATA"]).dt.strftime("%d/%m/%Y")
+dPart["ANO"]      = pd.to_datetime(dPart["DATA"]).dt.year
+dPart["CAMPEONATO"] = dPart["ID_CAMPEONATO"].map(camp_map)
+dPart["TIME_NOME"]  = dPart["ID_TIME"].map(time_map)
+
+if dPlac is not None and "RESULTADO" in dPlac.columns:
+    # Build resultado map: ID_PARTIDA -> (gols_mand, gols_vis)
+    plac_map = {}
+    for _, row in dPlac.iterrows():
+        res = str(row.get("RESULTADO", "")).strip()
+        if "-" in res:
+            parts = res.split("-")
+            try:
+                plac_map[row["ID_PARTIDA"]] = (int(parts[0]), int(parts[1]))
+            except:
+                pass
+
+    plac_rows = []
+    for _, row in dPart.sort_values("DATA").iterrows():
+        pid  = row["ID_PARTIDA"]
+        res  = plac_map.get(pid)
+        gm   = res[0] if res else "null"
+        gv   = res[1] if res else "null"
+        status = "FT" if res else "upcoming"
+        camp_val = row.get("CAMPEONATO", "")
+        plac_rows.append({
+            "id":            pid,
+            "data":          row["DATA_FMT"],
+            "campeonato":    camp_val if pd.notna(camp_val) else "",
+            "mandante":      "Botafogo",
+            "visitante":     row.get("TIME_NOME", ""),
+            "golsMandante":  gm,
+            "golsVisitante": gv,
+            "status":        status,
+            "rodada":        str(row.get("RODADA", "")),
+            "horario":       str(row.get("HORARIO", ""))[:5] if pd.notna(row.get("HORARIO")) else "",
+        })
+
+    def row_to_js(r):
+        gm = r["golsMandante"]
+        gv = r["golsVisitante"]
+        gm_s = str(gm) if gm != "null" else "null"
+        gv_s = str(gv) if gv != "null" else "null"
+        return (
+            f'  {{"id":"{r["id"]}","data":"{r["data"]}","campeonato":"{r["campeonato"]}",'
+            f'"mandante":"Botafogo","visitante":"{r["visitante"]}",'
+            f'"golsMandante":{gm_s},"golsVisitante":{gv_s},'
+            f'"status":"{r["status"]}","rodada":"{r["rodada"]}","horario":"{r["horario"]}"}}'
+        )
+
+    plac_lines = ["export const placares = ["]
+    for i, r in enumerate(plac_rows):
+        sep = "," if i < len(plac_rows) - 1 else ""
+        plac_lines.append(row_to_js(r) + sep)
+    plac_lines.append("];")
+    PLAC_OUT.write_text("\n".join(plac_lines), encoding="utf-8")
+    filled = sum(1 for r in plac_rows if r["status"] == "FT")
+    print(f"✓ Written {PLAC_OUT} ({filled}/{len(plac_rows)} com resultado)")
 print(f"  campeonatos: {len(campeonatos)}")
 print(f"  estadios: {len(estadios)}")
 print(f"  partidas: {len(partidas)}")
