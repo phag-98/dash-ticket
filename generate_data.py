@@ -21,11 +21,15 @@ fBord  = pd.read_excel(BASE / "fBordero.xlsx")
 fIngr  = pd.read_excel(BASE / "fIngressos.xlsx")
 dPlac_path = BASE / "dPlacares.xlsx"
 dPlac  = pd.read_excel(dPlac_path) if dPlac_path.exists() else None
+dOrca_path = BASE / "dOrcamento.xlsx"
+dOrca  = pd.read_excel(dOrca_path) if dOrca_path.exists() else None
 
 for df in [dCamp, dEstad, dPart, dSetor, dTimes, dTorc, fBord, fIngr]:
     df.columns = [str(c).strip() for c in df.columns]
 if dPlac is not None:
     dPlac.columns = [str(c).strip() for c in dPlac.columns]
+if dOrca is not None:
+    dOrca.columns = [str(c).strip() for c in dOrca.columns]
 
 # ── 2. Lookup maps ──────────────────────────────────────────────────────────
 camp_map   = dict(zip(dCamp["ID_CAMPEONATO"], dCamp["NOME"]))       # id -> nome
@@ -653,6 +657,22 @@ for _, r in desp_detail.iterrows():
         "valor":      v,
     })
 
+# ── 9n. Orçamento ─────────────────────────────────────────────────────────────
+orcamento = []
+if dOrca is not None:
+    dOrca["CAMPEONATO"] = dOrca["ID_CAMPEONATO"].map(camp_map)
+    for _, r in dOrca.iterrows():
+        camp = str(r["CAMPEONATO"]) if pd.notna(r["CAMPEONATO"]) else ""
+        if not camp:
+            continue
+        bilheteria = sf(r["Bilheteria"])
+        orcamento.append({
+            "campeonato": camp,
+            "ano":        si(r["Ano"]),
+            "mes":        si(r["Mês"]),
+            "bilheteria": bilheteria,
+        })
+
 # ── 11. Write JS file ────────────────────────────────────────────────────────
 def to_js(obj):
     """Convert to compact JS-compatible JSON (no trailing commas)."""
@@ -690,6 +710,7 @@ lines = [
     f"export const allSetorNames = {to_js(all_setor_names)};",
     f"export const plPorPartida = {to_js(plPorPartida)};",
     f"export const plDetalhe = {to_js(plDetalhe)};",
+    f"export const orcamento = {to_js(orcamento)};",
     "",
     "// Convenience: unique campeonato names",
     f"export const CAMPEONATOS = {to_js(sorted(set(p['campeonato'] for p in partidas if p['campeonato'])))};",
