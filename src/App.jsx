@@ -118,7 +118,7 @@ export default function App() {
       </header>
 
       {/* ── Page content ── */}
-      <main style={{ padding:'20px 24px' }}>
+      <main style={{ padding:'16px 12px' }}>
         {tab === 'championship' && <ChampionshipReport />}
         {tab === 'comparativo'  && <Comparativo />}
         {tab === 'setores'      && <Setores />}
