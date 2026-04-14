@@ -566,10 +566,7 @@ export default function ChampionshipReport() {
         </div>
       </div>
 
-      {/* ── Row 3: Calendário e Resultados ── */}
-      <CalendarioResultados campeonato={campeonato} ano={ano} />
-
-      {/* ── Row 4: Bilheteria Realizado vs Orçado ── */}
+      {/* ── Row 3: Bilheteria Realizado vs Orçado ── */}
       <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 16 }}>
 
         {/* KPI card */}
@@ -650,6 +647,9 @@ export default function ChampionshipReport() {
           </ResponsiveContainer>
         </Card>
       </div>
+
+      {/* ── Row 4: Calendário e Resultados ── */}
+      <CalendarioResultados campeonato={campeonato} ano={ano} />
 
     </div>
   );
