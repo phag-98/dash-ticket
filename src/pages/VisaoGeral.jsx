@@ -5,10 +5,10 @@ import {
   BarChart, Bar, Cell, LineChart, Line, ComposedChart, LabelList,
 } from 'recharts';
 import { C, FONT, SHADOW, CAMP_COLORS as TOKEN_CAMP_COLORS } from '../tokens';
-import { TeamBadge, TeamXTick, TeamYTick, CompYTick, COMP_LOGOS } from '../teamLogos.jsx';
+import { TeamBadge, TeamXTick, TeamYTick, COMP_LOGOS } from '../teamLogos.jsx';
 import {
   faturamentoPorPartida, publicoPorSetorPartida, unitarioPorTimeESetor,
-  publicoETicketPorTime, faturamentoPorCampeonatoAno, partidas, kpis, orcamento,
+  publicoETicketPorTime, faturamentoPorCampeonatoAno, partidas, kpis,
 } from '../data/data';
 
 const fmtM = v => {
@@ -178,51 +178,6 @@ export default function VisaoGeral() {
     }).filter(Boolean);
   }, [filteredFat]);
 
-  // Total faturamento realizado (filtered)
-  const fatRealizadoTotal = useMemo(() =>
-    filteredFat.reduce((s, p) => s + p.faturamento, 0),
-  [filteredFat]);
-
-  // Total orçado (filtered)
-  const orcadoTotal = useMemo(() =>
-    orcamento.filter(o => {
-      if (campFilter && o.campeonato !== campFilter) return false;
-      if (anoFilter  && o.ano        !== anoFilter)  return false;
-      return true;
-    }).reduce((s, o) => s + o.bilheteria, 0),
-  [campFilter, anoFilter]);
-
-  // Realizado vs orçado by year
-  const orcVsRealByYear = useMemo(() =>
-    [2024, 2025, 2026].map(ano => {
-      const realizado = faturamentoPorPartida
-        .filter(p => p.ano === ano && (!campFilter || p.campeonato === campFilter))
-        .reduce((s, p) => s + p.faturamento, 0);
-      const orcado = orcamento
-        .filter(o => o.ano === ano && (!campFilter || o.campeonato === campFilter))
-        .reduce((s, o) => s + o.bilheteria, 0);
-      const pct = orcado > 0 ? Math.round(realizado / orcado * 100) : null;
-      return { ano, realizado, orcado, pct };
-    }),
-  [campFilter]);
-
-  // Realizado vs orçado by campeonato
-  const orcVsRealData = useMemo(() => {
-    const allCamps = [...new Set([
-      ...faturamentoPorPartida.map(p => p.campeonato).filter(Boolean),
-      ...orcamento.map(o => o.campeonato).filter(Boolean),
-    ])].filter(c => !campFilter || c === campFilter).sort();
-    return allCamps.map(c => {
-      const realizado = faturamentoPorPartida
-        .filter(p => p.campeonato === c && (!anoFilter || p.ano === anoFilter))
-        .reduce((s, p) => s + p.faturamento, 0);
-      const orcado = orcamento
-        .filter(o => o.campeonato === c && (!anoFilter || o.ano === anoFilter))
-        .reduce((s, o) => s + o.bilheteria, 0);
-      return { campeonato: c, realizado, orcado };
-    }).filter(r => r.realizado > 0 || r.orcado > 0);
-  }, [campFilter, anoFilter]);
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
@@ -257,91 +212,6 @@ export default function VisaoGeral() {
           <span style={{ fontSize: 10, color: C.t3 }}>Número de jogos: </span>
           <span style={{ fontSize: 14, fontWeight: 800, color: C.accent }}>{nJogos}</span>
         </div>
-      </div>
-
-      {/* Row 0: Faturamento KPI + Orçamento comparison */}
-      <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 14 }}>
-
-        {/* KPI card */}
-        <Card title="Bilheteria — Realizado vs Orçado">
-          {/* Total */}
-          <div style={{ padding: '10px 16px 4px', display: 'flex', alignItems: 'baseline', gap: 8 }}>
-            <span style={{ fontSize: 28, fontWeight: 800, color: C.accent, fontVariantNumeric: 'tabular-nums' }}>{fmtM(fatRealizadoTotal)}</span>
-            <span style={{ fontSize: 10, color: C.t3 }}>realizado</span>
-          </div>
-          {/* Progress bar */}
-          {orcadoTotal > 0 && (
-            <div style={{ padding: '0 16px 10px' }}>
-              <div style={{ background: C.border, borderRadius: 4, height: 7, overflow: 'hidden' }}>
-                <div style={{
-                  width: `${Math.min(100, fatRealizadoTotal / orcadoTotal * 100)}%`,
-                  height: '100%', borderRadius: 4, background: C.accent,
-                  transition: 'width 0.4s ease',
-                }} />
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 3 }}>
-                <span style={{ fontSize: 9, color: C.t3 }}>0</span>
-                <span style={{ fontSize: 9, fontWeight: 700, color: C.t2 }}>
-                  {Math.round(fatRealizadoTotal / orcadoTotal * 100)}% do orçado
-                </span>
-                <span style={{ fontSize: 9, color: C.t3 }}>{fmtM(orcadoTotal)}</span>
-              </div>
-            </div>
-          )}
-          {/* By year */}
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 10 }}>
-            <thead>
-              <tr style={{ background: C.bgAlt }}>
-                <th style={{ padding: '5px 12px', textAlign: 'left', fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase' }}>Ano</th>
-                <th style={{ padding: '5px 8px', textAlign: 'right', fontSize: 9, fontWeight: 700, color: C.accent }}>Realizado</th>
-                <th style={{ padding: '5px 8px', textAlign: 'right', fontSize: 9, fontWeight: 700, color: C.t3 }}>Orçado</th>
-                <th style={{ padding: '5px 8px', textAlign: 'right', fontSize: 9, fontWeight: 700, color: C.t2 }}>Ating.</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orcVsRealByYear.map((r, i) => (
-                <tr key={r.ano} style={{ borderBottom: `1px solid ${C.border}`, background: i % 2 === 0 ? 'transparent' : C.bgAlt + '44' }}>
-                  <td style={{ padding: '5px 12px', fontWeight: 700, color: C.t1 }}>{r.ano}</td>
-                  <td style={{ padding: '5px 8px', textAlign: 'right', color: C.accent, fontWeight: 600, fontVariantNumeric: 'tabular-nums' }}>{r.realizado > 0 ? fmtM(r.realizado) : '—'}</td>
-                  <td style={{ padding: '5px 8px', textAlign: 'right', color: C.t2, fontVariantNumeric: 'tabular-nums' }}>{r.orcado > 0 ? fmtM(r.orcado) : '—'}</td>
-                  <td style={{ padding: '5px 8px', textAlign: 'right', fontWeight: 700,
-                    color: r.pct == null ? C.t3 : r.pct >= 100 ? '#16a34a' : r.pct >= 75 ? C.accent : '#dc2626',
-                  }}>
-                    {r.pct != null ? `${r.pct}%` : '—'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Card>
-
-        {/* Comparison chart */}
-        <Card title="Realizado vs Orçado por Campeonato">
-          <div style={{ padding: '4px 16px 0', display: 'flex', gap: 14 }}>
-            <span style={{ fontSize: 9, color: C.t2, display: 'flex', alignItems: 'center', gap: 5 }}>
-              <span style={{ width: 10, height: 10, borderRadius: 2, background: '#94a3b8', display: 'inline-block' }} />
-              Orçado
-            </span>
-            <span style={{ fontSize: 9, color: C.t2, display: 'flex', alignItems: 'center', gap: 5 }}>
-              <span style={{ width: 10, height: 10, borderRadius: 2, background: C.accent, display: 'inline-block' }} />
-              Realizado
-            </span>
-          </div>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={orcVsRealData} layout="vertical" margin={{ top: 8, right: 70, bottom: 4, left: 110 }}>
-              <CartesianGrid stroke={C.border} strokeDasharray="3 3" horizontal={false} />
-              <XAxis type="number" tick={{ fill: C.t3, fontSize: 8 }} axisLine={false} tickLine={false} tickFormatter={fmtM} />
-              <YAxis type="category" dataKey="campeonato" tick={<CompYTick />} axisLine={false} tickLine={false} width={110} />
-              <RTooltip content={<DarkTooltip />} />
-              <Bar dataKey="orcado" name="Orçado" fill="#94a3b8" radius={[0, 3, 3, 0]} barSize={7}>
-                <LabelList dataKey="orcado" position="right" formatter={fmtM} style={{ fontSize: 7, fill: C.t3 }} />
-              </Bar>
-              <Bar dataKey="realizado" name="Realizado" fill={C.accent} radius={[0, 3, 3, 0]} barSize={7}>
-                <LabelList dataKey="realizado" position="right" formatter={fmtM} style={{ fontSize: 7, fill: C.accent }} />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </Card>
       </div>
 
       {/* Row 1: Summary table + Scatter */}
