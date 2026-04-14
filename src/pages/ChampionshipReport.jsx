@@ -395,7 +395,7 @@ export default function ChampionshipReport() {
       </div>
 
       {/* ── Row 2: Tabela + Gráficos ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '440px 1fr', gap: 16 }}>
 
         {/* Tabela Faturamento */}
         <Card title="Faturamento por Partida">
