@@ -158,7 +158,8 @@ export default function PL() {
   const [yearFilter, setYearFilter]         = useState('ALL');
   const [collapsed, setCollapsed]           = useState(new Set());
   const [detailExpanded, setDetailExpanded] = useState(new Set());
-  const [selectedMatch, setSelectedMatch]   = useState(null); // idPartida | null
+  const [selectedMatch, setSelectedMatch]   = useState(null);
+  const [hideZero, setHideZero]             = useState(false);
 
   const toggleCollapse = (id) =>
     setCollapsed(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
@@ -196,9 +197,16 @@ export default function PL() {
   })), [filtered]);
 
   // Visible table rows
-  const visibleRows = useMemo(() =>
-    PL_ROWS.filter(r => !(r.type === 'item' && r.cat && collapsed.has(r.cat)))
-  , [collapsed]);
+  const visibleRows = useMemo(() => {
+    let rows = PL_ROWS.filter(r => !(r.type === 'item' && r.cat && collapsed.has(r.cat)));
+    if (hideZero) {
+      rows = rows.filter(r => {
+        if (r.type !== 'item') return true;
+        return tableRows.some(d => (d[r.key] ?? 0) !== 0);
+      });
+    }
+    return rows;
+  }, [collapsed, hideZero, tableRows]);
 
   // Table columns: all filtered, or just the selected match
   const tableRows = useMemo(() =>
@@ -317,6 +325,18 @@ export default function PL() {
         background: C.card, border: `1px solid ${C.border}`, borderRadius: 10,
         boxShadow: SHADOW.card, overflow: 'hidden',
       }}>
+        <div style={{ padding: '8px 14px', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+          <button onClick={() => setHideZero(h => !h)} style={{
+            fontSize: 10, padding: '4px 12px', borderRadius: 20, cursor: 'pointer',
+            border: `1px solid ${hideZero ? C.accent : C.border}`,
+            background: hideZero ? C.accent : C.card,
+            color: hideZero ? '#000' : C.t2,
+            fontWeight: hideZero ? 700 : 500, fontFamily: 'inherit',
+            transition: 'all 0.12s',
+          }}>
+            {hideZero ? '✓ ' : ''}Hide zero rows
+          </button>
+        </div>
         <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: 520 }}>
           <table style={{
             borderCollapse: 'collapse', fontSize: 10,
