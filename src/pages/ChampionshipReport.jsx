@@ -389,9 +389,9 @@ export default function ChampionshipReport() {
         {/* 4 KPIs */}
         <KPI label="Jogos" value={filteredFat.length} icon="📅" variation={null} />
         <KPI label="Sócios %" value={fmtPct(filteredKpis.percentualSocios)} icon="/logos/sócio.png" variation={null} />
-        <KPI label="Ticket Médio" value={`R$ ${filteredKpis.ticketMedio.toFixed(2).replace('.', ',')}`} icon="🎟" variation={selectedPartida ? null : kpiVariations.ticketMedio} />
-        <KPI label="Média de Público" value={fmtK(Math.round(filteredKpis.mediaPublico))} icon="👥" variation={selectedPartida ? null : kpiVariations.mediaPublico} />
-        <KPI label="Público Total" value={filteredKpis.publicoTotal >= 1_000_000 ? `${(filteredKpis.publicoTotal/1_000_000).toFixed(2).replace('.',',')} Mi` : fmtK(Math.round(filteredKpis.publicoTotal))} icon="🏟" variation={selectedPartida ? null : kpiVariations.publicoTotal} />
+        <KPI label="Ticket Médio" value={`R$ ${filteredKpis.ticketMedio.toFixed(2).replace('.', ',')}`} icon="🎟" variation={null} />
+        <KPI label="Média de Público" value={fmtK(Math.round(filteredKpis.mediaPublico))} icon="👥" variation={null} />
+        <KPI label="Público Total" value={filteredKpis.publicoTotal >= 1_000_000 ? `${(filteredKpis.publicoTotal/1_000_000).toFixed(2).replace('.',',')} Mi` : fmtK(Math.round(filteredKpis.publicoTotal))} icon="🏟" variation={null} />
       </div>
 
       {/* ── Row 2: Tabela + Gráficos ── */}

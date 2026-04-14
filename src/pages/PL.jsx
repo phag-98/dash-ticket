@@ -22,6 +22,11 @@ const fmtAtt = (v) => {
 };
 const fmtAxis = (v) =>
   v >= 1e6 ? `${(v / 1e6).toFixed(1)} Mi` : `${(v / 1000).toFixed(0)} K`;
+const fmtMoney = (v) => {
+  if (!v) return 'R$ 0';
+  if (v >= 1_000_000) return `R$ ${(v / 1_000_000).toFixed(1).replace('.', ',')} Mi`;
+  return `R$ ${(v / 1_000).toFixed(0)} Mil`;
+};
 
 // ── Filter button ────────────────────────────────────────────────────────────
 function FilterBtn({ label, active, onClick, color, logo }) {
@@ -167,10 +172,18 @@ export default function PL() {
     (yearFilter === 'ALL' || d.ano === Number(yearFilter))
   ), [campFilter, yearFilter]);
 
-  // KPI attendance
-  const { attTotal, attAvg } = useMemo(() => {
+  // KPI attendance + avg revenue/expense
+  const { attTotal, attAvg, avgRevenue, avgExpense } = useMemo(() => {
+    const n = filtered.length;
     const total = filtered.reduce((s, d) => s + (FAT_MAP[d.idPartida] || 0), 0);
-    return { attTotal: total, attAvg: filtered.length ? Math.round(total / filtered.length) : 0 };
+    const totalRev = filtered.reduce((s, d) => s + (d.totalRevenues || 0), 0);
+    const totalExp = filtered.reduce((s, d) => s + Math.abs((d.totalOperatingExpenses || 0) + (d.totalLogistics || 0) + (d.totalFederations || 0)), 0);
+    return {
+      attTotal: total,
+      attAvg:   n ? Math.round(total / n) : 0,
+      avgRevenue: n ? totalRev / n : 0,
+      avgExpense: n ? totalExp / n : 0,
+    };
   }, [filtered]);
 
   // Chart data — already ordered by date
@@ -217,12 +230,16 @@ export default function PL() {
         </div>
         {/* KPI cards */}
         <div style={{ display: 'flex', gap: 12, flexShrink: 0 }}>
-          {[{ v: attTotal, l: 'Attendance' }, { v: attAvg, l: 'Average Attendance' }].map(({ v, l }) => (
+          {[{ v: attTotal, l: 'Attendance', fmt: fmtAtt },
+            { v: attAvg,   l: 'Average Attendance', fmt: fmtAtt },
+            { v: avgRevenue, l: 'Average Revenue', fmt: fmtMoney },
+            { v: avgExpense, l: 'Average Expense', fmt: fmtMoney },
+          ].map(({ v, l, fmt }) => (
             <div key={l} style={{
               background: C.card, border: `1px solid ${C.border}`, borderRadius: 10,
               padding: '12px 24px', minWidth: 140, textAlign: 'center', boxShadow: SHADOW.card,
             }}>
-              <div style={{ fontSize: 26, fontWeight: 700, color: C.t1, lineHeight: 1.1 }}>{fmtAtt(v)}</div>
+              <div style={{ fontSize: 26, fontWeight: 700, color: C.t1, lineHeight: 1.1 }}>{fmt(v)}</div>
               <div style={{ fontSize: 10, color: C.t3, textTransform: 'uppercase', letterSpacing: '1px', marginTop: 4 }}>{l}</div>
             </div>
           ))}
