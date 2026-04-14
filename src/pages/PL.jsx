@@ -196,6 +196,11 @@ export default function PL() {
     costs:      Math.abs(d.totalOperatingExpenses + d.totalLogistics + d.totalFederations),
   })), [filtered]);
 
+  // Table columns: all filtered, or just the selected match
+  const tableRows = useMemo(() =>
+    selectedMatch ? filtered.filter(d => d.idPartida === selectedMatch) : filtered
+  , [filtered, selectedMatch]);
+
   // Visible table rows
   const visibleRows = useMemo(() => {
     let rows = PL_ROWS.filter(r => !(r.type === 'item' && r.cat && collapsed.has(r.cat)));
@@ -207,11 +212,6 @@ export default function PL() {
     }
     return rows;
   }, [collapsed, hideZero, tableRows]);
-
-  // Table columns: all filtered, or just the selected match
-  const tableRows = useMemo(() =>
-    selectedMatch ? filtered.filter(d => d.idPartida === selectedMatch) : filtered
-  , [filtered, selectedMatch]);
 
   return (
     <div style={{ fontFamily: FONT_UI, color: C.t1 }}>
