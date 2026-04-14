@@ -291,13 +291,13 @@ export default function Comparativo() {
               <YAxis tick={{ fill: C.t3, fontSize: 8 }} axisLine={false} tickLine={false} />
               <RTooltip content={<DarkTooltip />} />
               <Bar dataKey="2024" name="2024" fill={Y24} barSize={10} radius={[3, 3, 0, 0]}>
-                <LabelList dataKey="2024" position="top" style={{ fontSize: 7, fill: C.t3 }} />
+                <LabelList dataKey="2024" position="top" formatter={v => v ? v.toFixed(2) : ''} style={{ fontSize: 7, fill: C.t3 }} />
               </Bar>
               <Bar dataKey="2025" name="2025" fill={Y25} barSize={10} radius={[3, 3, 0, 0]}>
-                <LabelList dataKey="2025" position="top" style={{ fontSize: 7, fill: Y25 }} />
+                <LabelList dataKey="2025" position="top" formatter={v => v ? v.toFixed(2) : ''} style={{ fontSize: 7, fill: Y25 }} />
               </Bar>
               <Bar dataKey="2026" name="2026" fill={Y26} barSize={10} radius={[3, 3, 0, 0]}>
-                <LabelList dataKey="2026" position="top" style={{ fontSize: 7, fill: Y26 }} />
+                <LabelList dataKey="2026" position="top" formatter={v => v ? v.toFixed(2) : ''} style={{ fontSize: 7, fill: Y26 }} />
               </Bar>
             </BarChart>
           </ResponsiveContainer>
