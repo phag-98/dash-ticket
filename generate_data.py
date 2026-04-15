@@ -720,7 +720,7 @@ _FASE_SC = {k.upper(): v for k, v in _FASE_SC_RAW.items()}
 
 # Overrides de fase por campeonato (sobrescreve a tabela base)
 _FASE_SC_OVERRIDE = {
-    'CAMLI5': {'OITAVAS': 4},  # Libertadores: oitavas vale 4
+    'CAMLI5': {'OITAVAS': 5, 'QUARTAS': 5, 'SEMIS': 5},  # Libertadores: mata-mata vale 5
 }
 _CAMP_FASE_MAX2 = {'CAMCA4'}  # Carioca / Taça Rio: fase máx 2
 
