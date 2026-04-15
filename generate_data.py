@@ -768,6 +768,8 @@ for _, r in dPart.sort_values('DATA').iterrows():
     sc_hor  = hor_table.get(horario)
     dia_table = _DIA_SC_NOTURNO if id_camp in _CAMP_NOTURNO else _DIA_SC
     sc_dia  = dia_table.get(dia)
+    if sc_dia is not None and id_camp in _CAMP_FASE_MAX2:
+        sc_dia = min(sc_dia, 3)
     sc_adv  = time_score_map.get(id_time)
 
     # Forma: last 3 Botafogo results before this date
