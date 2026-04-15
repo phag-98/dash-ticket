@@ -703,6 +703,11 @@ _DIA_SC = {
     'Domingo':5,'Quarta-feira':4,'Quinta-feira':3,
     'Sábado':3,'Sexta-feira':1,'Terça-feira':1,
 }
+# Para Libertadores, Copa do Brasil e Sulamericana: quarta é o dia nobre
+_DIA_SC_NOTURNO = {
+    'Domingo':5,'Quarta-feira':5,'Quinta-feira':3,
+    'Sábado':3,'Sexta-feira':1,'Terça-feira':1,
+}
 _FASE_SC_RAW = {
     '1':2,'2':2,'3':2,'4':2,'5':2,'6':2,'8':2,'9':2,
     '10':3,'11':3,'12':3,'14':3,'15':3,'17':3,'18':3,'20':3,
@@ -757,7 +762,8 @@ for _, r in dPart.sort_values('DATA').iterrows():
     sc_fase = _FASE_SC.get(rodada.upper())
     hor_table = _HOR_SC_NOTURNO if id_camp in _CAMP_NOTURNO else _HOR_SC
     sc_hor  = hor_table.get(horario)
-    sc_dia  = _DIA_SC.get(dia)
+    dia_table = _DIA_SC_NOTURNO if id_camp in _CAMP_NOTURNO else _DIA_SC
+    sc_dia  = dia_table.get(dia)
     sc_adv  = time_score_map.get(id_time)
 
     # Forma: last 3 Botafogo results before this date
