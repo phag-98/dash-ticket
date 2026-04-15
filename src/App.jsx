@@ -8,6 +8,7 @@ import VisaoGeral         from './pages/VisaoGeral';
 import Precos             from './pages/Precos';
 import PL                from './pages/PL';
 import AHP               from './pages/AHP';
+import AHPAnalise        from './pages/AHPAnalise';
 
 const TABS = [
   { id: 'championship', label: 'Championship Report' },
@@ -18,6 +19,7 @@ const TABS = [
   { id: 'precos',       label: 'Preços' },
   { id: 'pl',           label: 'P&L' },
   { id: 'ahp',          label: 'AHP' },
+  { id: 'ahpanalise',   label: 'AHP Análise' },
 ];
 
 export default function App() {
@@ -129,6 +131,7 @@ export default function App() {
         {tab === 'precos'       && <Precos />}
         {tab === 'pl'           && <PL />}
         {tab === 'ahp'          && <AHP />}
+        {tab === 'ahpanalise'   && <AHPAnalise />}
       </main>
     </div>
   );

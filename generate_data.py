@@ -737,6 +737,9 @@ def _forma(results):
 
 time_score_map = {str(k): int(v) for k,v in zip(dTimes['ID_TIME'], dTimes['Pontuação']) if pd.notna(v)}
 
+# público por partida (from ingr_part computed earlier in section 9j)
+publico_map = ingr_part.set_index('ID_PARTIDA')['PUBLICO'].to_dict()
+
 # Prepare placares sorted ascending for forma look-back
 if dPlac is not None:
     _plac = dPlac.copy()
@@ -810,6 +813,7 @@ for _, r in dPart.sort_values('DATA').iterrows():
         'scoreForma':      sc_forma,
         'formaStr':        forma_str,
         'total':           total,
+        'publico':         si(publico_map.get(str(r['ID_PARTIDA']), 0)),
     })
 
 ahpScores.sort(key=lambda x: -(x['total'] or 0))
