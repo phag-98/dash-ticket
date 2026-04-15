@@ -816,6 +816,9 @@ for _, r in dPart.sort_values('DATA').iterrows():
         'publico':         si(publico_map.get(str(r['ID_PARTIDA']), 0)),
     })
 
+# Partidas excluídas da análise AHP (outliers contextuais)
+_AHP_EXCLUDE = {'2024.10.18-CAMBR2-30'}  # Criciúma 2024 — jogo decisivo, público atípico
+ahpScores = [s for s in ahpScores if s['idPartida'] not in _AHP_EXCLUDE]
 ahpScores.sort(key=lambda x: -(x['total'] or 0))
 
 # ── 11. Write JS file ────────────────────────────────────────────────────────
