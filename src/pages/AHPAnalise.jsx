@@ -81,16 +81,34 @@ export default function AHPAnalise() {
     bucket: getBucket(s.total),
   }));
 
-  // ── Correlation ──
+  // ── Correlations (Pearson + Spearman) ──
   const corr = useMemo(() => {
     if (filtered.length < 3) return null;
     const xs = filtered.map(s => s.total);
     const ys = filtered.map(s => s.publico);
+
+    // Pearson
     const mx = xs.reduce((a, b) => a + b, 0) / xs.length;
     const my = ys.reduce((a, b) => a + b, 0) / ys.length;
     const num = xs.reduce((s, x, i) => s + (x - mx) * (ys[i] - my), 0);
     const den = Math.sqrt(xs.reduce((s, x) => s + (x - mx) ** 2, 0) * ys.reduce((s, y) => s + (y - my) ** 2, 0));
-    return den === 0 ? 0 : num / den;
+    const pearson = den === 0 ? 0 : num / den;
+
+    // Spearman (rank correlation)
+    const rank = (arr) => {
+      const sorted = [...arr].map((v, i) => ({ v, i })).sort((a, b) => a.v - b.v);
+      const ranks = new Array(arr.length);
+      sorted.forEach((item, ri) => { ranks[item.i] = ri + 1; });
+      return ranks;
+    };
+    const rx = rank(xs), ry = rank(ys);
+    const mrx = rx.reduce((a, b) => a + b, 0) / rx.length;
+    const mry = ry.reduce((a, b) => a + b, 0) / ry.length;
+    const snum = rx.reduce((s, r, i) => s + (r - mrx) * (ry[i] - mry), 0);
+    const sden = Math.sqrt(rx.reduce((s, r) => s + (r - mrx) ** 2, 0) * ry.reduce((s, r) => s + (r - mry) ** 2, 0));
+    const spearman = sden === 0 ? 0 : snum / sden;
+
+    return { pearson, spearman };
   }, [filtered]);
 
   const DotTooltip = ({ active, payload }) => {
@@ -138,14 +156,22 @@ export default function AHPAnalise() {
           </div>
         </div>
         {corr !== null && (
-          <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ fontSize: 10, color: C.t3 }}>Correlação AHP × Público:</span>
-            <span style={{ fontSize: 13, fontWeight: 800, color: corr > 0.6 ? '#16a34a' : corr > 0.3 ? C.accent : '#dc2626' }}>
-              r = {corr.toFixed(3)}
-            </span>
-            <span style={{ fontSize: 10, color: C.t3 }}>
-              ({corr > 0.6 ? 'forte' : corr > 0.3 ? 'moderada' : 'fraca'} · {filtered.length} partidas)
-            </span>
+          <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: 10, color: C.t3 }}>Correlação AHP × Público ({filtered.length} partidas):</span>
+            {[
+              { label: 'Pearson', value: corr.pearson },
+              { label: 'Spearman', value: corr.spearman },
+            ].map(({ label, value }) => (
+              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                <span style={{ fontSize: 10, color: C.t3 }}>{label}</span>
+                <span style={{ fontSize: 14, fontWeight: 800, color: value > 0.7 ? '#16a34a' : value > 0.5 ? C.accent : '#dc2626' }}>
+                  r = {value.toFixed(3)}
+                </span>
+                <span style={{ fontSize: 9, color: C.t3 }}>
+                  ({value > 0.7 ? 'forte' : value > 0.5 ? 'moderada' : 'fraca'})
+                </span>
+              </div>
+            ))}
           </div>
         )}
       </div>

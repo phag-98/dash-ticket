@@ -675,12 +675,12 @@ if dOrca is not None:
 
 # ── 9o. AHP Scores por Partida ────────────────────────────────────────────────
 AHP_WEIGHTS = {
-    'campeonato': 0.1410,
-    'fase':       0.3107,
-    'horario':    0.0847,
-    'dia':        0.1001,
-    'adversario': 0.0503,
-    'forma':      0.3132,
+    'campeonato': 0.1271,
+    'fase':       0.2598,
+    'horario':    0.2062,
+    'dia':        0.0262,
+    'adversario': 0.2825,
+    'forma':      0.0982,
 }
 
 _CAMP_SC = {
