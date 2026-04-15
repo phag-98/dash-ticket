@@ -673,6 +673,126 @@ if dOrca is not None:
             "bilheteria": bilheteria,
         })
 
+# ── 9o. AHP Scores por Partida ────────────────────────────────────────────────
+AHP_WEIGHTS = {
+    'campeonato': 0.1410,
+    'fase':       0.3107,
+    'horario':    0.0847,
+    'dia':        0.1001,
+    'adversario': 0.0503,
+    'forma':      0.3132,
+}
+
+_CAMP_SC = {
+    'CAMBR2':4,'CAMCO3':3,'CAMCA4':2,'CAMLI5':5,
+    'CAMSU6':3,'CAMSU7':5,'CAMMU8':5,'CAMSU9':5,'CAMRE10':5,
+}
+_HOR_SC = {
+    '16:00':5,'16:30':5,'17:30':4,'18:00':3,'18:30':3,
+    '19:00':3,'19:30':3,'20:00':3,'20:30':3,'21:00':3,'21:30':2,
+}
+_DIA_SC = {
+    'Domingo':5,'Quarta-feira':4,'Quinta-feira':3,
+    'Sábado':3,'Sexta-feira':1,'Terça-feira':1,
+}
+_FASE_SC_RAW = {
+    '1':2,'2':2,'3':2,'4':2,'5':2,'6':2,'8':2,'9':2,
+    '10':3,'11':3,'12':3,'14':3,'15':3,'17':3,'18':3,'20':3,
+    '22':3,'23':3,'24':3,'25':3,'26':3,'28':3,
+    '30':4,'32':4,'33':4,'34':4,'35':4,'38':5,
+    '2° FASE':3,'3° FASE':3,'FG':3,'FI':2,'FINAL':5,
+    'FINAL - TR':2,'OITAVAS':3,'QUARTAS':4,'SEMIS':5,'SEMIS - TR':2,'SF':5,
+}
+_FASE_SC = {k.upper(): v for k, v in _FASE_SC_RAW.items()}
+
+_FORMA_MAP = {
+    (0,0,3):(0,'D+D+D'),(0,1,2):(1,'E+D+D'),(0,2,1):(1,'E+E+D'),
+    (1,0,2):(1,'V+D+D'),(0,3,0):(3,'E+E+E'),(1,1,1):(3,'V+E+D'),
+    (1,2,0):(3,'V+E+E'),(2,0,1):(4,'V+V+D'),(2,1,0):(4,'V+V+E'),
+    (3,0,0):(5,'V+V+V'),
+}
+
+def _forma(results):
+    last3 = [r for r in results if r in ('V','E','D')][-3:]
+    if len(last3) < 3:
+        return None, ''
+    nV,nE,nD = last3.count('V'),last3.count('E'),last3.count('D')
+    res = _FORMA_MAP.get((nV,nE,nD))
+    return (res[0], res[1]) if res else (None,'')
+
+time_score_map = {str(k): int(v) for k,v in zip(dTimes['ID_TIME'], dTimes['Pontuação']) if pd.notna(v)}
+
+# Prepare placares sorted ascending for forma look-back
+if dPlac is not None:
+    _plac = dPlac.copy()
+    _plac['_dt'] = pd.to_datetime(_plac['Data'], dayfirst=True, errors='coerce')
+    _plac = _plac.dropna(subset=['_dt']).sort_values('_dt').reset_index(drop=True)
+    _plac_dates   = _plac['_dt'].tolist()
+    _plac_results = _plac['Resultado'].tolist()
+else:
+    _plac_dates, _plac_results = [], []
+
+import bisect
+
+ahpScores = []
+for _, r in dPart.sort_values('DATA').iterrows():
+    part_date = r['DATA']
+    id_camp = str(r['ID_CAMPEONATO'])
+    id_time = str(r['ID_TIME'])
+    rodada  = str(r['RODADA']).strip()
+    dia     = str(r['DIA_DA_SEMANA']) if pd.notna(r['DIA_DA_SEMANA']) else ''
+    horario = str(r['HORARIO'])
+    if ':' in horario and len(horario) > 5:
+        horario = horario[:5]
+
+    sc_camp = _CAMP_SC.get(id_camp)
+    sc_fase = _FASE_SC.get(rodada.upper())
+    sc_hor  = _HOR_SC.get(horario)
+    sc_dia  = _DIA_SC.get(dia)
+    sc_adv  = time_score_map.get(id_time)
+
+    # Forma: last 3 Botafogo results before this date
+    if pd.notna(part_date) and _plac_dates:
+        idx = bisect.bisect_left(_plac_dates, part_date)
+        prev_res = _plac_results[:idx]
+        sc_forma, forma_str = _forma(prev_res)
+    else:
+        sc_forma, forma_str = None, ''
+
+    all_ok = all(s is not None for s in [sc_camp,sc_fase,sc_hor,sc_dia,sc_adv,sc_forma])
+    total = round(
+        AHP_WEIGHTS['campeonato']*sc_camp +
+        AHP_WEIGHTS['fase']*sc_fase +
+        AHP_WEIGHTS['horario']*sc_hor +
+        AHP_WEIGHTS['dia']*sc_dia +
+        AHP_WEIGHTS['adversario']*sc_adv +
+        AHP_WEIGHTS['forma']*sc_forma,
+        4
+    ) if all_ok else None
+
+    dt = r['DATA']
+    ahpScores.append({
+        'idPartida':       str(r['ID_PARTIDA']),
+        'campeonato':      str(r['CAMPEONATO']) if pd.notna(r['CAMPEONATO']) else '',
+        'time':            str(r['TIME']) if pd.notna(r['TIME']) else '',
+        'data':            dt.strftime('%d/%m/%Y') if pd.notna(dt) else '',
+        'ano':             si(r['ANO']) if pd.notna(r['ANO']) else 0,
+        'mes':             si(r['MES']) if pd.notna(r['MES']) else 0,
+        'rodada':          rodada,
+        'diaSemana':       dia,
+        'horario':         horario,
+        'scoreCampeonato': sc_camp,
+        'scoreFase':       sc_fase,
+        'scoreHorario':    sc_hor,
+        'scoreDia':        sc_dia,
+        'scoreAdversario': sc_adv,
+        'scoreForma':      sc_forma,
+        'formaStr':        forma_str,
+        'total':           total,
+    })
+
+ahpScores.sort(key=lambda x: -(x['total'] or 0))
+
 # ── 11. Write JS file ────────────────────────────────────────────────────────
 def to_js(obj):
     """Convert to compact JS-compatible JSON (no trailing commas)."""
@@ -711,6 +831,10 @@ lines = [
     f"export const plPorPartida = {to_js(plPorPartida)};",
     f"export const plDetalhe = {to_js(plDetalhe)};",
     f"export const orcamento = {to_js(orcamento)};",
+    f"export const ahpScores = {to_js(ahpScores)};",
+    "",
+    "// AHP weights (for display in UI)",
+    f"export const AHP_WEIGHTS = {to_js(AHP_WEIGHTS)};",
     "",
     "// Convenience: unique campeonato names",
     f"export const CAMPEONATOS = {to_js(sorted(set(p['campeonato'] for p in partidas if p['campeonato'])))};",
