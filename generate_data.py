@@ -718,6 +718,8 @@ _FASE_SC_RAW = {
 }
 _FASE_SC = {k.upper(): v for k, v in _FASE_SC_RAW.items()}
 
+_CAMP_FASE_MAX2 = {'CAMCA4'}  # Carioca / Taça Rio: fase máx 2
+
 _FORMA_MAP = {
     (0,0,3):(0,'D+D+D'),(0,1,2):(1,'E+D+D'),(0,2,1):(1,'E+E+D'),
     (1,0,2):(1,'V+D+D'),(0,3,0):(3,'E+E+E'),(1,1,1):(3,'V+E+D'),
@@ -760,6 +762,8 @@ for _, r in dPart.sort_values('DATA').iterrows():
 
     sc_camp = _CAMP_SC.get(id_camp)
     sc_fase = _FASE_SC.get(rodada.upper())
+    if sc_fase is not None and id_camp in _CAMP_FASE_MAX2:
+        sc_fase = min(sc_fase, 2)
     hor_table = _HOR_SC_NOTURNO if id_camp in _CAMP_NOTURNO else _HOR_SC
     sc_hor  = hor_table.get(horario)
     dia_table = _DIA_SC_NOTURNO if id_camp in _CAMP_NOTURNO else _DIA_SC
