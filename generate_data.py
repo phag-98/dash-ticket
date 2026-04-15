@@ -705,8 +705,8 @@ _DIA_SC = {
 }
 # Para Libertadores, Copa do Brasil e Sulamericana: quarta é o dia nobre
 _DIA_SC_NOTURNO = {
-    'Domingo':5,'Quarta-feira':5,'Quinta-feira':3,
-    'Sábado':3,'Sexta-feira':1,'Terça-feira':1,
+    'Domingo':5,'Quarta-feira':5,'Quinta-feira':4,
+    'Sábado':3,'Sexta-feira':1,'Terça-feira':4,
 }
 _FASE_SC_RAW = {
     '1':2,'2':2,'3':2,'4':2,'5':2,'6':2,'8':2,'9':2,
