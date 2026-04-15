@@ -8,11 +8,11 @@ import { C, SHADOW, CAMP_COLORS } from '../tokens';
 import { ahpScores } from '../data/data';
 
 const BUCKETS = [
-  { label: '1 – 2',   min: 1,   max: 2,   color: '#dc2626' },
-  { label: '2 – 3',   min: 2,   max: 3,   color: '#f97316' },
-  { label: '3 – 3,5', min: 3,   max: 3.5, color: '#ca8a04' },
-  { label: '3,5 – 4', min: 3.5, max: 4,   color: '#a16207' },
-  { label: '4 – 5',   min: 4,   max: 5,   color: '#16a34a' },
+  { label: '1 – 2',     min: 1,   max: 2,   color: '#dc2626' },
+  { label: '2 – 3',     min: 2,   max: 3,   color: '#f97316' },
+  { label: '3 – 3,5',   min: 3,   max: 3.5, color: '#ca8a04' },
+  { label: '3,5 – 3,8', min: 3.5, max: 3.8, color: '#a16207' },
+  { label: '3,8 – 5',   min: 3.8, max: 5,   color: '#16a34a' },
 ];
 
 const getBucket = (total) => {
@@ -20,7 +20,7 @@ const getBucket = (total) => {
   if (total < 2)   return 0;
   if (total < 3)   return 1;
   if (total < 3.5) return 2;
-  if (total < 4)   return 3;
+  if (total < 3.8) return 3;
   return 4;
 };
 
@@ -247,7 +247,7 @@ export default function AHPAnalise() {
                 tickFormatter={fmtK}
               />
               <RTooltip content={<DotTooltip />} cursor={{ strokeDasharray: '3 3' }} />
-              {[2, 3, 3.5, 4].map(v => (
+              {[2, 3, 3.5, 3.8].map(v => (
                 <ReferenceLine key={v} x={v} stroke={C.border} strokeDasharray="4 2" />
               ))}
               <Scatter data={scatterData} shape={(props) => {
