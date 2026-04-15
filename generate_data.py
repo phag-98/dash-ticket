@@ -687,10 +687,18 @@ _CAMP_SC = {
     'CAMBR2':4,'CAMCO3':3,'CAMCA4':2,'CAMLI5':5,
     'CAMSU6':3,'CAMSU7':5,'CAMMU8':5,'CAMSU9':5,'CAMRE10':5,
 }
+# Horário padrão (Brasileirão, Carioca, etc.)
 _HOR_SC = {
     '16:00':5,'16:30':5,'17:30':4,'18:00':3,'18:30':3,
     '19:00':3,'19:30':3,'20:00':3,'20:30':3,'21:00':3,'21:30':2,
 }
+# Horário para competições noturnas (Libertadores, Copa do Brasil, Sulamericana)
+# 21:30 é o horário nobre nesses torneios
+_HOR_SC_NOTURNO = {
+    '16:00':3,'16:30':3,'17:30':3,'18:00':3,'18:30':3,
+    '19:00':3,'19:30':3,'20:00':4,'20:30':4,'21:00':4,'21:30':5,
+}
+_CAMP_NOTURNO = {'CAMLI5', 'CAMCO3', 'CAMSU6'}
 _DIA_SC = {
     'Domingo':5,'Quarta-feira':4,'Quinta-feira':3,
     'Sábado':3,'Sexta-feira':1,'Terça-feira':1,
@@ -747,7 +755,8 @@ for _, r in dPart.sort_values('DATA').iterrows():
 
     sc_camp = _CAMP_SC.get(id_camp)
     sc_fase = _FASE_SC.get(rodada.upper())
-    sc_hor  = _HOR_SC.get(horario)
+    hor_table = _HOR_SC_NOTURNO if id_camp in _CAMP_NOTURNO else _HOR_SC
+    sc_hor  = hor_table.get(horario)
     sc_dia  = _DIA_SC.get(dia)
     sc_adv  = time_score_map.get(id_time)
 
