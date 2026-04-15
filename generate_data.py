@@ -692,11 +692,11 @@ _HOR_SC = {
     '16:00':5,'16:30':5,'17:30':4,'18:00':3,'18:30':3,
     '19:00':3,'19:30':3,'20:00':3,'20:30':3,'21:00':3,'21:30':2,
 }
-# Horário para competições noturnas (Libertadores, Copa do Brasil, Sulamericana)
-# 21:30 é o horário nobre nesses torneios
+# Horário para competições noturnas (Libertadores, Copa do Brasil, Sulamericana, Recopa)
+# mínimo 4; 21:30 é o horário nobre
 _HOR_SC_NOTURNO = {
-    '16:00':3,'16:30':3,'17:30':3,'18:00':3,'18:30':3,
-    '19:00':3,'19:30':3,'20:00':4,'20:30':4,'21:00':4,'21:30':5,
+    '16:00':4,'16:30':4,'17:30':4,'18:00':4,'18:30':4,
+    '19:00':4,'19:30':4,'20:00':4,'20:30':4,'21:00':4,'21:30':5,
 }
 _CAMP_NOTURNO = {'CAMLI5', 'CAMCO3', 'CAMSU6', 'CAMRE10'}
 _DIA_SC = {
@@ -769,6 +769,9 @@ for _, r in dPart.sort_values('DATA').iterrows():
         sc_fase = min(sc_fase, 2)
     hor_table = _HOR_SC_NOTURNO if id_camp in _CAMP_NOTURNO else _HOR_SC
     sc_hor  = hor_table.get(horario)
+    # Carioca: 20:30 vale no máximo 2
+    if sc_hor is not None and id_camp in _CAMP_FASE_MAX2 and horario == '20:30':
+        sc_hor = min(sc_hor, 2)
     dia_table = _DIA_SC_NOTURNO if id_camp in _CAMP_NOTURNO else _DIA_SC
     sc_dia  = dia_table.get(dia)
     if sc_dia is not None and id_camp in _CAMP_FASE_MAX2:
