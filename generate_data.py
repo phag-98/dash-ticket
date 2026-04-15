@@ -698,7 +698,7 @@ _HOR_SC_NOTURNO = {
     '16:00':3,'16:30':3,'17:30':3,'18:00':3,'18:30':3,
     '19:00':3,'19:30':3,'20:00':4,'20:30':4,'21:00':4,'21:30':5,
 }
-_CAMP_NOTURNO = {'CAMLI5', 'CAMCO3', 'CAMSU6'}
+_CAMP_NOTURNO = {'CAMLI5', 'CAMCO3', 'CAMSU6', 'CAMRE10'}
 _DIA_SC = {
     'Domingo':5,'Quarta-feira':4,'Quinta-feira':3,
     'Sábado':3,'Sexta-feira':1,'Terça-feira':1,
