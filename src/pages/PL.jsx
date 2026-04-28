@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
+import * as XLSX from 'xlsx';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip,
   ResponsiveContainer,
@@ -126,7 +127,8 @@ const PL_ROWS = [
   { id: 'arbitration',       label: 'arbitration',               type: 'item',  key: 'arbitration',            cat: 'federations',  catFin2: 'arb-18' },
   { id: 'total',             label: 'Total',                     type: 'total', key: 'total',                  cat: null },
 ];
-const COLLAPSIBLE = new Set(['revenues', 'opex', 'margin', 'logistics', 'federations']);
+const COLLAPSIBLE     = new Set(['revenues', 'opex', 'margin', 'logistics', 'federations']);
+const DETAIL_ROW_IDS  = PL_ROWS.filter(r => r.catFin2).map(r => r.id);
 
 // Pre-build detail lookup: catFin2 -> idPartida -> [{ desc, valor }]
 const DETAIL_MAP = {};
@@ -166,6 +168,38 @@ export default function PL() {
 
   const toggleDetail = (id) =>
     setDetailExpanded(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+
+  const allExpanded = collapsed.size === 0 && DETAIL_ROW_IDS.every(id => detailExpanded.has(id));
+
+  const toggleExpandAll = () => {
+    if (allExpanded) {
+      setDetailExpanded(new Set());
+    } else {
+      setCollapsed(new Set());
+      setDetailExpanded(new Set(DETAIL_ROW_IDS));
+    }
+  };
+
+  const exportExcel = useCallback(() => {
+    const cols = tableRows;
+    const aoa = [
+      ['ID_PARTIDA',    ...cols.map(d => d.idPartida)],
+      ['Championship',  ...cols.map(d => d.campeonato)],
+      ['Team',          ...cols.map(d => d.time)],
+    ];
+    PL_ROWS.forEach(row => {
+      aoa.push([row.label, ...cols.map(d => d[row.key] ?? 0)]);
+      if (row.catFin2 && DETAIL_DESCS[row.catFin2]) {
+        [...DETAIL_DESCS[row.catFin2]].sort().forEach(desc => {
+          aoa.push([`  ${desc}`, ...cols.map(d => DETAIL_MAP[row.catFin2]?.[d.idPartida]?.[desc] ?? 0)]);
+        });
+      }
+    });
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'P&L');
+    XLSX.writeFile(wb, 'pl_botafogo.xlsx');
+  }, [tableRows]);
 
   // plPorPartida is already sorted by date from generate_data.py
   const filtered = useMemo(() => plPorPartida.filter(d =>
@@ -325,7 +359,17 @@ export default function PL() {
         background: C.card, border: `1px solid ${C.border}`, borderRadius: 10,
         boxShadow: SHADOW.card, overflow: 'hidden',
       }}>
-        <div style={{ padding: '8px 14px', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+        <div style={{ padding: '8px 14px', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 8 }}>
+          <button onClick={toggleExpandAll} style={{
+            fontSize: 10, padding: '4px 12px', borderRadius: 20, cursor: 'pointer',
+            border: `1px solid ${allExpanded ? C.accent : C.border}`,
+            background: allExpanded ? C.accent : C.card,
+            color: allExpanded ? '#000' : C.t2,
+            fontWeight: allExpanded ? 700 : 500, fontFamily: 'inherit',
+            transition: 'all 0.12s',
+          }}>
+            {allExpanded ? '▾ Collapse All' : '▸ Expand All'}
+          </button>
           <button onClick={() => setHideZero(h => !h)} style={{
             fontSize: 10, padding: '4px 12px', borderRadius: 20, cursor: 'pointer',
             border: `1px solid ${hideZero ? C.accent : C.border}`,
@@ -335,6 +379,15 @@ export default function PL() {
             transition: 'all 0.12s',
           }}>
             {hideZero ? '✓ ' : ''}Hide zero rows
+          </button>
+          <button onClick={exportExcel} style={{
+            fontSize: 10, padding: '4px 12px', borderRadius: 20, cursor: 'pointer',
+            border: `1px solid ${C.border}`,
+            background: C.card, color: C.t2,
+            fontWeight: 500, fontFamily: 'inherit',
+            transition: 'all 0.12s',
+          }}>
+            ↓ Export Excel
           </button>
         </div>
         <div style={{ overflowX: 'auto', overflowY: 'auto', maxHeight: 520 }}>
