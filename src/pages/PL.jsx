@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import * as XLSX from 'xlsx';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RTooltip,
@@ -180,27 +180,6 @@ export default function PL() {
     }
   };
 
-  const exportExcel = useCallback(() => {
-    const cols = tableRows;
-    const aoa = [
-      ['ID_PARTIDA',    ...cols.map(d => d.idPartida)],
-      ['Championship',  ...cols.map(d => d.campeonato)],
-      ['Team',          ...cols.map(d => d.time)],
-    ];
-    PL_ROWS.forEach(row => {
-      aoa.push([row.label, ...cols.map(d => d[row.key] ?? 0)]);
-      if (row.catFin2 && DETAIL_DESCS[row.catFin2]) {
-        [...DETAIL_DESCS[row.catFin2]].sort().forEach(desc => {
-          aoa.push([`  ${desc}`, ...cols.map(d => DETAIL_MAP[row.catFin2]?.[d.idPartida]?.[desc] ?? 0)]);
-        });
-      }
-    });
-    const ws = XLSX.utils.aoa_to_sheet(aoa);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'P&L');
-    XLSX.writeFile(wb, 'pl_botafogo.xlsx');
-  }, [tableRows]);
-
   // plPorPartida is already sorted by date from generate_data.py
   const filtered = useMemo(() => plPorPartida.filter(d =>
     (campFilter === 'ALL' || d.campeonato === campFilter) &&
@@ -234,6 +213,26 @@ export default function PL() {
   const tableRows = useMemo(() =>
     selectedMatch ? filtered.filter(d => d.idPartida === selectedMatch) : filtered
   , [filtered, selectedMatch]);
+
+  const exportExcel = () => {
+    const aoa = [
+      ['ID_PARTIDA',    ...tableRows.map(d => d.idPartida)],
+      ['Championship',  ...tableRows.map(d => d.campeonato)],
+      ['Team',          ...tableRows.map(d => d.time)],
+    ];
+    PL_ROWS.forEach(row => {
+      aoa.push([row.label, ...tableRows.map(d => d[row.key] ?? 0)]);
+      if (row.catFin2 && DETAIL_DESCS[row.catFin2]) {
+        [...DETAIL_DESCS[row.catFin2]].sort().forEach(desc => {
+          aoa.push([`  ${desc}`, ...tableRows.map(d => DETAIL_MAP[row.catFin2]?.[d.idPartida]?.[desc] ?? 0)]);
+        });
+      }
+    });
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'P&L');
+    XLSX.writeFile(wb, 'pl_botafogo.xlsx');
+  };
 
   // Visible table rows
   const visibleRows = useMemo(() => {
