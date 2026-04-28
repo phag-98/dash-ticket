@@ -592,7 +592,10 @@ _num = ["matchdayIngresse","parking","firezone","arenaKids","aeb",
         "entertainment","facialRecognition","accommodation",
         "taxes","arbitration","personnelExpenses","meal"]
 pl_base[_num] = pl_base[_num].fillna(0.0)
-pl_base["totalRevenues"]          = pl_base[["matchdayIngresse","parking","firezone","arenaKids","aeb"]].sum(axis=1)
+pl_base["rebateIngresse"] = pl_base["matchdayIngresse"].apply(
+    lambda v: -round(v * 0.02, 2) if v >= 500_000 else (-round(v * 0.01, 2) if v > 300_000 else 0.0)
+)
+pl_base["totalRevenues"]          = pl_base[["matchdayIngresse","rebateIngresse","parking","firezone","arenaKids","aeb"]].sum(axis=1)
 pl_base["totalOperatingExpenses"] = pl_base[["services","security","rentals","operatingExpenses","feesAndTaxes","entertainment","facialRecognition"]].sum(axis=1)
 pl_base["margin"]                 = pl_base["totalRevenues"] + pl_base["totalOperatingExpenses"]
 pl_base["totalLogistics"]         = pl_base["accommodation"]
@@ -611,7 +614,7 @@ for _, r in pl_base.iterrows():
         "ano":                    si(r["ANO"]) if pd.notna(r["ANO"]) else 0,
         "mes":                    si(r["MES"]) if pd.notna(r["MES"]) else 0,
         "matchdayIngresse":       sf(r["matchdayIngresse"]),
-        "rebateIngresse":         0.0,
+        "rebateIngresse":         sf(r["rebateIngresse"]),
         "parking":                sf(r["parking"]),
         "firezone":               sf(r["firezone"]),
         "arenaKids":              sf(r["arenaKids"]),
