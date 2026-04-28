@@ -418,7 +418,8 @@ export default function PL() {
 
                 if (!isExpanded) return [mainRow];
 
-                const descs = [...DETAIL_DESCS[row.catFin2]].sort();
+                const descs = [...DETAIL_DESCS[row.catFin2]].sort()
+                  .filter(desc => !hideZero || tableRows.some(d => (DETAIL_MAP[row.catFin2]?.[d.idPartida]?.[desc] ?? 0) !== 0));
                 const subRows = descs.map(desc => (
                   <tr key={`${row.id}__${desc}`} style={{ background: '#fafafa' }}>
                     <td style={{ ...tdLabel, paddingLeft: 32, color: C.t3, fontSize: 9, background: '#fafafa', fontStyle: 'italic' }}>
