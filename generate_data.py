@@ -549,8 +549,8 @@ for df in [dCatFin1, dCatFin2, dDescDesp, fDesp, fAnB_rev, fAcom, fAK, fEstac, f
 ingr_enrich["FAT_INGR"] = ingr_enrich["PÚBLICO"] * ingr_enrich["UNITÁRIO"]
 matchday_rev = ingr_enrich.groupby("ID_PARTIDA").agg(matchdayIngresse=("FAT_INGR","sum")).reset_index()
 parking_rev  = fEstac.groupby("ID_PARTIDA")["VALOR"].sum().reset_index().rename(columns={"VALOR":"parking"})
-firezone_rev = fFire.drop_duplicates().groupby("ID_PARTIDA")["FATURAMENTO_FIREZONE"].sum().reset_index().rename(columns={"FATURAMENTO_FIREZONE":"firezone"})
-ak_rev       = fAK.drop_duplicates().groupby("ID_PARTIDA")["FATURAMENTO_ARENA_KIDS"].sum().reset_index().rename(columns={"FATURAMENTO_ARENA_KIDS":"arenaKids"})
+firezone_rev = fFire.drop_duplicates(subset=["ID_PARTIDA"], keep="first").groupby("ID_PARTIDA")["FATURAMENTO_FIREZONE"].sum().reset_index().rename(columns={"FATURAMENTO_FIREZONE":"firezone"})
+ak_rev       = fAK.drop_duplicates(subset=["ID_PARTIDA"], keep="first").groupby("ID_PARTIDA")["FATURAMENTO_ARENA_KIDS"].sum().reset_index().rename(columns={"FATURAMENTO_ARENA_KIDS":"arenaKids"})
 anb_rev      = fAnB_rev.groupby("ID_PARTIDA")["VALOR"].sum().reset_index().rename(columns={"VALOR":"aeb"})
 
 fDesp_cat = fDesp.merge(dDescDesp[["ID_DESC_DESPESA","ID_CAT_FIN_2"]], on="ID_DESC_DESPESA", how="left")
