@@ -19,9 +19,17 @@ dTimes = pd.read_excel(BASE / "dTimes.xlsx")
 dTorc  = pd.read_excel(BASE / "dTorcedores.xlsx")
 fBord  = pd.read_excel(BASE / "fBordero.xlsx")
 fIngr  = pd.read_excel(BASE / "fIngressos.xlsx")
+dPlac_path = BASE / "dPlacares.xlsx"
+dPlac  = pd.read_excel(dPlac_path) if dPlac_path.exists() else None
+dOrca_path = BASE / "dOrcamento.xlsx"
+dOrca  = pd.read_excel(dOrca_path) if dOrca_path.exists() else None
 
 for df in [dCamp, dEstad, dPart, dSetor, dTimes, dTorc, fBord, fIngr]:
     df.columns = [str(c).strip() for c in df.columns]
+if dPlac is not None:
+    dPlac.columns = [str(c).strip() for c in dPlac.columns]
+if dOrca is not None:
+    dOrca.columns = [str(c).strip() for c in dOrca.columns]
 
 # ── 2. Lookup maps ──────────────────────────────────────────────────────────
 camp_map   = dict(zip(dCamp["ID_CAMPEONATO"], dCamp["NOME"]))       # id -> nome
@@ -31,6 +39,9 @@ torc_map   = dict(zip(dTorc["ID_TORCEDOR"], dTorc["NOME"]))         # id -> nome
 socio_map  = dict(zip(dTorc["ID_TORCEDOR"], dTorc["SÓCIO"]))        # id -> 'Sim'/'Não'
 
 # ── 3. Enrich partidas ──────────────────────────────────────────────────────
+EXCLUDE_PARTIDAS = {"2024.09.25-CAMLI5-QUARTAS", "2024.10.30-CAMLI5-SEMIS"}
+dPart = dPart[~dPart["ID_PARTIDA"].isin(EXCLUDE_PARTIDAS)].copy()
+
 dPart["DATA"] = pd.to_datetime(dPart["DATA"], errors="coerce")
 dPart["ANO"]  = dPart["DATA"].dt.year
 dPart["MES"]  = dPart["DATA"].dt.month
@@ -43,9 +54,11 @@ fBord["TORCEDOR"]    = fBord["ID_TORCEDOR"].map(torc_map)
 fBord["SÓCIO"]       = fBord["ID_TORCEDOR"].map(socio_map)
 fBord["SETOR"]       = fBord["ID_SETOR"].map(setor_map)
 
+fBord  = fBord[~fBord["ID_PARTIDA"].isin(EXCLUDE_PARTIDAS)].copy()
 bord_enrich = fBord.merge(dPart[["ID_PARTIDA","CAMPEONATO","TIME","DATA","ANO","MES","RODADA","DIA_DA_SEMANA","HORARIO","ID_CAMPEONATO","ID_TIME"]], on="ID_PARTIDA", how="left")
 
 # ── 5. Merge fIngressos with partidas ───────────────────────────────────────
+fIngr  = fIngr[~fIngr["ID_PARTIDA"].isin(EXCLUDE_PARTIDAS)].copy()
 fIngr["TORCEDOR"] = fIngr["ID_TORCEDOR"].map(torc_map)
 fIngr["SÓCIO"]    = fIngr["ID_TORCEDOR"].map(socio_map)
 fIngr["SETOR"]    = fIngr["ID_SETOR"].map(setor_map)
@@ -551,7 +564,7 @@ matchday_rev = ingr_enrich.groupby("ID_PARTIDA").agg(matchdayIngresse=("FAT_INGR
 parking_rev  = fEstac.groupby("ID_PARTIDA")["VALOR"].sum().reset_index().rename(columns={"VALOR":"parking"})
 firezone_rev = fFire.drop_duplicates(subset=["ID_PARTIDA"], keep="first").groupby("ID_PARTIDA")["FATURAMENTO_FIREZONE"].sum().reset_index().rename(columns={"FATURAMENTO_FIREZONE":"firezone"})
 ak_rev       = fAK.drop_duplicates(subset=["ID_PARTIDA"], keep="first").groupby("ID_PARTIDA")["FATURAMENTO_ARENA_KIDS"].sum().reset_index().rename(columns={"FATURAMENTO_ARENA_KIDS":"arenaKids"})
-anb_rev      = fAnB_rev.groupby("ID_PARTIDA")["VALOR"].sum().reset_index().rename(columns={"VALOR":"aeb"})
+anb_rev      = fAnB_rev[fAnB_rev["ID_CAT_FIN_2"] == "a&b-4"].groupby("ID_PARTIDA")["VALOR"].sum().reset_index().rename(columns={"VALOR":"aeb"})
 
 fDesp_cat = fDesp.merge(dDescDesp[["ID_DESC_DESPESA","ID_CAT_FIN_2"]], on="ID_DESC_DESPESA", how="left")
 def _exp(cat_id, col):
@@ -584,7 +597,10 @@ _num = ["matchdayIngresse","parking","firezone","arenaKids","aeb",
         "entertainment","facialRecognition","accommodation",
         "taxes","arbitration","personnelExpenses","meal"]
 pl_base[_num] = pl_base[_num].fillna(0.0)
-pl_base["totalRevenues"]          = pl_base[["matchdayIngresse","parking","firezone","arenaKids","aeb"]].sum(axis=1)
+pl_base["rebateIngresse"] = pl_base["matchdayIngresse"].apply(
+    lambda v: round(v * 0.02, 2) if v >= 500_000 else (round(v * 0.01, 2) if v > 300_000 else 0.0)
+)
+pl_base["totalRevenues"]          = pl_base["matchdayIngresse"] - pl_base["rebateIngresse"] + pl_base[["parking","firezone","arenaKids","aeb"]].sum(axis=1)
 pl_base["totalOperatingExpenses"] = pl_base[["services","security","rentals","operatingExpenses","feesAndTaxes","entertainment","facialRecognition"]].sum(axis=1)
 pl_base["margin"]                 = pl_base["totalRevenues"] + pl_base["totalOperatingExpenses"]
 pl_base["totalLogistics"]         = pl_base["accommodation"]
@@ -603,7 +619,7 @@ for _, r in pl_base.iterrows():
         "ano":                    si(r["ANO"]) if pd.notna(r["ANO"]) else 0,
         "mes":                    si(r["MES"]) if pd.notna(r["MES"]) else 0,
         "matchdayIngresse":       sf(r["matchdayIngresse"]),
-        "rebateIngresse":         0.0,
+        "rebateIngresse":         sf(r["rebateIngresse"]),
         "parking":                sf(r["parking"]),
         "firezone":               sf(r["firezone"]),
         "arenaKids":              sf(r["arenaKids"]),
@@ -627,6 +643,200 @@ for _, r in pl_base.iterrows():
         "totalFederations":       sf(r["totalFederations"]),
         "total":                  sf(r["total"]),
     })
+
+# ── 10b. plDetalhe — expense breakdown by DESC_DESPESA per partida ───────────
+desp_detail = fDesp.merge(
+    dDescDesp[["ID_DESC_DESPESA", "DESC_DESPESA", "ID_CAT_FIN_2"]],
+    on="ID_DESC_DESPESA", how="left"
+)
+desp_detail = desp_detail.groupby(
+    ["ID_PARTIDA", "ID_CAT_FIN_2", "DESC_DESPESA"], as_index=False
+)["VALOR"].sum()
+
+plDetalhe = []
+for _, r in desp_detail.iterrows():
+    v = sf(r["VALOR"])
+    if v == 0:
+        continue
+    plDetalhe.append({
+        "idPartida":  str(r["ID_PARTIDA"]),
+        "catFin2":    str(r["ID_CAT_FIN_2"]) if pd.notna(r["ID_CAT_FIN_2"]) else "",
+        "desc":       str(r["DESC_DESPESA"]) if pd.notna(r["DESC_DESPESA"]) else "",
+        "valor":      v,
+    })
+
+# ── 9n. Orçamento ─────────────────────────────────────────────────────────────
+orcamento = []
+if dOrca is not None:
+    dOrca["CAMPEONATO"] = dOrca["ID_CAMPEONATO"].map(camp_map)
+    for _, r in dOrca.iterrows():
+        camp = str(r["CAMPEONATO"]) if pd.notna(r["CAMPEONATO"]) else ""
+        if not camp:
+            continue
+        bilheteria = sf(r["Bilheteria"])
+        orcamento.append({
+            "campeonato": camp,
+            "ano":        si(r["Ano"]),
+            "mes":        si(r["Mês"]),
+            "bilheteria": bilheteria,
+        })
+
+# ── 9o. AHP Scores por Partida ────────────────────────────────────────────────
+AHP_WEIGHTS = {
+    'campeonato': 0.1271,
+    'fase':       0.2598,
+    'horario':    0.2062,
+    'dia':        0.0262,
+    'adversario': 0.2825,
+    'forma':      0.0982,
+}
+
+_CAMP_SC = {
+    'CAMBR2':4,'CAMCO3':3,'CAMCA4':2,'CAMLI5':5,
+    'CAMSU6':3,'CAMSU7':5,'CAMMU8':5,'CAMSU9':5,'CAMRE10':5,
+}
+# Horário padrão (Brasileirão, Carioca, etc.)
+_HOR_SC = {
+    '16:00':5,'16:30':5,'17:30':4,'18:00':3,'18:30':3,
+    '19:00':3,'19:30':3,'20:00':3,'20:30':3,'21:00':3,'21:30':2,
+}
+# Horário para competições noturnas (Libertadores, Copa do Brasil, Sulamericana, Recopa)
+# mínimo 4; 21:30 é o horário nobre
+_HOR_SC_NOTURNO = {
+    '16:00':4,'16:30':4,'17:30':4,'18:00':4,'18:30':4,
+    '19:00':4,'19:30':4,'20:00':4,'20:30':4,'21:00':4,'21:30':5,
+}
+_CAMP_NOTURNO = {'CAMLI5', 'CAMCO3', 'CAMSU6', 'CAMRE10'}
+_DIA_SC = {
+    'Domingo':5,'Quarta-feira':4,'Quinta-feira':3,
+    'Sábado':3,'Sexta-feira':1,'Terça-feira':1,
+}
+# Para Libertadores, Copa do Brasil e Sulamericana: quarta é o dia nobre
+_DIA_SC_NOTURNO = {
+    'Domingo':5,'Quarta-feira':5,'Quinta-feira':4,
+    'Sábado':3,'Sexta-feira':1,'Terça-feira':4,
+}
+_FASE_SC_RAW = {
+    '1':2,'2':2,'3':2,'4':2,'5':2,'6':2,'8':2,'9':2,
+    '10':3,'11':3,'12':3,'14':3,'15':3,'17':3,'18':3,'20':3,
+    '22':3,'23':3,'24':3,'25':3,'26':3,'28':3,
+    '30':4,'32':4,'33':4,'34':4,'35':4,'38':5,
+    '2° FASE':3,'3° FASE':3,'FG':3,'FI':2,'FINAL':5,
+    'FINAL - TR':2,'OITAVAS':3,'QUARTAS':4,'SEMIS':5,'SEMIS - TR':2,'SF':5,
+}
+_FASE_SC = {k.upper(): v for k, v in _FASE_SC_RAW.items()}
+
+# Overrides de fase por campeonato (sobrescreve a tabela base)
+_FASE_SC_OVERRIDE = {
+    'CAMLI5': {'OITAVAS': 5, 'QUARTAS': 5, 'SEMIS': 5},  # Libertadores: mata-mata vale 5
+}
+_CAMP_FASE_MAX2 = {'CAMCA4'}  # Carioca / Taça Rio: fase máx 2
+
+_FORMA_MAP = {
+    (0,0,3):(0,'D+D+D'),(0,1,2):(1,'E+D+D'),(0,2,1):(1,'E+E+D'),
+    (1,0,2):(1,'V+D+D'),(0,3,0):(3,'E+E+E'),(1,1,1):(3,'V+E+D'),
+    (1,2,0):(3,'V+E+E'),(2,0,1):(4,'V+V+D'),(2,1,0):(4,'V+V+E'),
+    (3,0,0):(5,'V+V+V'),
+}
+
+def _forma(results):
+    last3 = [r for r in results if r in ('V','E','D')][-3:]
+    if len(last3) < 3:
+        return None, ''
+    nV,nE,nD = last3.count('V'),last3.count('E'),last3.count('D')
+    res = _FORMA_MAP.get((nV,nE,nD))
+    return (res[0], res[1]) if res else (None,'')
+
+time_score_map = {str(k): int(v) for k,v in zip(dTimes['ID_TIME'], dTimes['Pontuação']) if pd.notna(v)}
+
+# público por partida (from ingr_part computed earlier in section 9j)
+publico_map = ingr_part.set_index('ID_PARTIDA')['PUBLICO'].to_dict()
+
+# Prepare placares sorted ascending for forma look-back
+if dPlac is not None:
+    _plac = dPlac.copy()
+    _plac['_dt'] = pd.to_datetime(_plac['Data'], dayfirst=True, errors='coerce')
+    _plac = _plac.dropna(subset=['_dt']).sort_values('_dt').reset_index(drop=True)
+    _plac_dates   = _plac['_dt'].tolist()
+    _plac_results = _plac['Resultado'].tolist()
+else:
+    _plac_dates, _plac_results = [], []
+
+import bisect
+
+ahpScores = []
+for _, r in dPart.sort_values('DATA').iterrows():
+    part_date = r['DATA']
+    id_camp = str(r['ID_CAMPEONATO'])
+    id_time = str(r['ID_TIME'])
+    rodada  = str(r['RODADA']).strip()
+    dia     = str(r['DIA_DA_SEMANA']) if pd.notna(r['DIA_DA_SEMANA']) else ''
+    horario = str(r['HORARIO'])
+    if ':' in horario and len(horario) > 5:
+        horario = horario[:5]
+
+    sc_camp = _CAMP_SC.get(id_camp)
+    sc_fase = _FASE_SC.get(rodada.upper())
+    if id_camp in _FASE_SC_OVERRIDE:
+        sc_fase = _FASE_SC_OVERRIDE[id_camp].get(rodada.upper(), sc_fase)
+    if sc_fase is not None and id_camp in _CAMP_FASE_MAX2:
+        sc_fase = min(sc_fase, 2)
+    hor_table = _HOR_SC_NOTURNO if id_camp in _CAMP_NOTURNO else _HOR_SC
+    sc_hor  = hor_table.get(horario)
+    # Carioca: 20:30 vale no máximo 2
+    if sc_hor is not None and id_camp in _CAMP_FASE_MAX2 and horario == '20:30':
+        sc_hor = min(sc_hor, 2)
+    dia_table = _DIA_SC_NOTURNO if id_camp in _CAMP_NOTURNO else _DIA_SC
+    sc_dia  = dia_table.get(dia)
+    if sc_dia is not None and id_camp in _CAMP_FASE_MAX2:
+        sc_dia = min(sc_dia, 3)
+    sc_adv  = time_score_map.get(id_time)
+
+    # Forma: last 3 Botafogo results before this date
+    if pd.notna(part_date) and _plac_dates:
+        idx = bisect.bisect_left(_plac_dates, part_date)
+        prev_res = _plac_results[:idx]
+        sc_forma, forma_str = _forma(prev_res)
+    else:
+        sc_forma, forma_str = None, ''
+
+    all_ok = all(s is not None for s in [sc_camp,sc_fase,sc_hor,sc_dia,sc_adv,sc_forma])
+    total = round(
+        AHP_WEIGHTS['campeonato']*sc_camp +
+        AHP_WEIGHTS['fase']*sc_fase +
+        AHP_WEIGHTS['horario']*sc_hor +
+        AHP_WEIGHTS['dia']*sc_dia +
+        AHP_WEIGHTS['adversario']*sc_adv +
+        AHP_WEIGHTS['forma']*sc_forma,
+        4
+    ) if all_ok else None
+
+    dt = r['DATA']
+    ahpScores.append({
+        'idPartida':       str(r['ID_PARTIDA']),
+        'campeonato':      str(r['CAMPEONATO']) if pd.notna(r['CAMPEONATO']) else '',
+        'time':            str(r['TIME']) if pd.notna(r['TIME']) else '',
+        'data':            dt.strftime('%d/%m/%Y') if pd.notna(dt) else '',
+        'ano':             si(r['ANO']) if pd.notna(r['ANO']) else 0,
+        'mes':             si(r['MES']) if pd.notna(r['MES']) else 0,
+        'rodada':          rodada,
+        'diaSemana':       dia,
+        'horario':         horario,
+        'scoreCampeonato': sc_camp,
+        'scoreFase':       sc_fase,
+        'scoreHorario':    sc_hor,
+        'scoreDia':        sc_dia,
+        'scoreAdversario': sc_adv,
+        'scoreForma':      sc_forma,
+        'formaStr':        forma_str,
+        'total':           total,
+        'publico':         si(publico_map.get(str(r['ID_PARTIDA']), 0)),
+    })
+
+# Partidas excluídas da análise AHP (outliers contextuais)
+_AHP_EXCLUDE = {'2024.10.18-CAMBR2-30'}  # Criciúma 2024 — jogo decisivo, público atípico
+ahpScores = [s for s in ahpScores if s['idPartida'] not in _AHP_EXCLUDE]
+ahpScores.sort(key=lambda x: -(x['total'] or 0))
 
 # ── 11. Write JS file ────────────────────────────────────────────────────────
 def to_js(obj):
@@ -664,6 +874,12 @@ lines = [
     f"export const torcedorCols = {to_js(torcedorCols)};",
     f"export const allSetorNames = {to_js(all_setor_names)};",
     f"export const plPorPartida = {to_js(plPorPartida)};",
+    f"export const plDetalhe = {to_js(plDetalhe)};",
+    f"export const orcamento = {to_js(orcamento)};",
+    f"export const ahpScores = {to_js(ahpScores)};",
+    "",
+    "// AHP weights (for display in UI)",
+    f"export const AHP_WEIGHTS = {to_js(AHP_WEIGHTS)};",
     "",
     "// Convenience: unique campeonato names",
     f"export const CAMPEONATOS = {to_js(sorted(set(p['campeonato'] for p in partidas if p['campeonato'])))};",
@@ -674,6 +890,68 @@ lines = [
 
 OUT.write_text("\n".join(lines), encoding="utf-8")
 print(f"\n✓ Written {OUT}")
+
+# ── Generate placares.js from dPlacares.xlsx ────────────────────────────────
+# dPlacares colunas: Data, ID_CAMPEONATO, Adversário, Placar Adversário,
+#                    Placar Botafogo, Resultado, Local (C=casa / F=fora)
+# Competição = dCampeonatos.NOME via ID_CAMPEONATO
+PLAC_OUT = BASE / "src/data/placares.js"
+
+if dPlac is not None:
+    dPlac.columns = [str(c).strip() for c in dPlac.columns]
+    dPlac["_data"] = pd.to_datetime(dPlac["Data"], dayfirst=True, errors="coerce")
+    dPlac["_data_fmt"] = dPlac["_data"].dt.strftime("%d/%m/%Y")
+    # Nome da competição via dCampeonatos
+    dPlac["_camp"] = dPlac["ID_CAMPEONATO"].map(camp_map).fillna(dPlac.get("Competição", ""))
+
+    plac_rows = []
+    for _, row in dPlac.sort_values("_data", ascending=False).iterrows():
+        camp   = str(row.get("_camp", "") or "").strip()
+        adv    = str(row.get("Adversário", "") or "").strip()
+        gbot   = row.get("Placar Botafogo")
+        gadv   = row.get("Placar Adversário")
+        res    = str(row.get("Resultado", "") or "").strip()
+        local  = str(row.get("Local", "C") or "C").strip().upper()
+        data   = row.get("_data_fmt", "") or ""
+
+        gbot_s = int(gbot) if pd.notna(gbot) else "null"
+        gadv_s = int(gadv) if pd.notna(gadv) else "null"
+
+        # C = Botafogo mandante (esquerda); F = Botafogo visitante (direita)
+        if local == "C":
+            mandante, visitante = "Botafogo", adv
+            gm, gv = gbot_s, gadv_s
+        else:
+            mandante, visitante = adv, "Botafogo"
+            gm, gv = gadv_s, gbot_s
+
+        plac_rows.append({
+            "data":      data,
+            "campeonato": camp,
+            "mandante":  mandante,
+            "visitante": visitante,
+            "golsMandante": gm,
+            "golsVisitante": gv,
+            "resultado": res,
+        })
+
+    def row_to_js(r):
+        res_s = f'"{r["resultado"]}"' if r["resultado"] else '""'
+        return (
+            f'  {{"data":"{r["data"]}","campeonato":"{r["campeonato"]}",'
+            f'"mandante":"{r["mandante"]}","visitante":"{r["visitante"]}",'
+            f'"golsMandante":{r["golsMandante"]},"golsVisitante":{r["golsVisitante"]},'
+            f'"resultado":{res_s}}}'
+        )
+
+    plac_lines = ["export const placares = ["]
+    for i, r in enumerate(plac_rows):
+        sep = "," if i < len(plac_rows) - 1 else ""
+        plac_lines.append(row_to_js(r) + sep)
+    plac_lines.append("];")
+    PLAC_OUT.write_text("\n".join(plac_lines), encoding="utf-8")
+    filled = sum(1 for r in plac_rows if r["resultado"])
+    print(f"✓ Written {PLAC_OUT} ({filled}/{len(plac_rows)} com resultado)")
 print(f"  campeonatos: {len(campeonatos)}")
 print(f"  estadios: {len(estadios)}")
 print(f"  partidas: {len(partidas)}")
