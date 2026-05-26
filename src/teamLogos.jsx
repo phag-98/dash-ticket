@@ -107,6 +107,9 @@ export const LOGO_MAP = {
   'Racing Club':             'Racing.png',
   'Sampaio Corrêa-RJ':       'Sampaio Corrêa.png',
   'Portuguesa-RJ':           'Portuguesa.png',
+  'Chapecoense':             'Chapecoense.svg.png',
+  'Remo':                    'Remo.svg.png',
+  'Independiente Petrolero': 'Independiente_Petrolero.png',
 };
 
 export const TEAM_COLORS = {
