@@ -6,6 +6,7 @@ import {
 import { C, FONT_UI, SHADOW, CAMP_COLORS } from '../tokens';
 import { COMP_LOGOS, LOGO_MAP } from '../teamData';
 import { plPorPartida, faturamentoPorPartida } from '../data/data';
+import FilterBtnBase from '../components/FilterBtn';
 
 // ── Formatters ───────────────────────────────────────────────────────────────
 const fmtBR = (v) => {
@@ -24,23 +25,8 @@ const fmtAxis = (v) =>
   v >= 1e6 ? `${(v / 1e6).toFixed(1)} Mi` : `${(v / 1000).toFixed(0)} K`;
 
 // ── Filter button ────────────────────────────────────────────────────────────
-function FilterBtn({ label, active, onClick, color, logo }) {
-  const bg = active ? (color || C.accent) : C.card;
-  const col = active ? '#000' : C.t2;
-  const border = active ? (color || C.accent) : C.border;
-  return (
-    <button onClick={onClick} aria-pressed={active} style={{
-      padding: '4px 12px', borderRadius: 20, border: `1px solid ${border}`,
-      background: bg, color: col, fontSize: 10, fontWeight: active ? 700 : 500,
-      cursor: 'pointer', letterSpacing: '0.5px', whiteSpace: 'nowrap',
-      transition: 'all 0.12s', fontFamily: 'inherit',
-      display: 'flex', alignItems: 'center', gap: 5,
-    }}>
-      {logo && <img src={`/logos/${logo}`} alt="" style={{ width: 15, height: 15, objectFit: 'contain' }} />}
-      {label}
-    </button>
-  );
-}
+// P&L usa padding um pouco menor
+const FilterBtn = (props) => <FilterBtnBase padding="4px 12px" {...props} />;
 
 // ── Custom X-axis tick with team logo ────────────────────────────────────────
 function LogoTick({ x, y, payload }) {

@@ -4,8 +4,9 @@ import {
   Tooltip as RTooltip, ResponsiveContainer, Treemap,
 } from 'recharts';
 import { C, SHADOW, CAMP_COLORS as TOKEN_CAMP_COLORS } from '../tokens';
-import { COMP_LOGOS, LOGO_MAP, TEAM_COLORS } from '../teamData';
+import { LOGO_MAP, TEAM_COLORS } from '../teamData';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import FilterBtn from '../components/FilterBtn';
 import {
   faturamentoPorSetor, faturamentoPorPartida,
   faturamentoPorAdversario, partidas, ingressos,
@@ -49,24 +50,6 @@ const getSetorColor = nome => SETOR_PALETTE[ALL_SETORS.indexOf(nome) % SETOR_PAL
 
 const sectionTitle = { fontSize: 10, fontWeight: 700, color: C.t2, textTransform: 'uppercase', letterSpacing: '1.5px' };
 
-function FilterBtn({ label, active, onClick, color }) {
-  const bg = active ? (color || C.accent) : C.card;
-  const col = active ? '#000' : C.t2;
-  const border = active ? (color || C.accent) : C.border;
-  const logo = COMP_LOGOS[label];
-  return (
-    <button onClick={onClick} aria-pressed={active} style={{
-      padding: '4px 14px', borderRadius: 20, border: `1px solid ${border}`,
-      background: bg, color: col, fontSize: 10, fontWeight: active ? 700 : 500,
-      cursor: 'pointer', letterSpacing: '0.5px', whiteSpace: 'nowrap',
-      transition: 'all 0.12s ease', fontFamily: 'inherit',
-      display: 'flex', alignItems: 'center', gap: 5,
-    }}>
-      {logo && <img src={`/logos/${logo}`} alt="" style={{ width: 16, height: 16, objectFit: 'contain' }} />}
-      {label}
-    </button>
-  );
-}
 
 function Card({ children, title, style = {} }) {
   return (

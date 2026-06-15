@@ -7,6 +7,7 @@ import {
 import { C, FONT, SHADOW, CAMP_COLORS as TOKEN_CAMP_COLORS } from '../tokens';
 import { noShowAnalysis, noShowPorTorcedor, partidas } from '../data/data';
 import { useIsMobile } from '../hooks/useMediaQuery';
+import FilterBtnBase from '../components/FilterBtn';
 
 const fmtM = v => {
   if (!v && v !== 0) return '—';
@@ -26,26 +27,10 @@ const CAMP_COLORS = {
 };
 
 // ── Consistent filter button
-function FilterBtn({ label, active, onClick, color }) {
-  const bg     = active ? (color || C.accent) : C.bgAlt;
-  const col    = active ? '#000' : C.t2;
-  const border = active ? (color || C.accent) : C.border;
-  return (
-    <button
-      onClick={onClick}
-      aria-pressed={active}
-      style={{
-        padding: '4px 10px', borderRadius: 20, border: `1px solid ${border}`,
-        background: bg, color: col,
-        fontSize: 10, fontWeight: active ? 700 : 500, cursor: 'pointer',
-        letterSpacing: '0.5px', whiteSpace: 'nowrap', transition: 'all 0.12s ease',
-        fontFamily: 'inherit',
-      }}
-    >
-      {label}
-    </button>
-  );
-}
+// No Show usa chips sem logo e padding menor
+const FilterBtn = (props) => (
+  <FilterBtnBase padding="4px 10px" inactiveBg={C.bgAlt} autoLogo={false} {...props} />
+);
 
 // ── Section title style
 const sectionTitle = {
