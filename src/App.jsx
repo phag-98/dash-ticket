@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { C, FONT, FONT_UI } from './tokens';
+import { useIsMobile } from './hooks/useMediaQuery';
 import ChampionshipReport from './pages/ChampionshipReport';
 import Comparativo        from './pages/Comparativo';
 import Setores            from './pages/Setores';
@@ -19,6 +20,7 @@ const TABS = [
 ];
 
 export default function App() {
+  const isMobile = useIsMobile();
   const [tab, setTab] = useState('championship');
 
   return (
@@ -60,10 +62,10 @@ export default function App() {
           background:'#4a4a4a',
           borderBottom:`2px solid #3a3a3a`,
           display:'flex', alignItems:'center',
-          padding:'0 24px', height:48,
+          padding: isMobile ? '0 12px' : '0 24px', height:48,
         }}>
           {/* Logo mark */}
-          <div style={{ display:'flex', alignItems:'center', marginRight:28, flexShrink:0, borderRight:'1px solid #555', paddingRight:28 }}>
+          <div style={{ display:'flex', alignItems:'center', marginRight: isMobile ? 12 : 28, flexShrink:0, borderRight:'1px solid #555', paddingRight: isMobile ? 12 : 28 }}>
             <img src="/logos/Botafogo.png" alt="Botafogo" style={{ height:36, width:'auto', objectFit:'contain' }} />
           </div>
 
@@ -97,7 +99,7 @@ export default function App() {
       </header>
 
       {/* ── Page content ── */}
-      <main style={{ padding:'20px 24px' }}>
+      <main style={{ padding: isMobile ? '12px' : '20px 24px' }}>
         {tab === 'championship' && <ChampionshipReport />}
         {tab === 'comparativo'  && <Comparativo />}
         {tab === 'setores'      && <Setores />}

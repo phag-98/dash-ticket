@@ -6,6 +6,7 @@ import {
 } from 'recharts';
 import { C, FONT, SHADOW, CAMP_COLORS as TOKEN_CAMP_COLORS } from '../tokens';
 import { noShowAnalysis, noShowPorTorcedor, partidas } from '../data/data';
+import { useIsMobile } from '../hooks/useMediaQuery';
 
 const fmtM = v => {
   if (!v && v !== 0) return '—';
@@ -82,6 +83,7 @@ const ScatterTooltip = ({ active, payload }) => {
 };
 
 export default function NoShow() {
+  const isMobile = useIsMobile();
   const [horFilter, setHorFilter] = useState(null);
   const [diaFilter, setDiaFilter] = useState(null);
   const [anoFilter, setAnoFilter] = useState(null);
@@ -167,7 +169,7 @@ export default function NoShow() {
       </div>
 
       {/* Main content */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 360px', gap: 14 }}>
 
         {/* Scatter */}
         <Card title="PÚBLICO vs Percentual NO SHOW por Partida">

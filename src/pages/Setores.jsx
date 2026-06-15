@@ -4,7 +4,8 @@ import {
   Tooltip as RTooltip, ResponsiveContainer, Treemap,
 } from 'recharts';
 import { C, SHADOW, CAMP_COLORS as TOKEN_CAMP_COLORS } from '../tokens';
-import { COMP_LOGOS, LOGO_MAP, TEAM_COLORS } from '../teamLogos.jsx';
+import { COMP_LOGOS, LOGO_MAP, TEAM_COLORS } from '../teamData';
+import { useIsMobile } from '../hooks/useMediaQuery';
 import {
   faturamentoPorSetor, faturamentoPorPartida,
   faturamentoPorAdversario, partidas, ingressos,
@@ -135,14 +136,9 @@ function TeamXTick({ x, y, payload }) {
 }
 
 export default function Setores() {
+  const isMobile = useIsMobile();
   const [ano, setAno]         = useState('Todos');
   const [campeonato, setCamp] = useState('Todos');
-
-  const filteredFat = useMemo(() => faturamentoPorPartida.filter(p => {
-    if (campeonato !== 'Todos' && p.campeonato !== campeonato) return false;
-    if (ano !== 'Todos' && String(p.ano) !== ano) return false;
-    return true;
-  }), [campeonato, ano]);
 
   // Two lines per year
   const mesData = useMemo(() => {
@@ -156,12 +152,6 @@ export default function Setores() {
     return MONTH_NAMES.map(m => ({ mes: m, '2024': m24[m] || null, '2025': m25[m] || null }));
   }, [campeonato]);
 
-  // Bar chart by game sorted by date
-  const adversarioData = useMemo(() => filteredFat
-    .slice()
-    .sort((a, b) => (a.data || '').split('/').reverse().join('-').localeCompare((b.data || '').split('/').reverse().join('-')))
-    .map(p => ({ ...p, label: `${p.time}|${p.rodada}` }))
-  , [filteredFat]);
 
   const filteredUnitario = useMemo(() => {
     return partidas
@@ -207,7 +197,7 @@ export default function Setores() {
       </div>
 
       {/* Setor table + right charts */}
-      <div style={{ display: 'grid', gridTemplateColumns: '440px 1fr', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '440px 1fr', gap: 14 }}>
 
         <Card title="Resumo por Setor">
           <div style={{ overflowX: 'auto' }}>

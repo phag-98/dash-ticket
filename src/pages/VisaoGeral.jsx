@@ -5,10 +5,12 @@ import {
   BarChart, Bar, Cell, LineChart, Line, ComposedChart, LabelList,
 } from 'recharts';
 import { C, FONT, SHADOW, CAMP_COLORS as TOKEN_CAMP_COLORS } from '../tokens';
-import { TeamBadge, TeamXTick, TeamYTick, COMP_LOGOS } from '../teamLogos.jsx';
+import { TeamBadge, TeamXTick, TeamYTick } from '../teamLogos.jsx';
+import { COMP_LOGOS } from '../teamData';
+import { useIsMobile } from '../hooks/useMediaQuery';
 import {
-  faturamentoPorPartida, publicoPorSetorPartida, unitarioPorTimeESetor,
-  publicoETicketPorTime, faturamentoPorCampeonatoAno, partidas, kpis,
+  faturamentoPorPartida, unitarioPorTimeESetor,
+  publicoETicketPorTime, partidas, kpis,
 } from '../data/data';
 
 const fmtM = v => {
@@ -103,6 +105,7 @@ const ScatterTooltip = ({ active, payload }) => {
 };
 
 export default function VisaoGeral() {
+  const isMobile = useIsMobile();
   const [campFilter, setCampFilter] = useState(null);
   const [anoFilter,  setAnoFilter]  = useState(null);
 
@@ -215,7 +218,7 @@ export default function VisaoGeral() {
       </div>
 
       {/* Row 1: Summary table + Scatter */}
-      <div style={{ display: 'grid', gridTemplateColumns: '380px 1fr', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '380px 1fr', gap: 14 }}>
 
         {/* Summary table */}
         <Card title="Visão por Campeonato">
@@ -305,7 +308,7 @@ export default function VisaoGeral() {
       </div>
 
       {/* Row 2: Faturamento por time + Unitário por time e setor */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 14 }}>
 
         {/* Faturamento por time descending */}
         <Card title="Soma de FATURAMENTO por Time (Top 15)">

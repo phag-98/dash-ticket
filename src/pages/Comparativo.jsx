@@ -4,7 +4,9 @@ import {
   ResponsiveContainer, LabelList, Cell,
 } from 'recharts';
 import { C, FONT, SHADOW, CAMP_COLORS as TOKEN_CAMP_COLORS } from '../tokens';
-import { COMP_LOGOS, CompXTick, CompYTick, TeamBadge } from '../teamLogos.jsx';
+import { CompXTick, CompYTick, TeamBadge } from '../teamLogos.jsx';
+import { COMP_LOGOS } from '../teamData';
+import { useIsMobile } from '../hooks/useMediaQuery';
 import { faturamentoPorCampeonatoAno, faturamentoPorPartida, partidas } from '../data/data';
 
 const fatByPartida = Object.fromEntries(faturamentoPorPartida.map(p => [p.idPartida, p]));
@@ -99,6 +101,7 @@ function buildData(field, campFilter) {
 }
 
 export default function Comparativo() {
+  const isMobile = useIsMobile();
   const [campFilter, setCampFilter] = useState(null);
 
   const fatData    = useMemo(() => buildData('faturamento', campFilter), [campFilter]);
@@ -149,7 +152,7 @@ export default function Comparativo() {
       </div>
 
       {/* Charts grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 14 }}>
 
         {/* Faturamento total por camp + ano (horizontal) */}
         <Card title="Faturamento por Campeonato e Ano" subtitle="● 2024  ● 2025">

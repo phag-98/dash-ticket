@@ -4,7 +4,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { C, FONT_UI, SHADOW, CAMP_COLORS } from '../tokens';
-import { COMP_LOGOS, LOGO_MAP } from '../teamLogos.jsx';
+import { COMP_LOGOS, LOGO_MAP } from '../teamData';
 import { plPorPartida, faturamentoPorPartida } from '../data/data';
 
 // ── Formatters ───────────────────────────────────────────────────────────────
