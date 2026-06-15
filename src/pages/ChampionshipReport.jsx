@@ -78,14 +78,14 @@ function FilterBtn({ label, active, onClick, color }) {
   const border = active ? (color || C.accent) : C.border;
   const logo   = COMP_LOGOS[label];
   return (
-    <button onClick={onClick} style={{
+    <button onClick={onClick} aria-pressed={active} style={{
       padding: '4px 14px', borderRadius: 20, border: `1px solid ${border}`,
       background: bg, color: col,
       fontSize: 10, fontWeight: active ? 700 : 500, cursor: 'pointer',
       letterSpacing: '0.5px', whiteSpace: 'nowrap', transition: 'all 0.12s ease',
       fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 5,
     }}>
-      {logo && <img src={`/logos/${logo}`} style={{ width: 16, height: 16, objectFit: 'contain' }} />}
+      {logo && <img src={`/logos/${logo}`} alt="" style={{ width: 16, height: 16, objectFit: 'contain' }} />}
       {label}
     </button>
   );
@@ -123,7 +123,7 @@ function KPI({ label, value, icon, accent = false, variation }) {
         fontSize: 16, flexShrink: 0, overflow: 'hidden',
       }}>
         {icon?.startsWith('/')
-          ? <img src={icon} style={{ width: 38, height: 38, objectFit: 'cover', borderRadius: 6 }} />
+          ? <img src={icon} alt="" style={{ width: 38, height: 38, objectFit: 'cover', borderRadius: 6 }} />
           : icon}
       </div>
       <div>
@@ -337,6 +337,11 @@ export default function ChampionshipReport() {
                     <tr
                       key={p.idPartida}
                       onClick={() => handleRowClick(p.idPartida)}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleRowClick(p.idPartida); } }}
+                      role="button"
+                      tabIndex={0}
+                      aria-pressed={isSelected}
+                      aria-label={`${p.time} — rodada ${p.rodada}`}
                       style={{
                         borderBottom: `1px solid ${C.border}`,
                         background: rowBg,

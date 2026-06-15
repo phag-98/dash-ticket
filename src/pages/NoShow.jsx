@@ -33,6 +33,7 @@ function FilterBtn({ label, active, onClick, color }) {
   return (
     <button
       onClick={onClick}
+      aria-pressed={active}
       style={{
         padding: '4px 10px', borderRadius: 20, border: `1px solid ${border}`,
         background: bg, color: col,

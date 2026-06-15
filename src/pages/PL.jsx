@@ -29,14 +29,14 @@ function FilterBtn({ label, active, onClick, color, logo }) {
   const col = active ? '#000' : C.t2;
   const border = active ? (color || C.accent) : C.border;
   return (
-    <button onClick={onClick} style={{
+    <button onClick={onClick} aria-pressed={active} style={{
       padding: '4px 12px', borderRadius: 20, border: `1px solid ${border}`,
       background: bg, color: col, fontSize: 10, fontWeight: active ? 700 : 500,
       cursor: 'pointer', letterSpacing: '0.5px', whiteSpace: 'nowrap',
       transition: 'all 0.12s', fontFamily: 'inherit',
       display: 'flex', alignItems: 'center', gap: 5,
     }}>
-      {logo && <img src={`/logos/${logo}`} style={{ width: 15, height: 15, objectFit: 'contain' }} />}
+      {logo && <img src={`/logos/${logo}`} alt="" style={{ width: 15, height: 15, objectFit: 'contain' }} />}
       {label}
     </button>
   );
@@ -264,6 +264,10 @@ export default function PL() {
                   <tr key={row.id} style={{ background: rowBg }}>
                     <td
                       onClick={() => isCat && COLLAPSIBLE.has(row.id) && toggleCollapse(row.id)}
+                      onKeyDown={(e) => { if ((isCat && COLLAPSIBLE.has(row.id)) && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggleCollapse(row.id); } }}
+                      role={(isCat && COLLAPSIBLE.has(row.id)) ? 'button' : undefined}
+                      tabIndex={(isCat && COLLAPSIBLE.has(row.id)) ? 0 : undefined}
+                      aria-expanded={(isCat && COLLAPSIBLE.has(row.id)) ? !collapsed.has(row.id) : undefined}
                       style={{
                         ...tdLabel, background: rowBg,
                         fontWeight: (isCat || isTotal) ? 700 : 400,

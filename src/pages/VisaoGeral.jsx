@@ -39,6 +39,7 @@ function FilterBtn({ label, active, onClick, color }) {
   return (
     <button
       onClick={onClick}
+      aria-pressed={active}
       style={{
         padding: '4px 14px', borderRadius: 20, border: `1px solid ${border}`,
         background: bg, color: col,
@@ -47,7 +48,7 @@ function FilterBtn({ label, active, onClick, color }) {
         fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 5,
       }}
     >
-      {logo && <img src={`/logos/${logo}`} style={{ width: 16, height: 16, objectFit: 'contain' }} />}
+      {logo && <img src={`/logos/${logo}`} alt="" style={{ width: 16, height: 16, objectFit: 'contain' }} />}
       {label}
     </button>
   );

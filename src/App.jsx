@@ -70,25 +70,26 @@ export default function App() {
           </div>
 
           {/* Tabs */}
-          <nav style={{ display:'flex', gap:0, flex:1, overflowX:'auto', scrollbarWidth:'none' }}>
+          <nav aria-label="Seções do dashboard" style={{ display:'flex', gap:0, flex:1, overflowX:'auto', scrollbarWidth:'none' }}>
             {TABS.map(t => {
               const active = tab === t.id;
               return (
                 <button
                   key={t.id}
                   onClick={() => setTab(t.id)}
+                  aria-current={active ? 'page' : undefined}
                   style={{
                     padding:'0 10px', height:48, border:'none', cursor:'pointer',
                     background:'transparent',
-                    color: active ? '#ffffff' : '#888',
+                    color: active ? '#ffffff' : '#d4d4d4',
                     fontFamily:FONT_UI, fontSize:10, fontWeight: active ? 700 : 400,
                     borderBottom: active ? `3px solid ${C.accent}` : '3px solid transparent',
                     borderTop: '3px solid transparent',
                     transition:'all 0.15s ease',
                     letterSpacing:'0.5px', whiteSpace:'nowrap', textTransform:'uppercase',
                   }}
-                  onMouseEnter={e=>{ if(!active){ e.currentTarget.style.color='#ccc'; e.currentTarget.style.borderBottomColor='#444'; }}}
-                  onMouseLeave={e=>{ if(!active){ e.currentTarget.style.color='#888'; e.currentTarget.style.borderBottomColor='transparent'; }}}
+                  onMouseEnter={e=>{ if(!active){ e.currentTarget.style.color='#ffffff'; e.currentTarget.style.borderBottomColor='#666'; }}}
+                  onMouseLeave={e=>{ if(!active){ e.currentTarget.style.color='#d4d4d4'; e.currentTarget.style.borderBottomColor='transparent'; }}}
                 >
                   {t.label}
                 </button>

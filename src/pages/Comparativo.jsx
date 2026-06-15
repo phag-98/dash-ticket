@@ -39,6 +39,7 @@ function FilterBtn({ label, active, onClick, color }) {
   return (
     <button
       onClick={onClick}
+      aria-pressed={active}
       style={{
         padding: '4px 14px', borderRadius: 20, border: `1px solid ${border}`,
         background: bg, color: col,
@@ -47,7 +48,7 @@ function FilterBtn({ label, active, onClick, color }) {
         fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: 5,
       }}
     >
-      {logo && <img src={`/logos/${logo}`} style={{ width: 16, height: 16, objectFit: 'contain' }} />}
+      {logo && <img src={`/logos/${logo}`} alt="" style={{ width: 16, height: 16, objectFit: 'contain' }} />}
       {label}
     </button>
   );
@@ -261,7 +262,7 @@ export default function Comparativo() {
                   <td style={{ padding: '6px 12px', color: C.t1, fontSize: 10 }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                       {COMP_LOGOS[r.campeonato]
-                        ? <img src={`/logos/${COMP_LOGOS[r.campeonato]}`} style={{ width: 16, height: 16, objectFit: 'contain' }} />
+                        ? <img src={`/logos/${COMP_LOGOS[r.campeonato]}`} alt="" style={{ width: 16, height: 16, objectFit: 'contain' }} />
                         : <span style={{ width: 8, height: 8, borderRadius: '50%', background: CAMP_COLORS[r.campeonato] || C.t3, display: 'inline-block', flexShrink: 0 }} />
                       }
                       {r.campeonato}
@@ -312,7 +313,7 @@ export default function Comparativo() {
                   </td>
                   <td style={{ padding: '6px 12px' }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 5, background: (CAMP_COLORS[p.campeonato] || C.t3) + '22', color: CAMP_COLORS[p.campeonato] || C.t3, borderRadius: 4, padding: '2px 6px', fontSize: 9, fontWeight: 700 }}>
-                      {COMP_LOGOS[p.campeonato] && <img src={`/logos/${COMP_LOGOS[p.campeonato]}`} style={{ width: 12, height: 12, objectFit: 'contain' }} />}
+                      {COMP_LOGOS[p.campeonato] && <img src={`/logos/${COMP_LOGOS[p.campeonato]}`} alt="" style={{ width: 12, height: 12, objectFit: 'contain' }} />}
                       {p.campeonato}
                     </span>
                   </td>
