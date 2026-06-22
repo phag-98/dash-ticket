@@ -80,23 +80,23 @@ function StatBox({ label, value, color = C.t1, sub }) {
 function MatchRow({ m }) {
   const meta = RESULT_META[m.resultado] || RESULT_META.E;
   const localLabel = m.local === 'C' ? 'Casa' : m.local === 'F' ? 'Fora' : 'Neutro';
+  const linhaMeta = [
+    localLabel,
+    m.diaSemana?.replace('-feira', ''),
+    m.horario,
+  ].filter(Boolean).join(' · ');
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: '92px 1fr auto 56px',
-      alignItems: 'center', gap: 14,
-      padding: '12px 16px', borderTop: `1px solid ${C.border}`,
-    }}>
-      {/* Data + dia/horário */}
-      <div style={{ minWidth: 0 }}>
+    <div className="bfr-match">
+      {/* Data + local/dia/horário */}
+      <div className="bfr-match__meta">
         <div style={{ fontSize: 12, fontWeight: 700, color: C.t1 }}>{m.dataBR}</div>
-        <div style={{ fontSize: 10, color: C.t3 }}>{m.diaSemana?.replace('-feira', '')}{m.horario ? ` · ${m.horario}` : ''}</div>
+        <div style={{ fontSize: 10, color: C.t3 }}>{linhaMeta}</div>
       </div>
 
       {/* Placar: Botafogo x Adversário */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end', flex: 1 }}>
-          <span style={{ fontSize: 11, color: C.t2, fontWeight: 600 }}>Botafogo</span>
+      <div className="bfr-match__score">
+        <div className="bfr-match__side bfr-match__side--home">
+          <span className="bfr-match__name">Botafogo</span>
           <ClubLogo name="Botafogo" file="Botafogo.png" size={24} />
         </div>
         <div style={{
@@ -108,23 +108,17 @@ function MatchRow({ m }) {
           <span style={{ color: C.t3, fontWeight: 500 }}>×</span>
           <span>{m.golsAdversario}</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: 1 }}>
+        <div className="bfr-match__side">
           <ClubLogo name={m.adversario} size={24} />
-          <span style={{ fontSize: 11, color: C.t2, fontWeight: 600 }}>{m.adversario}</span>
+          <span className="bfr-match__name">{m.adversario}</span>
         </div>
       </div>
 
-      {/* Local */}
-      <div style={{
-        fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase',
-        letterSpacing: '0.5px', textAlign: 'center', minWidth: 44,
-      }}>{localLabel}</div>
-
       {/* Resultado */}
-      <div style={{
+      <div className="bfr-match__result" style={{
         fontSize: 10, fontWeight: 800, color: meta.color, background: meta.bg,
         borderRadius: 6, padding: '4px 0', textAlign: 'center', letterSpacing: '0.5px',
-      }}>{m.resultado}</div>
+      }} title={meta.label}>{m.resultado}</div>
     </div>
   );
 }
@@ -203,7 +197,7 @@ export default function Clubes() {
             placeholder="Buscar clube…"
             style={{
               border: `1px solid ${C.border}`, borderRadius: 20, padding: '6px 14px',
-              fontSize: 12, color: C.t1, outline: 'none', width: 200, fontFamily: 'inherit',
+              fontSize: 12, color: C.t1, outline: 'none', width: 'min(200px, 100%)', fontFamily: 'inherit',
               background: C.bg,
             }}
           />

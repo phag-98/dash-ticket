@@ -17,6 +17,36 @@
       ::-webkit-scrollbar-track { background: #e6e6e6; }
       ::-webkit-scrollbar-thumb { background: #C9A84C; border-radius: 3px; }
       ::-webkit-scrollbar-thumb:hover { background: #e0bf6a; }
+
+      /* ── Página Clubes — linha de jogo responsiva ── */
+      .bfr-match {
+        display: grid;
+        grid-template-columns: 168px 1fr 58px;
+        grid-template-areas: "meta score result";
+        align-items: center;
+        gap: 14px;
+        padding: 12px 16px;
+        border-top: 1px solid #d8d8d8;
+      }
+      .bfr-match__meta   { grid-area: meta; min-width: 0; }
+      .bfr-match__score  { grid-area: score; display: flex; align-items: center; justify-content: center; gap: 12px; }
+      .bfr-match__result { grid-area: result; }
+      .bfr-match__side   { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+      .bfr-match__side--home { justify-content: flex-end; }
+      .bfr-match__name   { font-size: 11px; color: #444; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+      @media (max-width: 680px) {
+        .bfr-match {
+          grid-template-columns: 1fr auto;
+          grid-template-areas:
+            "meta result"
+            "score score";
+          row-gap: 10px;
+        }
+        .bfr-match__score { justify-content: flex-start; }
+        .bfr-match__side  { flex: 0 1 auto; }
+        .bfr-match__name  { display: none; } /* só logos + placar no mobile */
+      }
 </style>
   </head>
   <body>

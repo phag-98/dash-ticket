@@ -52,21 +52,22 @@ export default function App() {
             );
           })}
           {/* Text centered */}
-          <span style={{ fontSize:9, color:'#888', letterSpacing:'3px', textTransform:'uppercase', position:'relative', zIndex:1 }}>
-            SAF &nbsp;·&nbsp; Dashboard
+          <span style={{ fontSize:9, color:'#bbb', letterSpacing:'3px', textTransform:'uppercase', position:'relative', zIndex:1, fontWeight:600 }}>
+            SAF &nbsp;·&nbsp; <span style={{ color:C.accent }}>BOTAFOGO</span>
           </span>
         </div>
 
         {/* Row 2 — Navigation */}
         <div style={{
-          background:'#4a4a4a',
-          borderBottom:`2px solid #3a3a3a`,
+          background:'linear-gradient(180deg, #3a3a3a 0%, #4a4a4a 100%)',
+          backgroundImage:'linear-gradient(180deg, #3a3a3a 0%, #4a4a4a 100%), repeating-linear-gradient(90deg, transparent 0 79px, rgba(255,255,255,0.03) 79px 80px)',
+          borderBottom:`3px solid ${C.accent}`,
           display:'flex', alignItems:'center',
-          padding:'0 24px', height:48,
+          padding:'0 24px', height:52,
         }}>
           {/* Logo mark */}
           <div style={{ display:'flex', alignItems:'center', marginRight:28, flexShrink:0, borderRight:'1px solid #555', paddingRight:28 }}>
-            <img src="/logos/Botafogo.png" alt="Botafogo" style={{ height:36, width:'auto', objectFit:'contain' }} />
+            <img src="/logos/Botafogo.png" alt="Botafogo" style={{ height:46, width:'auto', objectFit:'contain' }} />
           </div>
 
           {/* Tabs */}
@@ -78,7 +79,7 @@ export default function App() {
                   key={t.id}
                   onClick={() => setTab(t.id)}
                   style={{
-                    padding:'0 10px', height:48, border:'none', cursor:'pointer',
+                    padding:'0 10px', height:52, border:'none', cursor:'pointer',
                     background:'transparent',
                     color: active ? '#ffffff' : '#888',
                     fontFamily:FONT_UI, fontSize:10, fontWeight: active ? 700 : 400,
