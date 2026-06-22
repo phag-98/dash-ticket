@@ -2,15 +2,40 @@ import { useState, useMemo } from 'react';
 import { C, SHADOW } from '../tokens';
 import { TeamBadge, getCompLogo } from '../teamLogos.jsx';
 import { placares } from '../data/placares';
-import { partidas } from '../data/data';
+import { partidas, faturamentoPorPartida, ingressos, torcedores } from '../data/data';
 
 const BOTAFOGO = 'Botafogo';
 const DIAS = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+
+const fmtInt = v => (v ?? 0).toLocaleString('pt-BR');
 
 // Horário por (data|adversário), a partir das partidas (apenas mandante tem registro)
 const HORARIO_MAP = (() => {
   const m = {};
   partidas.forEach(p => { if (p.data && p.time) m[`${p.data}|${p.time}`] = p.horario; });
+  return m;
+})();
+
+// Público por jogo em casa: total (faturamentoPorPartida.utilizados) + split sócio (ingressos+torcedores).
+const SOCIO_IDS = new Set(torcedores.filter(t => t.socio === 'Sim').map(t => t.id));
+const SOCIO_POR_PARTIDA = (() => {
+  const m = {};
+  ingressos.forEach(r => {
+    if (!r.idPartida) return;
+    if (!m[r.idPartida]) m[r.idPartida] = { socio: 0, naoSocio: 0 };
+    if (SOCIO_IDS.has(r.idTorcedor)) m[r.idPartida].socio += r.publico || 0;
+    else m[r.idPartida].naoSocio += r.publico || 0;
+  });
+  return m;
+})();
+const PUBLICO_MAP = (() => {
+  const m = {};
+  faturamentoPorPartida.forEach(p => {
+    if (!p.data || !p.time) return;
+    const split = SOCIO_POR_PARTIDA[p.idPartida];
+    const total = p.utilizados || (split ? split.socio + split.naoSocio : 0);
+    if (total > 0) m[`${p.data}|${p.time}`] = { total, ...(split || {}) };
+  });
   return m;
 })();
 
@@ -33,6 +58,7 @@ function normalizar(p) {
     ano: Number((p.data || '').split('/')[2]) || null,
     diaSemana: diaDaSemana(p.data),
     horario: HORARIO_MAP[`${p.data}|${adversario}`] || null,
+    publico: mandanteBFR ? (PUBLICO_MAP[`${p.data}|${adversario}`] || null) : null,
     iso: (p.data || '').split('/').reverse().join('-'),
   };
 }
@@ -67,6 +93,28 @@ function StatBox({ label, value, color = C.t1 }) {
     }}>
       <div style={{ fontSize: 9, fontWeight: 700, color: C.t3, textTransform: 'uppercase', letterSpacing: '0.8px' }}>{label}</div>
       <div style={{ fontSize: 24, fontWeight: 800, color, lineHeight: 1.1, marginTop: 2 }}>{value}</div>
+    </div>
+  );
+}
+
+function PublicoCell({ pub }) {
+  if (!pub) {
+    return <div style={{ width: 96, flexShrink: 0, fontSize: 10, color: C.t3, textAlign: 'right' }} title="Público disponível apenas para jogos em casa">—</div>;
+  }
+  const total = pub.total;
+  const pct = total && pub.socio != null ? Math.round((pub.socio / total) * 100) : null;
+  return (
+    <div style={{ width: 96, flexShrink: 0, textAlign: 'right' }}
+      title={pub.socio != null ? `${fmtInt(pub.socio)} sócios · ${fmtInt(pub.naoSocio)} não sócios` : 'Público'}>
+      <div style={{ fontSize: 13, fontWeight: 800, color: C.t1, lineHeight: 1 }}>{fmtInt(total)}</div>
+      {pct != null && (
+        <>
+          <div style={{ height: 5, borderRadius: 3, background: '#4a5568', overflow: 'hidden', margin: '4px 0 2px' }}>
+            <div style={{ width: `${(pub.socio / total) * 100}%`, height: '100%', background: C.accent }} />
+          </div>
+          <div style={{ fontSize: 9, color: C.t3 }}>{pct}% sócios</div>
+        </>
+      )}
     </div>
   );
 }
@@ -106,6 +154,9 @@ function MatchRow({ m }) {
         </div>
       </div>
 
+      {/* Público (só mandante) */}
+      <PublicoCell pub={m.publico} />
+
       {/* Resultado */}
       <div style={{
         width: 54, flexShrink: 0,
@@ -119,6 +170,9 @@ function MatchRow({ m }) {
 export default function Clubes() {
   const [selected, setSelected] = useState(CLUBES[0]?.nome ?? null);
   const [busca, setBusca] = useState('');
+  const [aberto, setAberto] = useState(true);
+
+  const escolher = nome => { setSelected(nome); setAberto(false); };
 
   const clubesFiltrados = useMemo(() => {
     const q = busca.trim().toLowerCase();
@@ -160,49 +214,78 @@ export default function Clubes() {
         background: C.card, border: `1px solid ${C.border}`, borderRadius: 10,
         boxShadow: SHADOW.card, padding: '14px 16px',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, gap: 12, flexWrap: 'wrap' }}>
-          <span style={sectionTitle}>Selecione o clube</span>
-          <input
-            value={busca}
-            onChange={e => setBusca(e.target.value)}
-            placeholder="Buscar clube…"
-            style={{
-              border: `1px solid ${C.border}`, borderRadius: 20, padding: '6px 14px',
-              fontSize: 12, color: C.t1, outline: 'none', width: 'min(220px, 100%)',
-              fontFamily: 'inherit', background: C.bg,
-            }}
-          />
-        </div>
-        <div style={{
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
-          gap: 8, maxHeight: 220, overflowY: 'auto',
-        }}>
-          {clubesFiltrados.map(c => {
-            const active = c.nome === selected;
-            return (
-              <button
-                key={c.nome}
-                onClick={() => setSelected(c.nome)}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: aberto ? 12 : 0, gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+            <span style={sectionTitle}>Selecione o clube</span>
+            {!aberto && selected && (
+              <span style={{
+                display: 'flex', alignItems: 'center', gap: 6,
+                background: C.accentBg, border: `1px solid ${C.accent}`, borderRadius: 16, padding: '3px 10px 3px 4px',
+              }}>
+                <TeamBadge name={selected} size={18} />
+                <span style={{ fontSize: 11, fontWeight: 700, color: C.t1 }}>{selected}</span>
+              </span>
+            )}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {aberto && (
+              <input
+                value={busca}
+                onChange={e => setBusca(e.target.value)}
+                placeholder="Buscar clube…"
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '8px 10px', borderRadius: 8, cursor: 'pointer',
-                  border: `1px solid ${active ? C.accent : C.border}`,
-                  background: active ? C.accentBg : C.card,
-                  textAlign: 'left', fontFamily: 'inherit',
+                  border: `1px solid ${C.border}`, borderRadius: 20, padding: '6px 14px',
+                  fontSize: 12, color: C.t1, outline: 'none', width: 'min(220px, 100%)',
+                  fontFamily: 'inherit', background: C.bg,
                 }}
-              >
-                <TeamBadge name={c.nome} size={22} />
-                <span style={{
-                  fontSize: 11, fontWeight: active ? 700 : 500, color: active ? C.t1 : C.t2,
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                }}>{c.nome}</span>
-              </button>
-            );
-          })}
-          {clubesFiltrados.length === 0 && (
-            <div style={{ fontSize: 12, color: C.t3, gridColumn: '1 / -1' }}>Nenhum clube encontrado.</div>
-          )}
+              />
+            )}
+            <button
+              onClick={() => setAberto(v => !v)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer',
+                border: `1px solid ${C.border}`, borderRadius: 20, padding: '6px 12px',
+                background: C.card, color: C.t2, fontSize: 11, fontWeight: 600, fontFamily: 'inherit',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {aberto ? 'Recolher' : 'Expandir'}
+              <span style={{ fontSize: 9 }}>{aberto ? '▲' : '▼'}</span>
+            </button>
+          </div>
         </div>
+        {aberto && (
+          <div style={{
+            display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
+            gap: 8, maxHeight: 220, overflowY: 'auto',
+          }}>
+            {clubesFiltrados.map(c => {
+              const active = c.nome === selected;
+              return (
+                <button
+                  key={c.nome}
+                  onClick={() => escolher(c.nome)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8,
+                    padding: '8px 10px', borderRadius: 8, cursor: 'pointer',
+                    border: `1px solid ${active ? C.accent : C.border}`,
+                    background: active ? C.accentBg : C.card,
+                    textAlign: 'left', fontFamily: 'inherit',
+                  }}
+                >
+                  <TeamBadge name={c.nome} size={22} />
+                  <span style={{
+                    fontSize: 11, fontWeight: active ? 700 : 500, color: active ? C.t1 : C.t2,
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                  }}>{c.nome}</span>
+                </button>
+              );
+            })}
+            {clubesFiltrados.length === 0 && (
+              <div style={{ fontSize: 12, color: C.t3, gridColumn: '1 / -1' }}>Nenhum clube encontrado.</div>
+            )}
+          </div>
+        )}
       </div>
 
       {selected && (
