@@ -177,6 +177,7 @@ function MatchRow({ m }) {
 export default function Clubes() {
   const [selected, setSelected] = useState(CLUBES[0]?.nome ?? null);
   const [busca, setBusca] = useState('');
+  const [ano, setAno] = useState('Todos');
 
   const clubesFiltrados = useMemo(() => {
     const q = busca.trim().toLowerCase();
@@ -184,10 +185,25 @@ export default function Clubes() {
     return CLUBES.filter(c => c.nome.toLowerCase().includes(q));
   }, [busca]);
 
-  // Jogos do clube selecionado
-  const jogos = useMemo(
+  // Todos os jogos do clube (sem filtro de ano) — base para os anos disponíveis
+  const jogosClube = useMemo(
     () => placares.filter(p => p.adversario === selected),
     [selected]
+  );
+
+  // Anos com jogos contra o clube selecionado
+  const anosDisponiveis = useMemo(
+    () => [...new Set(jogosClube.map(j => j.ano).filter(Boolean))].sort(),
+    [jogosClube]
+  );
+
+  // Ano efetivo: se o ano escolhido não existe para este clube, cai em "Todos"
+  const anoEfetivo = ano !== 'Todos' && !anosDisponiveis.includes(Number(ano)) ? 'Todos' : ano;
+
+  // Jogos filtrados por ano
+  const jogos = useMemo(
+    () => anoEfetivo === 'Todos' ? jogosClube : jogosClube.filter(j => j.ano === Number(anoEfetivo)),
+    [jogosClube, anoEfetivo]
   );
 
   // Resumo do confronto (perspectiva do Botafogo)
@@ -304,7 +320,31 @@ export default function Clubes() {
               <div style={{ fontSize: 12, color: C.t3 }}>
                 {jogos.length} {jogos.length === 1 ? 'jogo' : 'jogos'} contra o Botafogo
                 {' · '}{porCompeticao.length} {porCompeticao.length === 1 ? 'campeonato' : 'campeonatos'}
+                {anoEfetivo !== 'Todos' && ` · ${anoEfetivo}`}
               </div>
+            </div>
+
+            {/* Filtro de ano */}
+            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              {['Todos', ...anosDisponiveis.map(String)].map(a => {
+                const active = anoEfetivo === a;
+                return (
+                  <button
+                    key={a}
+                    onClick={() => setAno(a)}
+                    style={{
+                      padding: '5px 14px', borderRadius: 20, cursor: 'pointer',
+                      border: `1px solid ${active ? C.accent : C.border}`,
+                      background: active ? C.accent : C.card,
+                      color: active ? '#000' : C.t2,
+                      fontSize: 11, fontWeight: active ? 700 : 500, fontFamily: 'inherit',
+                      letterSpacing: '0.3px', transition: 'all 0.12s ease',
+                    }}
+                  >
+                    {a}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
