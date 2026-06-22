@@ -325,7 +325,7 @@ export default function ChampionshipReport() {
               <FilterBtn key={c} label={c} active={campeonato === c} onClick={() => setCampeonato(c)} color={CAMP_COLORS[c]} />
             ))}
             <div style={{ width: 1, height: 18, background: C.border, flexShrink: 0 }} />
-            {['Todos', '2024', '2025'].map(a => (
+            {['Todos', '2024', '2025', '2026'].map(a => (
               <FilterBtn key={a} label={a} active={ano === a} onClick={() => setAno(a)} />
             ))}
           </div>

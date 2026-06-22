@@ -195,7 +195,7 @@ export default function Setores() {
       {/* Filters */}
       <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 10, padding: '10px 16px', boxShadow: SHADOW.card, display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <span style={sectionTitle}>Ano</span>
-        {['Todos', '2024', '2025'].map(y => (
+        {['Todos', '2024', '2025', '2026'].map(y => (
           <FilterBtn key={y} label={y} active={ano === y} onClick={() => setAno(y)} />
         ))}
         <div style={{ width: 1, height: 18, background: C.border, margin: '0 4px' }} />
