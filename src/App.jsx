@@ -7,9 +7,11 @@ import NoShow             from './pages/NoShow';
 import VisaoGeral         from './pages/VisaoGeral';
 import Precos             from './pages/Precos';
 import PL                from './pages/PL';
+import Clubes            from './pages/Clubes';
 
 const TABS = [
   { id: 'championship', label: 'Championship Report' },
+  { id: 'clubes',       label: 'Clubes' },
   { id: 'comparativo',  label: 'Comparativo' },
   { id: 'setores',      label: 'Setores' },
   { id: 'noshow',       label: 'No Show' },
@@ -99,6 +101,7 @@ export default function App() {
       {/* ── Page content ── */}
       <main style={{ padding:'20px 24px' }}>
         {tab === 'championship' && <ChampionshipReport />}
+        {tab === 'clubes'       && <Clubes />}
         {tab === 'comparativo'  && <Comparativo />}
         {tab === 'setores'      && <Setores />}
         {tab === 'noshow'       && <NoShow />}
