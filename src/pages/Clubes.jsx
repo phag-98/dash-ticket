@@ -1,16 +1,38 @@
 import { useState, useMemo } from 'react';
 import { C, SHADOW } from '../tokens';
 import { placares, ADV_LOGO, CAMP_LOGO } from '../data/placares';
+import { ingressos, torcedores } from '../data/data';
 
 // ─────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────
-const BOTAFOGO_LOGO = '/logos/Botafogo.png';
-
 const sectionTitle = {
   fontSize: 10, fontWeight: 700, color: C.t2,
   textTransform: 'uppercase', letterSpacing: '1.5px',
 };
+
+const fmtInt = v => (v ?? 0).toLocaleString('pt-BR');
+
+// Público por partida (apenas jogos como mandante), com split Sócio / Não Sócio.
+const SOCIO_IDS = new Set(torcedores.filter(t => t.socio === 'Sim').map(t => t.id));
+const PUBLICO_POR_PARTIDA = (() => {
+  const map = {};
+  ingressos.forEach(r => {
+    if (!r.idPartida) return;
+    if (!map[r.idPartida]) map[r.idPartida] = { socio: 0, naoSocio: 0 };
+    if (SOCIO_IDS.has(r.idTorcedor)) map[r.idPartida].socio += r.publico || 0;
+    else map[r.idPartida].naoSocio += r.publico || 0;
+  });
+  return map;
+})();
+
+function getPublico(idPartida) {
+  const p = idPartida && PUBLICO_POR_PARTIDA[idPartida];
+  if (!p) return null;
+  const total = p.socio + p.naoSocio;
+  if (total <= 0) return null;
+  return { ...p, total, pctSocio: p.socio / total };
+}
 
 function getInitials(name) {
   return name.split(/\s|-/).filter(w => w.length > 2).slice(0, 2)
@@ -77,6 +99,28 @@ function StatBox({ label, value, color = C.t1, sub }) {
   );
 }
 
+function PublicoCell({ pub }) {
+  if (!pub) {
+    return (
+      <div className="bfr-match__publico" style={{ fontSize: 10, color: C.t3, textAlign: 'right' }}>—</div>
+    );
+  }
+  const pct = Math.round(pub.pctSocio * 100);
+  return (
+    <div className="bfr-match__publico" title={`${fmtInt(pub.socio)} sócios · ${fmtInt(pub.naoSocio)} não sócios`}>
+      <div style={{ fontSize: 13, fontWeight: 800, color: C.t1, textAlign: 'right', lineHeight: 1 }}>
+        {fmtInt(pub.total)}
+      </div>
+      <div style={{
+        height: 5, borderRadius: 3, background: '#4a5568', overflow: 'hidden', margin: '4px 0 2px',
+      }}>
+        <div style={{ width: `${pub.pctSocio * 100}%`, height: '100%', background: C.accent }} />
+      </div>
+      <div style={{ fontSize: 9, color: C.t3, textAlign: 'right' }}>{pct}% sócios</div>
+    </div>
+  );
+}
+
 function MatchRow({ m }) {
   const meta = RESULT_META[m.resultado] || RESULT_META.E;
   const localLabel = m.local === 'C' ? 'Casa' : m.local === 'F' ? 'Fora' : 'Neutro';
@@ -85,6 +129,7 @@ function MatchRow({ m }) {
     m.diaSemana?.replace('-feira', ''),
     m.horario,
   ].filter(Boolean).join(' · ');
+  const pub = getPublico(m.idPartida);
   return (
     <div className="bfr-match">
       {/* Data + local/dia/horário */}
@@ -113,6 +158,9 @@ function MatchRow({ m }) {
           <span className="bfr-match__name">{m.adversario}</span>
         </div>
       </div>
+
+      {/* Público (só mandante) */}
+      <PublicoCell pub={pub} />
 
       {/* Resultado */}
       <div className="bfr-match__result" style={{
@@ -144,14 +192,18 @@ export default function Clubes() {
 
   // Resumo do confronto (perspectiva do Botafogo)
   const resumo = useMemo(() => {
-    const r = { v: 0, e: 0, d: 0, gp: 0, gc: 0 };
+    const r = { v: 0, e: 0, d: 0, gp: 0, gc: 0, pub: 0, pubSocio: 0, jogosComPub: 0 };
     jogos.forEach(j => {
       if (j.resultado === 'V') r.v++;
       else if (j.resultado === 'E') r.e++;
       else if (j.resultado === 'D') r.d++;
       r.gp += j.golsBotafogo ?? 0;
       r.gc += j.golsAdversario ?? 0;
+      const p = getPublico(j.idPartida);
+      if (p) { r.pub += p.total; r.pubSocio += p.socio; r.jogosComPub++; }
     });
+    r.mediaPub = r.jogosComPub ? Math.round(r.pub / r.jogosComPub) : 0;
+    r.pctSocio = r.pub ? r.pubSocio / r.pub : 0;
     return r;
   }, [jogos]);
 
@@ -268,6 +320,30 @@ export default function Clubes() {
               color={saldo > 0 ? C.green : saldo < 0 ? C.red : C.t2}
               sub={`${resumo.gp} pró · ${resumo.gc} contra`}
             />
+            <StatBox
+              label="Público (casa)"
+              value={fmtInt(resumo.pub)}
+              color={C.accentDim}
+              sub={resumo.jogosComPub ? `${resumo.jogosComPub} ${resumo.jogosComPub === 1 ? 'jogo' : 'jogos'} · ${Math.round(resumo.pctSocio * 100)}% sócios` : 'sem dados'}
+            />
+            <StatBox
+              label="Média/jogo (casa)"
+              value={fmtInt(resumo.mediaPub)}
+              color={C.accentDim}
+              sub="por mando"
+            />
+          </div>
+
+          {/* Legenda do público */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, fontSize: 10, color: C.t3, marginTop: -6, flexWrap: 'wrap' }}>
+            <span style={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.8px' }}>Público por jogo:</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <span style={{ width: 12, height: 8, borderRadius: 2, background: C.accent, display: 'inline-block' }} /> Sócio
+            </span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <span style={{ width: 12, height: 8, borderRadius: 2, background: '#4a5568', display: 'inline-block' }} /> Não sócio
+            </span>
+            <span>· disponível apenas para jogos como mandante</span>
           </div>
 
           {/* Jogos por campeonato */}
