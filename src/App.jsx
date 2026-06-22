@@ -9,9 +9,11 @@ import Precos             from './pages/Precos';
 import PL                from './pages/PL';
 import AHP               from './pages/AHP';
 import AHPAnalise        from './pages/AHPAnalise';
+import Clubes            from './pages/Clubes';
 
 const TABS = [
   { id: 'championship', label: 'Championship Report' },
+  { id: 'clubes',       label: 'Clubes' },
   { id: 'comparativo',  label: 'Comparativo' },
   { id: 'setores',      label: 'Setores' },
   { id: 'noshow',       label: 'No Show' },
@@ -124,6 +126,7 @@ export default function App() {
       {/* ── Page content ── */}
       <main style={{ padding:'16px 12px' }}>
         {tab === 'championship' && <ChampionshipReport />}
+        {tab === 'clubes'       && <Clubes />}
         {tab === 'comparativo'  && <Comparativo />}
         {tab === 'setores'      && <Setores />}
         {tab === 'noshow'       && <NoShow />}
