@@ -7,8 +7,8 @@ import {
 import { C, FONT, SHADOW, CAMP_COLORS as TOKEN_CAMP_COLORS } from '../tokens';
 import { TeamBadge, TeamXTick, TeamYTick, COMP_LOGOS } from '../teamLogos.jsx';
 import {
-  faturamentoPorPartida, publicoPorSetorPartida, unitarioPorTimeESetor,
-  publicoETicketPorTime, faturamentoPorCampeonatoAno, partidas, kpis,
+  faturamentoPorPartida, unitarioPorTimeESetor,
+  publicoETicketPorTime, partidas, kpis,
 } from '../data/data';
 
 const fmtM = v => {
