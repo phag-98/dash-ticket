@@ -34,7 +34,7 @@ const campColor = (c) => CAMP_COLORS?.[c] || C.accent;
 const sectionTitle = { fontSize: 10, fontWeight: 700, color: C.t2, textTransform: 'uppercase', letterSpacing: '1.5px' };
 
 const Card = ({ children, title, style }) => (
-  <div style={{ background: C.card, borderRadius: 12, boxShadow: SHADOW.sm, border: `1px solid ${C.border}`, overflow: 'hidden', ...style }}>
+  <div style={{ background: C.card, borderRadius: 12, boxShadow: SHADOW.card, border: `1px solid ${C.border}`, overflow: 'hidden', ...style }}>
     {title && (
       <div style={{ padding: '10px 16px', borderBottom: `1px solid ${C.border}`, ...sectionTitle }}>{title}</div>
     )}
@@ -144,7 +144,7 @@ export default function AHPAnalise() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       {/* ── Filtros ── */}
-      <div style={{ background: C.card, borderRadius: 12, padding: '14px 20px', boxShadow: SHADOW.sm, border: `1px solid ${C.border}` }}>
+      <div style={{ background: C.card, borderRadius: 12, padding: '14px 20px', boxShadow: SHADOW.card, border: `1px solid ${C.border}` }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <span style={sectionTitle}>Ano</span>
@@ -179,11 +179,11 @@ export default function AHPAnalise() {
       </div>
 
       {/* ── KPI cards ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
         {bucketStats.map(b => (
           <div key={b.label} style={{
             background: C.card, borderRadius: 12, padding: '14px 16px',
-            boxShadow: SHADOW.sm, border: `1px solid ${C.border}`,
+            boxShadow: SHADOW.card, border: `1px solid ${C.border}`,
             borderTop: `3px solid ${b.color}`,
           }}>
             <div style={{ fontSize: 10, fontWeight: 700, color: b.color, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: 6 }}>
