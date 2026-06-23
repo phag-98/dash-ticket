@@ -829,7 +829,11 @@ for _, r in dPart.sort_values('DATA').iterrows():
     })
 
 # Partidas excluídas da análise AHP (outliers contextuais)
-_AHP_EXCLUDE = {'2024.10.18-CAMBR2-30'}  # Criciúma 2024 — jogo decisivo, público atípico
+_AHP_EXCLUDE = {
+    '2024.10.18-CAMBR2-30',       # Criciúma 2024 — jogo decisivo, público atípico
+    '2024.10.30-CAMLI5-SEMIS',    # Peñarol 2024 — AHP alto, público atípico (1.233)
+    '2024.09.25-CAMLI5-QUARTAS',  # São Paulo 2024 — AHP alto, público atípico (2.530)
+}
 ahpScores = [s for s in ahpScores if s['idPartida'] not in _AHP_EXCLUDE]
 ahpScores.sort(key=lambda x: -(x['total'] or 0))
 

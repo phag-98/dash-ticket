@@ -7,6 +7,12 @@ import {
 import { C, SHADOW, CAMP_COLORS } from '../tokens';
 import { ahpScores } from '../data/data';
 
+// Outliers excluídos da análise: AHP alto, mas público atípico (jogos sem mando pleno)
+const EXCLUIDOS = new Set([
+  '2024.10.30-CAMLI5-SEMIS',    // Peñarol — público 1.233
+  '2024.09.25-CAMLI5-QUARTAS',  // São Paulo — público 2.530
+]);
+
 const BUCKETS = [
   { label: '1 – 2',     min: 1,   max: 2,   color: '#dc2626' },
   { label: '2 – 3',     min: 2,   max: 3,   color: '#f97316' },
@@ -55,7 +61,7 @@ export default function AHPAnalise() {
   const [camp, setCamp] = useState('Todos');
 
   const filtered = useMemo(() => {
-    let rows = ahpScores.filter(s => s.total !== null && s.publico > 0);
+    let rows = ahpScores.filter(s => s.total !== null && s.publico > 0 && !EXCLUIDOS.has(s.idPartida));
     if (ano  !== 'Todos') rows = rows.filter(s => String(s.ano) === ano);
     if (camp !== 'Todos') rows = rows.filter(s => s.campeonato === camp);
     return rows;
