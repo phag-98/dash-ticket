@@ -16,8 +16,9 @@ const TABS = [
   { id: 'clubes',       label: 'Clubes' },
   { id: 'comparativo',  label: 'Comparativo' },
   { id: 'setores',      label: 'Setores' },
-  { id: 'noshow',       label: 'No Show' },
-  { id: 'visaogeral',   label: 'Visão Geral' },
+  // Ocultas por enquanto (mantidas no código para reativar depois):
+  // { id: 'noshow',       label: 'No Show' },
+  // { id: 'visaogeral',   label: 'Visão Geral' },
   { id: 'precos',       label: 'Preços' },
   { id: 'pl',           label: 'P&L' },
   { id: 'ahp',          label: 'AHP' },

@@ -113,6 +113,8 @@ export const LOGO_MAP = {
   'Goiás':                   'Goiás.png',
   'Nova Iguaçu':             'NovaIguacuFC.png',
   'Lanús':                   'Lanús.png',
+  'PSG':                     'PSG.png',
+  'Seattle Sounders':        'Seattle_Sounders_FC.png',
 };
 
 export const TEAM_COLORS = {
