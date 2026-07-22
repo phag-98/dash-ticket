@@ -110,6 +110,9 @@ export const LOGO_MAP = {
   'Chapecoense':             'Chapecoense.svg.png',
   'Remo':                    'Remo.svg.png',
   'Independiente Petrolero': 'Independiente_Petrolero.png',
+  'Goiás':                   'Goiás.png',
+  'Nova Iguaçu':             'NovaIguacuFC.png',
+  'Lanús':                   'Lanús.png',
 };
 
 export const TEAM_COLORS = {
