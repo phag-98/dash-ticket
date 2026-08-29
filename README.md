@@ -1,16 +1,68 @@
-# React + Vite
+# Dash Ticket — Dashboard de Bilheteria (SAF Botafogo)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Dashboard de análise de bilheteria, público e resultado financeiro de partidas,
+construído em **React 19 + Vite**. Os dados de jogos, setores, torcedores e
+financeiro são consolidados a partir de planilhas Excel e renderizados em gráficos
+interativos (Recharts).
 
-Currently, two official plugins are available:
+## Abas
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+| Aba | Conteúdo |
+|-----|----------|
+| **Championship Report** | Visão por campeonato: público, faturamento e ticket médio por partida |
+| **Comparativo** | Comparação entre partidas / adversários |
+| **Setores** | Ocupação e faturamento por setor do estádio |
+| **No Show** | Análise de público que comprou mas não compareceu |
+| **Visão Geral** | KPIs gerais, dispersão público × ticket, sócios |
+| **Preços** | Valor unitário por time e tipo de ingresso |
+| **P&L** | Demonstrativo de receitas e custos por partida |
 
-## React Compiler
+## Como rodar
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Requer Node.js 18+.
 
-## Expanding the ESLint configuration
+```bash
+npm install      # instala dependências
+npm run dev      # ambiente de desenvolvimento (http://localhost:5173)
+npm run build    # build de produção em dist/
+npm run preview  # serve o build de produção localmente
+npm run lint     # ESLint
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## Dados
+
+A camada de dados é **gerada**, não editada à mão.
+
+- As fontes são os arquivos `.xlsx` na raiz (`dPartidas.xlsx`, `dSetores.xlsx`,
+  `fIngressos.xlsx`, `fBordero.xlsx`, `dCampeonatos.xlsx`, etc.).
+- O script `generate_data.py` lê essas planilhas, agrega/normaliza os dados e
+  escreve `src/data/data.js` (já pré-calculado e ordenado para o front-end).
+
+Para regenerar após atualizar as planilhas:
+
+```bash
+pip install pandas openpyxl
+python generate_data.py
+```
+
+> ⚠️ Não edite `src/data/data.js` manualmente — ele é sobrescrito pelo script.
+
+## Estrutura
+
+```
+src/
+  main.jsx            # entrypoint React
+  App.jsx             # layout + navegação por abas
+  tokens.js           # design tokens (cores, fontes, sombras)
+  teamLogos.jsx       # mapas de logos/cores dos times + componentes de tick
+  data/data.js        # dados gerados (não editar)
+  pages/              # uma página por aba
+public/logos/         # escudos dos times e campeonatos
+generate_data.py      # pipeline xlsx -> data.js
+```
+
+## Stack
+
+- React 19 · Vite 8
+- Recharts (gráficos) · lucide-react (ícones)
+- ESLint (flat config)

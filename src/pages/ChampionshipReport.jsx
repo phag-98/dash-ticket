@@ -6,7 +6,7 @@ import {
 import { C, SHADOW, CAMP_COLORS } from '../tokens';
 import { LOGO_MAP, TEAM_COLORS, TeamBadge, COMP_LOGOS } from '../teamLogos.jsx';
 import {
-  kpis, faturamentoPorPartida, publicoPorTorcedor, publicoPorSetorPartida,
+  kpis, faturamentoPorPartida, publicoPorTorcedor,
   partidas, faturamentoPorCampeonatoAno, ingressos, torcedores,
 } from '../data/data';
 
@@ -36,10 +36,6 @@ function CustomXTick({ x, y, payload }) {
 
 // Fix: merge ticketMedio correto de faturamentoPorPartida
 const fatMap = Object.fromEntries(faturamentoPorPartida.map(p => [p.idPartida, p.ticketMedio]));
-const publicoPorSetorPartidaFixed = publicoPorSetorPartida.map(p => ({
-  ...p,
-  ticketMedio: fatMap[p.idPartida] ?? p.ticketMedio,
-}));
 
 const CAMP_NAMES = [...new Set(partidas.map(p => p.campeonato).filter(Boolean))].sort();
 
@@ -59,7 +55,6 @@ const SETOR_PALETTE = {
   'Gratuidade':     C.t3,
   'Setor Visitante': C.red,
 };
-const getSetorColor = (nome) => SETOR_PALETTE[nome] || C.t3;
 
 const sectionTitle = {
   fontSize: 10, fontWeight: 700, color: C.t2,
@@ -175,34 +170,6 @@ export default function ChampionshipReport() {
       return true;
     });
   }, [campeonato, ano]);
-
-  const comboData = useMemo(() => {
-    return publicoPorSetorPartidaFixed
-      .filter(p => {
-        if (campeonato !== 'Todos' && p.campeonato !== campeonato) return false;
-        if (ano !== 'Todos' && String(p.ano) !== ano) return false;
-        if (selectedPartida && p.idPartida !== selectedPartida) return false;
-        return true;
-      })
-      .sort((a, b) => {
-        const da = a.data.split('/').reverse().join('-');
-        const db = b.data.split('/').reverse().join('-');
-        return da.localeCompare(db);
-      })
-      .map(p => ({ ...p, label: `${p.time}|${p.rodada}` }));
-  }, [campeonato, ano, selectedPartida]);
-
-  const setorKeys = useMemo(() => {
-    const keys = new Set();
-    comboData.forEach(row => {
-      Object.keys(row).forEach(k => {
-        if (!['idPartida','time','campeonato','rodada','data','ano','mes','diaSemana','horario','ticketMedio','label'].includes(k)) {
-          if (row[k] > 0) keys.add(k);
-        }
-      });
-    });
-    return [...keys];
-  }, [comboData]);
 
   const filteredKpis = useMemo(() => {
     const base = selectedPartida

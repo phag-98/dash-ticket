@@ -1,12 +1,16 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { C, FONT, FONT_UI } from './tokens';
-import ChampionshipReport from './pages/ChampionshipReport';
-import Comparativo        from './pages/Comparativo';
-import Setores            from './pages/Setores';
-import NoShow             from './pages/NoShow';
-import VisaoGeral         from './pages/VisaoGeral';
-import Precos             from './pages/Precos';
-import PL                from './pages/PL';
+
+// Lazy-loaded pages: each becomes its own chunk and the shared data module
+// (which fetches public/data.json via top-level await) only loads on demand,
+// keeping the initial app startup small.
+const ChampionshipReport = lazy(() => import('./pages/ChampionshipReport'));
+const Comparativo        = lazy(() => import('./pages/Comparativo'));
+const Setores            = lazy(() => import('./pages/Setores'));
+const NoShow             = lazy(() => import('./pages/NoShow'));
+const VisaoGeral         = lazy(() => import('./pages/VisaoGeral'));
+const Precos             = lazy(() => import('./pages/Precos'));
+const PL                 = lazy(() => import('./pages/PL'));
 
 const TABS = [
   { id: 'championship', label: 'Championship Report' },
@@ -98,13 +102,19 @@ export default function App() {
 
       {/* ── Page content ── */}
       <main style={{ padding:'20px 24px' }}>
-        {tab === 'championship' && <ChampionshipReport />}
-        {tab === 'comparativo'  && <Comparativo />}
-        {tab === 'setores'      && <Setores />}
-        {tab === 'noshow'       && <NoShow />}
-        {tab === 'visaogeral'   && <VisaoGeral />}
-        {tab === 'precos'       && <Precos />}
-        {tab === 'pl'           && <PL />}
+        <Suspense fallback={
+          <div style={{ padding:'80px 0', textAlign:'center', color:C.t3, fontSize:12, letterSpacing:'0.5px' }}>
+            Carregando…
+          </div>
+        }>
+          {tab === 'championship' && <ChampionshipReport />}
+          {tab === 'comparativo'  && <Comparativo />}
+          {tab === 'setores'      && <Setores />}
+          {tab === 'noshow'       && <NoShow />}
+          {tab === 'visaogeral'   && <VisaoGeral />}
+          {tab === 'precos'       && <Precos />}
+          {tab === 'pl'           && <PL />}
+        </Suspense>
       </main>
     </div>
   );

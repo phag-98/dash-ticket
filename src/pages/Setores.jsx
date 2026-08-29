@@ -138,12 +138,6 @@ export default function Setores() {
   const [ano, setAno]         = useState('Todos');
   const [campeonato, setCamp] = useState('Todos');
 
-  const filteredFat = useMemo(() => faturamentoPorPartida.filter(p => {
-    if (campeonato !== 'Todos' && p.campeonato !== campeonato) return false;
-    if (ano !== 'Todos' && String(p.ano) !== ano) return false;
-    return true;
-  }), [campeonato, ano]);
-
   // Two lines per year
   const mesData = useMemo(() => {
     const base = faturamentoPorPartida.filter(p => campeonato === 'Todos' || p.campeonato === campeonato);
@@ -155,13 +149,6 @@ export default function Setores() {
     });
     return MONTH_NAMES.map(m => ({ mes: m, '2024': m24[m] || null, '2025': m25[m] || null }));
   }, [campeonato]);
-
-  // Bar chart by game sorted by date
-  const adversarioData = useMemo(() => filteredFat
-    .slice()
-    .sort((a, b) => (a.data || '').split('/').reverse().join('-').localeCompare((b.data || '').split('/').reverse().join('-')))
-    .map(p => ({ ...p, label: `${p.time}|${p.rodada}` }))
-  , [filteredFat]);
 
   const filteredUnitario = useMemo(() => {
     return partidas

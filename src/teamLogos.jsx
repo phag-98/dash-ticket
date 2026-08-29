@@ -1,4 +1,7 @@
-// Shared team logo utilities
+// Shared team logo utilities (logo/color maps + tick/badge components).
+// Maps and components live together by design; the rule below only affects
+// HMR fast-refresh, not runtime behavior.
+/* eslint-disable react-refresh/only-export-components */
 
 export const COMP_LOGOS = {
   'Brasileirão':    'brasileirão_.png',
